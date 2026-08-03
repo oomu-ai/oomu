@@ -1,7 +1,7 @@
 # OOMU Community License (Version 1.2)
 ## Adapted from the PolyForm Noncommercial License 1.0.0
 
-**Effective date: July 10, 2026**
+**Effective date: August 3, 2026**
 
 This License permits only individual, natural persons to use the Software for the limited noncommercial purposes stated below. It excludes organizational, institutional, corporate, governmental, central-server, multi-user, SaaS, PaaS, hosted API, and commercially encumbered research uses unless the licensor grants a separate written commercial license.
 
@@ -171,9 +171,17 @@ If any organization you control, represent, work for, or act on behalf of makes 
 
 ## Violations
 
-The first time you are notified in writing that you have violated any of these terms, or done anything with the Software not covered by your licenses, your licenses can continue only if you come into full compliance with these terms and take practical steps to correct past violations within 32 days after receiving notice.
+The following are material violations of these terms:
 
-If you do not come into full compliance and take practical steps to correct past violations within that 32-day period, all your licenses end immediately.
+1. Any use of the Software for a Commercial Purpose.
+2. Any organizational, institutional, or governmental use that is not expressly permitted by the **Academic and Professional Researcher Carve-Out**.
+3. Any SaaS, PaaS, hosting, managed service, network service, API, central deployment, shared deployment, or server deployment prohibited by these terms.
+4. Removing, altering, obscuring, or omitting any required notice.
+5. Using the names, trademarks, service marks, logos, or other brand identifiers of the licensor or OOMU in a manner that is likely to cause confusion about source, sponsorship, affiliation, or endorsement.
+
+A material violation ends all your licenses automatically and immediately, without notice and without an opportunity to cure. This applies even if it is your first violation.
+
+For any violation that is not a material violation, your licenses can continue only if you come into full compliance with these terms and take practical steps to correct past violations within 32 days after receiving written notice. If you do not do so within that period, all your licenses end immediately.
 
 Any later violation ends all your licenses immediately.
 

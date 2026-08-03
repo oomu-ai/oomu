@@ -9,6 +9,8 @@
 </p>
 
 <p align="center">
+  <a href="downloads/README.md">Download</a>
+  ·
   <a href="https://oomu.ai/docs.html">Documentation</a>
   ·
   <a href="https://oomu.ai/docs-getting-started.html">First launch</a>
@@ -53,7 +55,7 @@ Read the [system design overview](https://oomu.ai/docs-system-design.html) for t
 
 The Community Edition is a full product, not a stripped-down demonstration. It is intended for individual builders and researchers who want a private, elegant AI workstation on their own Mac.
 
-For installation, first launch, projects, custom assistants, connections, and Mods, start with the [official documentation](https://oomu.ai/docs.html). The [Community Edition page](https://oomu.ai/community.html#download) carries current download availability.
+[Download the current signed beta](downloads/README.md). For installation, first launch, projects, custom assistants, connections, and Mods, start with the [official documentation](https://oomu.ai/docs.html).
 
 ## Run from source
 

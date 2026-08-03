@@ -145,7 +145,7 @@ export function releaseArtifactIdentifier(record, buildIdentifier) {
 export function releaseDmgName(record, productName) {
   const checked = validateReleaseVersionRecord(record);
   if (!/^[A-Za-z0-9._-]+$/u.test(productName ?? "")) fail("product name is invalid.");
-  return `${productName}-${checked.productVersion}-build.${checked.buildNumber}.dmg`;
+  return `${productName}-${checked.productVersion}.dmg`;
 }
 
 export function unsignedReleaseArtifactIdentity(record, buildIdentifier) {

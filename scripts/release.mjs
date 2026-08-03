@@ -47,6 +47,10 @@ import {
 } from "./release-environment.mjs";
 import { runCleanMachineQualification } from "./release-clean-machine.mjs";
 import {
+  assertDragInstallDmgRoot,
+  stageApplicationsShortcut,
+} from "./release-dmg-layout.mjs";
+import {
   loadReleaseVersionRecord,
   releaseArtifactIdentifier,
   releaseDmgName,
@@ -942,6 +946,8 @@ function notarizeAndCreateDmg(context, toolchain, built) {
   runStep("stage_dmg_app", toolchain.tools.ditto.executable, [
     appPath, join(dmgSource, basename(appPath)),
   ]);
+  stageApplicationsShortcut(dmgSource);
+  assertDragInstallDmgRoot(dmgSource, appPath);
   const dmgPath = join(
     workDir,
     releaseDmgName(releaseVersion, tauriConfig.productName),

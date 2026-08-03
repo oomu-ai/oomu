@@ -38,6 +38,10 @@ import {
   releaseDmgName,
 } from "./release-version.mjs";
 import {
+  assertDragInstallDmgRoot,
+  stageApplicationsShortcut,
+} from "./release-dmg-layout.mjs";
+import {
   assertSignedArtifactUnchanged,
   orderedNestedCodeTargets,
   signedArtifactIdentity,
@@ -336,6 +340,8 @@ function createAndNotarizeDmg(
   runApproved(toolchain, "ditto", [appPath, join(dmgRoot, basename(appPath))], {
     label: "stage signed application for DMG",
   });
+  stageApplicationsShortcut(dmgRoot);
+  assertDragInstallDmgRoot(dmgRoot, appPath);
   const dmgPath = join(
     workDirectory,
     releaseDmgName(context.releaseVersion, tauriConfig.productName),

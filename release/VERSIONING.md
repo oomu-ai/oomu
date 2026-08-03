@@ -16,9 +16,9 @@ the agreement before quality and release-integrity checks can pass.
 - Every signed candidate increments `buildNumber`. A build number is never
   reused, even when a candidate fails qualification or is not published.
 
-The release pipeline includes both the product version and the separate build
-number in artifact names and binds the complete version record into release
-metadata.
+The release pipeline binds both the product version and the separate build
+number into immutable internal evidence. The public DMG name contains only the
+product version so users receive a calm, conventional installer name.
 
 ## One-time transition from internal builds
 

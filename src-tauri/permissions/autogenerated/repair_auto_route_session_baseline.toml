@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-repair-auto-route-session-baseline"
+description = "Enables the repair_auto_route_session_baseline command without any pre-configured scope."
+commands.allow = ["repair_auto_route_session_baseline"]
+
+[[permission]]
+identifier = "deny-repair-auto-route-session-baseline"
+description = "Denies the repair_auto_route_session_baseline command without any pre-configured scope."
+commands.deny = ["repair_auto_route_session_baseline"]

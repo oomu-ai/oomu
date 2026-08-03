@@ -1,0 +1,5 @@
+[
+  "src/app/page.tsx",
+  "src-tauri/src/lib.rs",
+  "tools/developer-tools/src/main.rs"
+]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-acknowledge-task-failure"
+description = "Enables the acknowledge_task_failure command without any pre-configured scope."
+commands.allow = ["acknowledge_task_failure"]
+
+[[permission]]
+identifier = "deny-acknowledge-task-failure"
+description = "Denies the acknowledge_task_failure command without any pre-configured scope."
+commands.deny = ["acknowledge_task_failure"]

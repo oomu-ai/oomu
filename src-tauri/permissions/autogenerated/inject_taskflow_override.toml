@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-inject-taskflow-override"
+description = "Enables the inject_taskflow_override command without any pre-configured scope."
+commands.allow = ["inject_taskflow_override"]
+
+[[permission]]
+identifier = "deny-inject-taskflow-override"
+description = "Denies the inject_taskflow_override command without any pre-configured scope."
+commands.deny = ["inject_taskflow_override"]

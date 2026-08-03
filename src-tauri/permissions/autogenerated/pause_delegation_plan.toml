@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pause-delegation-plan"
+description = "Enables the pause_delegation_plan command without any pre-configured scope."
+commands.allow = ["pause_delegation_plan"]
+
+[[permission]]
+identifier = "deny-pause-delegation-plan"
+description = "Denies the pause_delegation_plan command without any pre-configured scope."
+commands.deny = ["pause_delegation_plan"]

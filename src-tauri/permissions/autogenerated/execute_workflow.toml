@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-execute-workflow"
+description = "Enables the execute_workflow command without any pre-configured scope."
+commands.allow = ["execute_workflow"]
+
+[[permission]]
+identifier = "deny-execute-workflow"
+description = "Denies the execute_workflow command without any pre-configured scope."
+commands.deny = ["execute_workflow"]

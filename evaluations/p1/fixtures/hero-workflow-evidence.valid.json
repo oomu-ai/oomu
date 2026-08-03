@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "workflowId": "p1-hero-meeting-to-action",
+  "buildBinding": {
+    "buildIdentifier": "sprint-243-qualified-candidate",
+    "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "artifactDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "executed": true,
+  "terminalState": "completed",
+  "startedAt": "2026-07-11T19:00:00.000Z",
+  "finishedAt": "2026-07-11T19:04:00.000Z",
+  "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+  "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+  "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+  "postconditions": [
+    {
+      "id": "media-provenance-preserved",
+      "evidenceClass": "observed_result",
+      "status": "verified",
+      "observedAt": "2026-07-11T19:00:30.000Z",
+      "evidenceIds": ["evidence:media:1"],
+      "details": {
+        "mediaAsset": {
+          "mediaAssetId": "media_018f0c9a-7b6d-7c21-8a43-9234567890ab",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "createdAt": "2026-07-11T19:00:10.000Z",
+          "retentionPolicy": { "mode": "task" },
+          "redactionPolicy": { "state": "applied", "categories": [] },
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab"
+        }
+      }
+    },
+    {
+      "id": "transcript-edits-auditable",
+      "evidenceClass": "observed_result",
+      "status": "verified",
+      "observedAt": "2026-07-11T19:01:00.000Z",
+      "evidenceIds": ["evidence:transcript:1"],
+      "details": {
+        "transcript": { "text": "Approved meeting transcript", "corrections": [] },
+        "decisions": { "sourceRanges": [{ "startMs": 1000, "endMs": 4200 }] }
+      }
+    },
+    {
+      "id": "desktop-observation-fresh",
+      "evidenceClass": "observed_result",
+      "status": "verified",
+      "observedAt": "2026-07-11T19:01:30.000Z",
+      "evidenceIds": ["evidence:observation:1"],
+      "details": {
+        "desktopObservation": {
+          "observationId": "observation_018f0c9a-7b6d-7c21-8a43-7234567890ab",
+          "application": { "bundleId": "com.apple.TextEdit" },
+          "window": { "windowRef": "window:main:3" },
+          "observedAt": "2026-07-11T19:01:20.000Z",
+          "elements": [{ "elementRef": "element:body:3", "expiresAt": "2026-07-11T19:01:50.000Z" }]
+        }
+      }
+    },
+    {
+      "id": "desktop-mutation-authorized",
+      "evidenceClass": "verified_postcondition",
+      "status": "verified",
+      "observedAt": "2026-07-11T19:02:00.000Z",
+      "evidenceIds": ["evidence:approval:1"],
+      "details": {
+        "desktopAction": {
+          "actionId": "action_018f0c9a-7b6d-7c21-8a43-8234567890ab",
+          "observationId": "observation_018f0c9a-7b6d-7c21-8a43-7234567890ab",
+          "target": { "elementRef": "element:body:3" },
+          "arguments": { "textLength": 19 },
+          "approvalId": "trustgrant_0123456789abcdef0123456789abcdef0123",
+          "expectedPostcondition": { "kind": "element_value" }
+        }
+      }
+    },
+    {
+      "id": "takeover-and-interruption-terminal",
+      "evidenceClass": "verified_postcondition",
+      "status": "verified",
+      "observedAt": "2026-07-11T19:03:00.000Z",
+      "evidenceIds": ["evidence:interruption:1"],
+      "details": {
+        "actionReceipt": {
+          "actionId": "action_018f0c9a-7b6d-7c21-8a43-8234567890ab",
+          "terminalState": "cancelled",
+          "interruptedAt": "2026-07-11T19:02:50.000Z",
+          "lateMutationCount": 0
+        }
+      }
+    },
+    {
+      "id": "application-state-verified",
+      "evidenceClass": "verified_postcondition",
+      "status": "verified",
+      "observedAt": "2026-07-11T19:04:00.000Z",
+      "evidenceIds": ["evidence:postcondition:1"],
+      "details": {
+        "actionReceipt": {
+          "actionId": "action_018f0c9a-7b6d-7c21-8a43-8234567890ab",
+          "postconditionObservationId": "observation_018f0c9a-7b6d-7c21-8a43-7234567890ab",
+          "terminalState": "completed",
+          "postconditionStatus": "verified"
+        }
+      }
+    }
+  ],
+  "resourceTelemetryRefs": ["telemetry-sample-001"]
+}

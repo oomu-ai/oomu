@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-prepare-agent-execution-replan"
+description = "Enables the prepare_agent_execution_replan command without any pre-configured scope."
+commands.allow = ["prepare_agent_execution_replan"]
+
+[[permission]]
+identifier = "deny-prepare-agent-execution-replan"
+description = "Denies the prepare_agent_execution_replan command without any pre-configured scope."
+commands.deny = ["prepare_agent_execution_replan"]

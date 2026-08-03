@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-undo-chat-session-deletion"
+description = "Enables the undo_chat_session_deletion command without any pre-configured scope."
+commands.allow = ["undo_chat_session_deletion"]
+
+[[permission]]
+identifier = "deny-undo-chat-session-deletion"
+description = "Denies the undo_chat_session_deletion command without any pre-configured scope."
+commands.deny = ["undo_chat_session_deletion"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-activate-sovereign-identity-session-passphrase"
+description = "Enables the activate_sovereign_identity_session_passphrase command without any pre-configured scope."
+commands.allow = ["activate_sovereign_identity_session_passphrase"]
+
+[[permission]]
+identifier = "deny-activate-sovereign-identity-session-passphrase"
+description = "Denies the activate_sovereign_identity_session_passphrase command without any pre-configured scope."
+commands.deny = ["activate_sovereign_identity_session_passphrase"]

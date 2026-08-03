@@ -1,0 +1,439 @@
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+@source "../**/*.{ts,tsx}";
+
+/*
+ * OOMU design tokens.
+ *
+ * Apple-style language: system typography, hairline separators, soft
+ * radii, one accent color, quiet tint-based hover states. Components
+ * consume these variables — change them here, re-skin everywhere.
+ */
+:root {
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --foreground-muted: rgba(29, 29, 31, 0.62);
+  --foreground-subtle: rgba(29, 29, 31, 0.45);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --border-soft: rgba(0, 0, 0, 0.05);
+  --accent: #007aff;
+  --accent-hover: #0071e8;
+  /* Inverse = primary emphasis. Maps to accent so every formerly
+     black-inverted selection/button becomes an accent surface. */
+  --inverse-background: var(--accent);
+  --inverse-foreground: #ffffff;
+  --accent-background: #f5f5f7; /* secondary surface (panels, headers) */
+  --background-muted: rgba(0, 0, 0, 0.035);
+  --background-translucent: rgba(255, 255, 255, 0.72);
+  --fill-hover: rgba(0, 0, 0, 0.045);
+  --fill-selected: rgba(0, 0, 0, 0.08);
+  --destructive: #ff3b30;
+  --destructive-background: rgba(255, 59, 48, 0.1);
+  --success: #34c759; /* Apple systemGreen */
+  --success-background: rgba(52, 199, 89, 0.12);
+  --warning: #ff9500; /* Apple systemOrange */
+  --warning-background: rgba(255, 149, 0, 0.12);
+  /* Route provenance — one shared pair so local vs cloud reads the same in the
+     composer chip, every message footer, and the Ledger. Local = on-device
+     (green); Cloud = left the device (blue, distinct from the accent). */
+  --route-local: #0f9d58;
+  --route-local-background: rgba(15, 157, 88, 0.1);
+  --route-local-border: rgba(15, 157, 88, 0.28);
+  --route-cloud: #0a84c7;
+  --route-cloud-background: rgba(10, 132, 199, 0.1);
+  --route-cloud-border: rgba(10, 132, 199, 0.28);
+  --route-cloud-glow: 0 0 18px rgba(10, 132, 199, 0.18);
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-base: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    monospace;
+}
+
+.dark {
+  --background: #1c1c1e;
+  --foreground: #f5f5f7;
+  --foreground-muted: rgba(245, 245, 247, 0.6);
+  --foreground-subtle: rgba(245, 245, 247, 0.42);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --accent: #0a84ff;
+  --accent-hover: #3395ff;
+  --inverse-foreground: #ffffff;
+  --accent-background: #2c2c2e;
+  --background-muted: rgba(255, 255, 255, 0.045);
+  --background-translucent: rgba(28, 28, 30, 0.72);
+  --fill-hover: rgba(255, 255, 255, 0.06);
+  --fill-selected: rgba(255, 255, 255, 0.1);
+  --destructive: #ff453a;
+  --destructive-background: rgba(255, 69, 58, 0.14);
+  --success: #30d158; /* Apple systemGreen (dark) */
+  --success-background: rgba(48, 209, 88, 0.16);
+  --warning: #ff9f0a; /* Apple systemOrange (dark) */
+  --warning-background: rgba(255, 159, 10, 0.16);
+  --route-local: #34d399;
+  --route-local-background: rgba(52, 211, 153, 0.14);
+  --route-local-border: rgba(52, 211, 153, 0.32);
+  --route-cloud: #38bdf8;
+  --route-cloud-background: rgba(56, 189, 248, 0.14);
+  --route-cloud-border: rgba(56, 189, 248, 0.32);
+  --route-cloud-glow: 0 0 18px rgba(56, 189, 248, 0.22);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border-strong: var(--border-strong);
+  --color-border-soft: var(--border-soft);
+  --color-inverse-background: var(--inverse-background);
+  --color-inverse-foreground: var(--inverse-foreground);
+  --color-accent-background: var(--accent-background);
+  --color-background-muted: var(--background-muted);
+  --color-background-translucent: var(--background-translucent);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-fill-hover: var(--fill-hover);
+  --color-fill-selected: var(--fill-selected);
+  --color-destructive: var(--destructive);
+  --color-destructive-background: var(--destructive-background);
+  --color-success: var(--success);
+  --color-success-background: var(--success-background);
+  --color-warning: var(--warning);
+  --color-warning-background: var(--warning-background);
+  --color-route-local: var(--route-local);
+  --color-route-local-background: var(--route-local-background);
+  --color-route-local-border: var(--route-local-border);
+  --color-route-cloud: var(--route-cloud);
+  --color-route-cloud-background: var(--route-cloud-background);
+  --color-route-cloud-border: var(--route-cloud-border);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+}
+
+/* Controls default to a soft radius; utility classes still override. */
+button,
+input,
+textarea,
+select {
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * One physical interaction language for every button in OOMU. Individual
+ * surfaces still choose primary, secondary, or destructive colors from the
+ * tokens above; these states make the response to a click predictable across
+ * the entire app, including older screens that have not moved to a shared
+ * component yet.
+ */
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    filter 120ms ease,
+    opacity 120ms ease,
+    transform 80ms ease;
+}
+
+button:not(:disabled):hover {
+  filter: brightness(0.985);
+}
+
+button:not(:disabled):active {
+  filter: brightness(0.94);
+  transform: translateY(1px) scale(0.985);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+button[aria-busy="true"] {
+  cursor: progress;
+}
+
+button[data-action-state="success"] {
+  border-color: color-mix(in srgb, var(--success) 58%, var(--border-strong));
+  box-shadow: 0 0 0 2px var(--success-background);
+}
+
+button[data-action-state="error"] {
+  border-color: color-mix(in srgb, var(--destructive) 58%, var(--border-strong));
+  box-shadow: 0 0 0 2px var(--destructive-background);
+}
+
+button[data-action-state="attention"] {
+  border-color: color-mix(in srgb, var(--warning) 58%, var(--border-strong));
+  box-shadow: 0 0 0 2px var(--warning-background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+
+  button:not(:disabled):active {
+    transform: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 128, 0.35) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--radius-base);
+  background-clip: padding-box;
+  background-color: rgba(120, 120, 128, 0.35);
+}
+
+.oomu-interactive-card {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid color-mix(in srgb, var(--border-soft) 60%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.oomu-interactive-card:hover {
+  border-color: var(--border-soft);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.oomu-accent-panel-toggle {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.oomu-accent-panel-toggle:hover {
+  background-color: var(--fill-hover);
+}
+
+.chat-message-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.chat-message-content p {
+  white-space: pre-wrap;
+}
+
+.chat-message-content > :first-child {
+  margin-top: 0;
+}
+
+.chat-message-content > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-message-content p,
+.chat-message-content ul,
+.chat-message-content ol,
+.chat-message-content blockquote,
+.chat-message-content pre,
+.chat-message-content table {
+  margin: 0.75rem 0;
+}
+
+.chat-message-content h1,
+.chat-message-content h2,
+.chat-message-content h3,
+.chat-message-content h4 {
+  margin: 1rem 0 0.5rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.chat-message-content h1 {
+  font-size: 1.25rem;
+}
+
+.chat-message-content h2 {
+  font-size: 1.125rem;
+}
+
+.chat-message-content h3,
+.chat-message-content h4 {
+  font-size: 1rem;
+}
+
+.chat-message-content ul,
+.chat-message-content ol {
+  padding-left: 1.5rem;
+}
+
+.chat-message-content ul {
+  list-style: disc;
+}
+
+.chat-message-content ol {
+  list-style: decimal;
+}
+
+.chat-message-content li + li {
+  margin-top: 0.25rem;
+}
+
+.chat-message-content li > p {
+  margin: 0;
+}
+
+.chat-message-content li > p + p {
+  margin-top: 0.5rem;
+}
+
+.chat-message-content blockquote {
+  border-left: 3px solid var(--border-soft);
+  padding-left: 1rem;
+  color: var(--foreground-muted);
+}
+
+.chat-message-content code {
+  background: var(--accent-background);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 0.125rem 0.3rem;
+}
+
+.chat-message-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--accent-background);
+  padding: 0.875rem 1rem;
+  white-space: pre;
+}
+
+.chat-message-content pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.chat-message-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.chat-message-content th,
+.chat-message-content td {
+  border: 1px solid var(--border-soft);
+  padding: 0.4rem 0.65rem;
+  text-align: left;
+}
+
+.chat-message-content hr {
+  margin: 1rem 0;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+/*
+ * Memory gauge: fades in only once a session starts filling up, so it
+ * stays out of the way until it's worth a glance. Quiet, no looping motion.
+ */
+@keyframes oomu-gauge-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes oomu-gauge-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/*
+ * Workflow run indicator: a quiet indeterminate bar shown only while a workflow
+ * is executing, so the composer never looks frozen. Honors reduced-motion by
+ * holding a steady fill instead of sliding.
+ */
+@keyframes oomu-progress-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.oomu-progress-indeterminate {
+  animation: oomu-progress-slide 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oomu-progress-indeterminate {
+    width: 100%;
+    transform: none;
+    animation: none;
+  }
+}

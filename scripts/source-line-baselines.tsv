@@ -1,0 +1,22 @@
+# path	maximum_lines	domain_owner
+src-tauri/src/agent_manager.rs	4751	agents/profile-persistence
+src-tauri/src/agentic_loop.rs	5766	agents/planning-execution
+src-tauri/src/db.rs	9201	persistence/core-transactions
+src-tauri/src/dom_streaming.rs	1578	native/dom_streaming
+src-tauri/src/gateway.rs	2287	channels/gateway-workers
+src-tauri/src/gemma.rs	3302	inference/local-model-lifecycle
+src-tauri/src/inference/dynamic_routing.rs	1290	native/inference
+src-tauri/src/inference/mod.rs	6637	inference/routing-transports
+src-tauri/src/knowledge.rs	2058	knowledge/vault
+src-tauri/src/lib.rs	890	app-shell/command-handler-wiring
+src-tauri/src/mcp/client.rs	4288	integrations/mcp-client
+src-tauri/src/memory_ledger.rs	4754	memory/ledger
+src-tauri/src/native_runtime.rs	3215	inference/native-runtime
+src-tauri/src/security/mods.rs	2890	security/mods
+src-tauri/src/shield_gate.rs	4302	security/shield
+src-tauri/src/system_diagnostics.rs	2826	diagnostics/native
+src-tauri/src/taskflow.rs	3247	orchestration/taskflow
+src-tauri/src/workflow_compiler.rs	3165	workflows/compiler
+src-tauri/src/workflow_runtime.rs	4756	workflows/runtime
+src/app/components/ChatScreen.tsx	8234	chat/presentation-orchestration
+src/app/components/__tests__/ChatScreen.test.tsx	6115	chat/real-component-tests

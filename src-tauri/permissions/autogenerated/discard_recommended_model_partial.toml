@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-discard-recommended-model-partial"
+description = "Enables the discard_recommended_model_partial command without any pre-configured scope."
+commands.allow = ["discard_recommended_model_partial"]
+
+[[permission]]
+identifier = "deny-discard-recommended-model-partial"
+description = "Denies the discard_recommended_model_partial command without any pre-configured scope."
+commands.deny = ["discard_recommended_model_partial"]

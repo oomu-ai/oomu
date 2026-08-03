@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-reconnect-task-events"
+description = "Enables the reconnect_task_events command without any pre-configured scope."
+commands.allow = ["reconnect_task_events"]
+
+[[permission]]
+identifier = "deny-reconnect-task-events"
+description = "Denies the reconnect_task_events command without any pre-configured scope."
+commands.deny = ["reconnect_task_events"]

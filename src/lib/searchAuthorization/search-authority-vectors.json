@@ -1,0 +1,121 @@
+[
+  {
+    "id": "kimi_fable_incident",
+    "utterance": "Go online and research what you can find about the new accusations that Kimi was trained from Fable",
+    "explicit": true,
+    "authorized": true,
+    "query": "the new accusations that Kimi was trained from Fable"
+  },
+  {
+    "id": "kimi_fable_case_and_punctuation",
+    "utterance": "GO ONLINE, AND RESEARCH: what you can find about the new accusations that Kimi was trained from Fable.",
+    "explicit": true,
+    "authorized": true,
+    "query": "the new accusations that Kimi was trained from Fable"
+  },
+  {
+    "id": "research_online",
+    "utterance": "Research online the public release history of OOMU",
+    "explicit": true,
+    "authorized": true,
+    "query": "the public release history of OOMU"
+  },
+  {
+    "id": "search_web",
+    "utterance": "Search the web for Rust release notes",
+    "explicit": true,
+    "authorized": true,
+    "query": "Rust release notes"
+  },
+  {
+    "id": "conversational_look_online",
+    "utterance": "Could you look online to find the latest stable Rust release?",
+    "explicit": true,
+    "authorized": true,
+    "query": "the latest stable Rust release"
+  },
+  {
+    "id": "red_sox_check_online_incident",
+    "utterance": "Check online to see if the Red Sox are playing today, July 27, 2026",
+    "explicit": true,
+    "authorized": true,
+    "query": "the Red Sox are playing today, July 27, 2026"
+  },
+  {
+    "id": "conversational_confirm_internet",
+    "utterance": "Could you confirm on the internet whether the Red Sox are playing today?",
+    "explicit": true,
+    "authorized": true,
+    "query": "the Red Sox are playing today"
+  },
+  {
+    "id": "conversational_verify_web",
+    "utterance": "Please verify using the web that Rust 1.97.1 is the latest stable release.",
+    "explicit": true,
+    "authorized": true,
+    "query": "Rust 1.97.1 is the latest stable release"
+  },
+  {
+    "id": "conversational_find_online",
+    "utterance": "Find online the official Red Sox schedule for July 27, 2026.",
+    "explicit": true,
+    "authorized": true,
+    "query": "the official Red Sox schedule for July 27, 2026"
+  },
+  {
+    "id": "scenario_07_exact_version_followup",
+    "utterance": "I'm trying to decide whether it's worth updating Rust right now. Could you look online to find the latest stable Rust release, then check the official release notes for that exact version and tell me whether it includes any newly stabilized language features? Give me a short recommendation with the version, release date, one example if there is one, and links to the official pages you used.",
+    "explicit": true,
+    "authorized": true,
+    "query": "the latest stable Rust release"
+  },
+  {
+    "id": "freshness_only",
+    "utterance": "What is the latest stable Rust release?",
+    "explicit": false,
+    "authorized": false,
+    "query": null
+  },
+  {
+    "id": "retrospective_check_online",
+    "utterance": "Did you check online to verify that?",
+    "explicit": false,
+    "authorized": false,
+    "query": null
+  },
+  {
+    "id": "negated_check_online",
+    "utterance": "Do not check online for the Red Sox schedule.",
+    "explicit": false,
+    "authorized": false,
+    "query": null
+  },
+  {
+    "id": "private_check_online",
+    "utterance": "Check online to see what is on my calendar tomorrow.",
+    "explicit": true,
+    "authorized": false,
+    "query": "what is on my calendar tomorrow"
+  },
+  {
+    "id": "private_calendar",
+    "utterance": "Go online and research what is on my calendar tomorrow",
+    "explicit": true,
+    "authorized": false,
+    "query": "what is on my calendar tomorrow"
+  },
+  {
+    "id": "unknown_topic",
+    "utterance": "Go online and research that",
+    "explicit": true,
+    "authorized": false,
+    "query": null
+  },
+  {
+    "id": "missing_topic",
+    "utterance": "Search the web",
+    "explicit": true,
+    "authorized": false,
+    "query": null
+  }
+]

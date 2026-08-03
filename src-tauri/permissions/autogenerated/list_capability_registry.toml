@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-capability-registry"
+description = "Enables the list_capability_registry command without any pre-configured scope."
+commands.allow = ["list_capability_registry"]
+
+[[permission]]
+identifier = "deny-list-capability-registry"
+description = "Denies the list_capability_registry command without any pre-configured scope."
+commands.deny = ["list_capability_registry"]

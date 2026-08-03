@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cancel-agent-execution-remaining-work"
+description = "Enables the cancel_agent_execution_remaining_work command without any pre-configured scope."
+commands.allow = ["cancel_agent_execution_remaining_work"]
+
+[[permission]]
+identifier = "deny-cancel-agent-execution-remaining-work"
+description = "Denies the cancel_agent_execution_remaining_work command without any pre-configured scope."
+commands.deny = ["cancel_agent_execution_remaining_work"]

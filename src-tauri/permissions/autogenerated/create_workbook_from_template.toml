@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-create-workbook-from-template"
+description = "Enables the create_workbook_from_template command without any pre-configured scope."
+commands.allow = ["create_workbook_from_template"]
+
+[[permission]]
+identifier = "deny-create-workbook-from-template"
+description = "Denies the create_workbook_from_template command without any pre-configured scope."
+commands.deny = ["create_workbook_from_template"]

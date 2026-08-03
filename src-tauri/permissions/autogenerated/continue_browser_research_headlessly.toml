@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-continue-browser-research-headlessly"
+description = "Enables the continue_browser_research_headlessly command without any pre-configured scope."
+commands.allow = ["continue_browser_research_headlessly"]
+
+[[permission]]
+identifier = "deny-continue-browser-research-headlessly"
+description = "Denies the continue_browser_research_headlessly command without any pre-configured scope."
+commands.deny = ["continue_browser_research_headlessly"]

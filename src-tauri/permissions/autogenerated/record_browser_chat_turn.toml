@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-record-browser-chat-turn"
+description = "Enables the record_browser_chat_turn command without any pre-configured scope."
+commands.allow = ["record_browser_chat_turn"]
+
+[[permission]]
+identifier = "deny-record-browser-chat-turn"
+description = "Denies the record_browser_chat_turn command without any pre-configured scope."
+commands.deny = ["record_browser_chat_turn"]

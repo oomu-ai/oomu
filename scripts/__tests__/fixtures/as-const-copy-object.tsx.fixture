@@ -1,0 +1,7 @@
+const copy = ({
+  title: "Weekly Decision Brief",
+} as const);
+
+export function AsConstCopyObject() {
+  return <h1>{copy.title}</h1>;
+}

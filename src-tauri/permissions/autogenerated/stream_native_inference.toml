@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-stream-native-inference"
+description = "Enables the stream_native_inference command without any pre-configured scope."
+commands.allow = ["stream_native_inference"]
+
+[[permission]]
+identifier = "deny-stream-native-inference"
+description = "Denies the stream_native_inference command without any pre-configured scope."
+commands.deny = ["stream_native_inference"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-upsert-sovereign-trust-policy"
+description = "Enables the upsert_sovereign_trust_policy command without any pre-configured scope."
+commands.allow = ["upsert_sovereign_trust_policy"]
+
+[[permission]]
+identifier = "deny-upsert-sovereign-trust-policy"
+description = "Denies the upsert_sovereign_trust_policy command without any pre-configured scope."
+commands.deny = ["upsert_sovereign_trust_policy"]

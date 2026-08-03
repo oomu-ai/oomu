@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-revise-presentation-scope"
+description = "Enables the revise_presentation_scope command without any pre-configured scope."
+commands.allow = ["revise_presentation_scope"]
+
+[[permission]]
+identifier = "deny-revise-presentation-scope"
+description = "Denies the revise_presentation_scope command without any pre-configured scope."
+commands.deny = ["revise_presentation_scope"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-default-prewarmed-model"
+description = "Enables the get_default_prewarmed_model command without any pre-configured scope."
+commands.allow = ["get_default_prewarmed_model"]
+
+[[permission]]
+identifier = "deny-get-default-prewarmed-model"
+description = "Denies the get_default_prewarmed_model command without any pre-configured scope."
+commands.deny = ["get_default_prewarmed_model"]

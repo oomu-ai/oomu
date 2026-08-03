@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-run-memory-comparative-audit"
+description = "Enables the run_memory_comparative_audit command without any pre-configured scope."
+commands.allow = ["run_memory_comparative_audit"]
+
+[[permission]]
+identifier = "deny-run-memory-comparative-audit"
+description = "Denies the run_memory_comparative_audit command without any pre-configured scope."
+commands.deny = ["run_memory_comparative_audit"]

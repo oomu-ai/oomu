@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-begin-connector-oauth"
+description = "Enables the begin_connector_oauth command without any pre-configured scope."
+commands.allow = ["begin_connector_oauth"]
+
+[[permission]]
+identifier = "deny-begin-connector-oauth"
+description = "Denies the begin_connector_oauth command without any pre-configured scope."
+commands.deny = ["begin_connector_oauth"]

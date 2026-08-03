@@ -1,0 +1,1 @@
+{"schemaVersion":1,"sprint":238,"qualificationStatus":"contract_tested_not_provider_and_device_qualified","contracts":["MediaAsset"],"checks":{"captureOffByDefault":true,"projectPolicyBound":true,"provenanceRecorded":true,"transcriptEditsVersioned":true,"unsafeMediaRejected":true}}

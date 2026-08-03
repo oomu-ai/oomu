@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chat-turn"
+description = "Enables the chat_turn command without any pre-configured scope."
+commands.allow = ["chat_turn"]
+
+[[permission]]
+identifier = "deny-chat-turn"
+description = "Denies the chat_turn command without any pre-configured scope."
+commands.deny = ["chat_turn"]

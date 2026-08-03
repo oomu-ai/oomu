@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-agentic-state"
+description = "Enables the save_agentic_state command without any pre-configured scope."
+commands.allow = ["save_agentic_state"]
+
+[[permission]]
+identifier = "deny-save-agentic-state"
+description = "Denies the save_agentic_state command without any pre-configured scope."
+commands.deny = ["save_agentic_state"]

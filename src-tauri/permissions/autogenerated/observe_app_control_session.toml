@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-observe-app-control-session"
+description = "Enables the observe_app_control_session command without any pre-configured scope."
+commands.allow = ["observe_app_control_session"]
+
+[[permission]]
+identifier = "deny-observe-app-control-session"
+description = "Denies the observe_app_control_session command without any pre-configured scope."
+commands.deny = ["observe_app_control_session"]

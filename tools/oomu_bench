@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+cargo run --manifest-path tools/developer-tools/Cargo.toml --features benchmark --bin oomu_bench -- "$@"

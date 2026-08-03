@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-preview-project-deletion"
+description = "Enables the preview_project_deletion command without any pre-configured scope."
+commands.allow = ["preview_project_deletion"]
+
+[[permission]]
+identifier = "deny-preview-project-deletion"
+description = "Denies the preview_project_deletion command without any pre-configured scope."
+commands.deny = ["preview_project_deletion"]

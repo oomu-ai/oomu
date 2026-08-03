@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-process-agent-objective"
+description = "Enables the process_agent_objective command without any pre-configured scope."
+commands.allow = ["process_agent_objective"]
+
+[[permission]]
+identifier = "deny-process-agent-objective"
+description = "Denies the process_agent_objective command without any pre-configured scope."
+commands.deny = ["process_agent_objective"]

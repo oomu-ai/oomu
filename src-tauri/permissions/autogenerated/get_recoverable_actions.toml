@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-recoverable-actions"
+description = "Enables the get_recoverable_actions command without any pre-configured scope."
+commands.allow = ["get_recoverable_actions"]
+
+[[permission]]
+identifier = "deny-get-recoverable-actions"
+description = "Denies the get_recoverable_actions command without any pre-configured scope."
+commands.deny = ["get_recoverable_actions"]

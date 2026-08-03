@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "kind": "oomu.macos-permission-lineage.bootstrap",
+  "lineageId": "oomu-public-macos-ai.eldris.oomu.gpd",
+  "bundleIdentifier": "ai.eldris.oomu.gpd",
+  "firstProductVersion": "0.1.0",
+  "firstBuildNumber": 1
+}

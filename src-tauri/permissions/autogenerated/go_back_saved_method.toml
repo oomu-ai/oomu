@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-go-back-saved-method"
+description = "Enables the go_back_saved_method command without any pre-configured scope."
+commands.allow = ["go_back_saved_method"]
+
+[[permission]]
+identifier = "deny-go-back-saved-method"
+description = "Denies the go_back_saved_method command without any pre-configured scope."
+commands.deny = ["go_back_saved_method"]

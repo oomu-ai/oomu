@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-compact-session-history"
+description = "Enables the compact_session_history command without any pre-configured scope."
+commands.allow = ["compact_session_history"]
+
+[[permission]]
+identifier = "deny-compact-session-history"
+description = "Denies the compact_session_history command without any pre-configured scope."
+commands.deny = ["compact_session_history"]

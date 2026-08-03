@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-retrieve-remote-artifact"
+description = "Enables the retrieve_remote_artifact command without any pre-configured scope."
+commands.allow = ["retrieve_remote_artifact"]
+
+[[permission]]
+identifier = "deny-retrieve-remote-artifact"
+description = "Denies the retrieve_remote_artifact command without any pre-configured scope."
+commands.deny = ["retrieve_remote_artifact"]

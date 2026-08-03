@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-macos-permission-states"
+description = "Enables the list_macos_permission_states command without any pre-configured scope."
+commands.allow = ["list_macos_permission_states"]
+
+[[permission]]
+identifier = "deny-list-macos-permission-states"
+description = "Denies the list_macos_permission_states command without any pre-configured scope."
+commands.deny = ["list_macos_permission_states"]

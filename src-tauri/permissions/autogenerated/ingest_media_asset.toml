@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ingest-media-asset"
+description = "Enables the ingest_media_asset command without any pre-configured scope."
+commands.allow = ["ingest_media_asset"]
+
+[[permission]]
+identifier = "deny-ingest-media-asset"
+description = "Denies the ingest_media_asset command without any pre-configured scope."
+commands.deny = ["ingest_media_asset"]

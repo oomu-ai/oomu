@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-reconcile-task-runs"
+description = "Enables the reconcile_task_runs command without any pre-configured scope."
+commands.allow = ["reconcile_task_runs"]
+
+[[permission]]
+identifier = "deny-reconcile-task-runs"
+description = "Denies the reconcile_task_runs command without any pre-configured scope."
+commands.deny = ["reconcile_task_runs"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-update-compiled-instruction"
+description = "Enables the update_compiled_instruction command without any pre-configured scope."
+commands.allow = ["update_compiled_instruction"]
+
+[[permission]]
+identifier = "deny-update-compiled-instruction"
+description = "Denies the update_compiled_instruction command without any pre-configured scope."
+commands.deny = ["update_compiled_instruction"]

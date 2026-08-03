@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "sampleId": "telemetry-sample-001",
+  "build": {
+    "buildIdentifier": "sprint-233-contract-gate",
+    "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "task": {
+    "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+    "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+    "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+    "workGraphId": "workgraph_018f0c9a-7b6d-7c21-8a43-d234567890ab"
+  },
+  "phase": "analysis",
+  "sampledAt": "2026-07-11T19:00:00.000Z",
+  "intervalMs": 1000,
+  "process": {
+    "pid": 4242,
+    "cpuTimeMs": 2500,
+    "cpuPercent": 18.5,
+    "residentMemoryBytes": 536870912,
+    "peakResidentMemoryBytes": 805306368,
+    "threadCount": 12,
+    "childProcessCount": 3
+  },
+  "system": {
+    "cpuPercent": 31.25,
+    "memoryUsedBytes": 12884901888,
+    "memoryAvailableBytes": 38654705664,
+    "thermalState": "nominal",
+    "powerSource": "external",
+    "batteryLevelPercent": 100
+  },
+  "resourceBudget": {
+    "limits": {
+      "tokens": 50000,
+      "wallTimeMs": 300000,
+      "memoryBytes": 1073741824,
+      "processes": 12,
+      "networkRequests": 100,
+      "toolCalls": 50,
+      "concurrentChildren": 8,
+      "mutations": 5
+    },
+    "usage": {
+      "tokens": 12000,
+      "wallTimeMs": 45000,
+      "peakMemoryBytes": 805306368,
+      "processes": 4,
+      "networkRequests": 8,
+      "toolCalls": 14,
+      "peakConcurrentChildren": 3,
+      "mutationAttempts": 2,
+      "mutationsCommitted": 2
+    },
+    "sampledAt": "2026-07-11T19:00:00.000Z"
+  },
+  "routingObservation": {
+    "providerId": "local_model",
+    "modelId": "configured-local-model",
+    "routeClass": "local",
+    "policyMutation": false
+  },
+  "measurement": {
+    "collector": "native-resource-sampler",
+    "source": "observed",
+    "clock": "wall_and_monotonic",
+    "monotonicSequence": 7
+  }
+}

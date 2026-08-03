@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-execute-agent-action-plan"
+description = "Enables the execute_agent_action_plan command without any pre-configured scope."
+commands.allow = ["execute_agent_action_plan"]
+
+[[permission]]
+identifier = "deny-execute-agent-action-plan"
+description = "Denies the execute_agent_action_plan command without any pre-configured scope."
+commands.deny = ["execute_agent_action_plan"]

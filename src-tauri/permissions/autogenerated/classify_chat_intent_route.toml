@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-classify-chat-intent-route"
+description = "Enables the classify_chat_intent_route command without any pre-configured scope."
+commands.allow = ["classify_chat_intent_route"]
+
+[[permission]]
+identifier = "deny-classify-chat-intent-route"
+description = "Denies the classify_chat_intent_route command without any pre-configured scope."
+commands.deny = ["classify_chat_intent_route"]

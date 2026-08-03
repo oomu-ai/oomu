@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-authorize-bundle-capability"
+description = "Enables the authorize_bundle_capability command without any pre-configured scope."
+commands.allow = ["authorize_bundle_capability"]
+
+[[permission]]
+identifier = "deny-authorize-bundle-capability"
+description = "Denies the authorize_bundle_capability command without any pre-configured scope."
+commands.deny = ["authorize_bundle_capability"]

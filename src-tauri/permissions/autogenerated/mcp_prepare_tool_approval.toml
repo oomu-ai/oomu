@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-mcp-prepare-tool-approval"
+description = "Enables the mcp_prepare_tool_approval command without any pre-configured scope."
+commands.allow = ["mcp_prepare_tool_approval"]
+
+[[permission]]
+identifier = "deny-mcp-prepare-tool-approval"
+description = "Denies the mcp_prepare_tool_approval command without any pre-configured scope."
+commands.deny = ["mcp_prepare_tool_approval"]

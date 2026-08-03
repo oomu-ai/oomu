@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-sovereign-trust-dashboard"
+description = "Enables the get_sovereign_trust_dashboard command without any pre-configured scope."
+commands.allow = ["get_sovereign_trust_dashboard"]
+
+[[permission]]
+identifier = "deny-get-sovereign-trust-dashboard"
+description = "Denies the get_sovereign_trust_dashboard command without any pre-configured scope."
+commands.deny = ["get_sovereign_trust_dashboard"]

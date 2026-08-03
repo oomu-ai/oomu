@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-learning-offers"
+description = "Enables the list_learning_offers command without any pre-configured scope."
+commands.allow = ["list_learning_offers"]
+
+[[permission]]
+identifier = "deny-list-learning-offers"
+description = "Denies the list_learning_offers command without any pre-configured scope."
+commands.deny = ["list_learning_offers"]

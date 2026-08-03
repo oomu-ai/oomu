@@ -1,0 +1,1201 @@
+{
+  "version": 1,
+  "files": {
+    "scripts/__tests__/check-jsx-literals.test.mjs": {
+      "owner": "release/quality-gates",
+      "functionLines": 178
+    },
+    "scripts/__tests__/p0-release-acceptance.test.mjs": {
+      "owner": "release/quality-gates",
+      "maxLineBytes": 906
+    },
+    "scripts/__tests__/p1-contract-gate.test.mjs": {
+      "owner": "release/quality-gates",
+      "functionLines": 171
+    },
+    "scripts/__tests__/p1-release-readiness.test.mjs": {
+      "owner": "release/quality-gates",
+      "maxLineBytes": 1322
+    },
+    "scripts/__tests__/release-integrity.test.mjs": {
+      "owner": "release/quality-gates",
+      "functionLines": 218
+    },
+    "scripts/check-novice-first-ui.mjs": {
+      "owner": "release/quality-gates",
+      "complexity": 46
+    },
+    "scripts/check-p0-architecture.mjs": {
+      "owner": "release/quality-gates",
+      "complexity": 17
+    },
+    "scripts/check-p1-contract-gate.mjs": {
+      "owner": "release/quality-gates",
+      "functionLines": 155,
+      "complexity": 36
+    },
+    "scripts/p0-golden-tasks.mjs": {
+      "owner": "release/quality-gates",
+      "complexity": 17
+    },
+    "scripts/p0-release-acceptance.mjs": {
+      "owner": "release/quality-gates",
+      "maxLineBytes": 624
+    },
+    "scripts/p1-release-readiness.mjs": {
+      "owner": "release/quality-gates",
+      "maxLineBytes": 2227
+    },
+    "scripts/release-gates/bundle-executable-allowlist.mjs": {
+      "owner": "release/quality-gates",
+      "complexity": 16
+    },
+    "scripts/sanitize-release.mjs": {
+      "owner": "release/quality-gates",
+      "complexity": 18
+    },
+    "scripts/workflow-compose-eval.mts": {
+      "owner": "release/quality-gates",
+      "functionLines": 133,
+      "complexity": 18
+    },
+    "src-tauri/src/agent_manager.rs": {
+      "owner": "agents/profile-persistence",
+      "bytes": 167146,
+      "maxLineBytes": 557,
+      "functionLines": 203,
+      "complexity": 40
+    },
+    "src-tauri/src/agentic_loop.rs": {
+      "owner": "agents/planning-execution",
+      "bytes": 200149,
+      "functionLines": 789,
+      "complexity": 91
+    },
+    "src-tauri/src/agentic_loop/contextual_route.rs": {
+      "owner": "native/agentic_loop",
+      "maxLineBytes": 690
+    },
+    "src-tauri/src/agentic_loop/decision_pack_postcondition.rs": {
+      "owner": "native/agentic_loop",
+      "maxLineBytes": 1036
+    },
+    "src-tauri/src/agentic_loop/execution_resume.rs": {
+      "owner": "native/agentic_loop",
+      "functionLines": 163,
+      "complexity": 28
+    },
+    "src-tauri/src/agentic_loop/permission_preflight.rs": {
+      "owner": "native/agentic_loop",
+      "functionLines": 163,
+      "complexity": 29
+    },
+    "src-tauri/src/agentic_loop/plan_coverage.rs": {
+      "owner": "native/agentic_loop",
+      "maxLineBytes": 574
+    },
+    "src-tauri/src/agentic_loop/plan_coverage/compound_requirements.rs": {
+      "owner": "native/agentic_loop",
+      "complexity": 34
+    },
+    "src-tauri/src/agentic_loop/plan_coverage/decision_pack_contract.rs": {
+      "owner": "native/agentic_loop",
+      "complexity": 38
+    },
+    "src-tauri/src/agentic_loop/plan_coverage/release_recovery_contract.rs": {
+      "owner": "native/agentic_loop",
+      "maxLineBytes": 1168
+    },
+    "src-tauri/src/agentic_loop/plan_coverage/specialist_composition.rs": {
+      "owner": "native/agentic_loop",
+      "maxLineBytes": 800
+    },
+    "src-tauri/src/agentic_loop/tests/plan_coverage.rs": {
+      "owner": "native/agentic_loop",
+      "maxLineBytes": 1812
+    },
+    "src-tauri/src/analysis/repository.rs": {
+      "owner": "native/analysis",
+      "maxLineBytes": 1080
+    },
+    "src-tauri/src/approval_scopes.rs": {
+      "owner": "native/approval_scopes",
+      "maxLineBytes": 542,
+      "functionLines": 184,
+      "complexity": 41
+    },
+    "src-tauri/src/artifacts/agent_tool_chat_execution_tests.rs": {
+      "owner": "native/artifacts",
+      "functionLines": 158
+    },
+    "src-tauri/src/artifacts/decision_pack/validation.rs": {
+      "owner": "native/artifacts",
+      "complexity": 57
+    },
+    "src-tauri/src/artifacts/decision_pack/workbook.rs": {
+      "owner": "native/artifacts",
+      "functionLines": 158
+    },
+    "src-tauri/src/artifacts/helper.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 859,
+      "functionLines": 260,
+      "complexity": 74
+    },
+    "src-tauri/src/artifacts/presentations/commands.rs": {
+      "owner": "native/artifacts",
+      "complexity": 26
+    },
+    "src-tauri/src/artifacts/presentations/exact_package_preview.rs": {
+      "owner": "native/artifacts",
+      "complexity": 32
+    },
+    "src-tauri/src/artifacts/presentations/export.rs": {
+      "owner": "native/artifacts",
+      "complexity": 30
+    },
+    "src-tauri/src/artifacts/presentations/layout_xml.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 1759
+    },
+    "src-tauri/src/artifacts/presentations/native_preview.rs": {
+      "owner": "native/artifacts",
+      "complexity": 37
+    },
+    "src-tauri/src/artifacts/presentations/ooxml.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 1400,
+      "functionLines": 166
+    },
+    "src-tauri/src/artifacts/presentations/policy.rs": {
+      "owner": "native/artifacts",
+      "complexity": 28
+    },
+    "src-tauri/src/artifacts/presentations/repository.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 557
+    },
+    "src-tauri/src/artifacts/presentations/revision.rs": {
+      "owner": "native/artifacts",
+      "complexity": 63
+    },
+    "src-tauri/src/artifacts/presentations/service.rs": {
+      "owner": "native/artifacts",
+      "complexity": 29
+    },
+    "src-tauri/src/artifacts/presentations/template.rs": {
+      "owner": "native/artifacts",
+      "complexity": 27
+    },
+    "src-tauri/src/artifacts/presentations/zip.rs": {
+      "owner": "native/artifacts",
+      "complexity": 40
+    },
+    "src-tauri/src/artifacts/repository.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 1144
+    },
+    "src-tauri/src/artifacts/runtime.rs": {
+      "owner": "native/artifacts",
+      "complexity": 37
+    },
+    "src-tauri/src/artifacts/validation.rs": {
+      "owner": "native/artifacts",
+      "complexity": 29
+    },
+    "src-tauri/src/artifacts/verifier.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 1018,
+      "complexity": 36
+    },
+    "src-tauri/src/artifacts/workbooks/agent_tool_tests.rs": {
+      "owner": "native/artifacts",
+      "functionLines": 151
+    },
+    "src-tauri/src/artifacts/workbooks/exact_package_preview.rs": {
+      "owner": "native/artifacts",
+      "complexity": 31
+    },
+    "src-tauri/src/artifacts/workbooks/fixture.rs": {
+      "owner": "native/artifacts",
+      "functionLines": 218
+    },
+    "src-tauri/src/artifacts/workbooks/native_preview.rs": {
+      "owner": "native/artifacts",
+      "complexity": 35
+    },
+    "src-tauri/src/artifacts/workbooks/ooxml.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 775
+    },
+    "src-tauri/src/artifacts/workbooks/preview.rs": {
+      "owner": "native/artifacts",
+      "functionLines": 220
+    },
+    "src-tauri/src/artifacts/workbooks/recalc.rs": {
+      "owner": "native/artifacts",
+      "complexity": 30
+    },
+    "src-tauri/src/artifacts/workbooks/repository.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 740,
+      "complexity": 30
+    },
+    "src-tauri/src/artifacts/workbooks/revision.rs": {
+      "owner": "native/artifacts",
+      "complexity": 36
+    },
+    "src-tauri/src/artifacts/workbooks/sheet_xml.rs": {
+      "owner": "native/artifacts",
+      "maxLineBytes": 983
+    },
+    "src-tauri/src/artifacts/workbooks/style_xml.rs": {
+      "owner": "native/artifacts",
+      "complexity": 31
+    },
+    "src-tauri/src/artifacts/workbooks/validation.rs": {
+      "owner": "native/artifacts",
+      "complexity": 40
+    },
+    "src-tauri/src/artifacts/workbooks/verification.rs": {
+      "owner": "native/artifacts",
+      "complexity": 29
+    },
+    "src-tauri/src/artifacts/workbooks/zip.rs": {
+      "owner": "native/artifacts",
+      "complexity": 40
+    },
+    "src-tauri/src/authority/mod.rs": {
+      "owner": "native/authority",
+      "complexity": 82
+    },
+    "src-tauri/src/authority/shield_decision.rs": {
+      "owner": "native/authority",
+      "maxLineBytes": 681,
+      "complexity": 97
+    },
+    "src-tauri/src/bin/local_infer.rs": {
+      "owner": "native/bin",
+      "functionLines": 229,
+      "complexity": 41
+    },
+    "src-tauri/src/browser_automation/commands.rs": {
+      "owner": "native/browser_automation",
+      "functionLines": 260,
+      "complexity": 67
+    },
+    "src-tauri/src/capability_bundles/repository.rs": {
+      "owner": "native/capability_bundles",
+      "maxLineBytes": 1087,
+      "complexity": 27
+    },
+    "src-tauri/src/capability_bundles/tests.rs": {
+      "owner": "native/capability_bundles",
+      "maxLineBytes": 567
+    },
+    "src-tauri/src/computer_use/macos_driver.rs": {
+      "owner": "native/computer_use",
+      "complexity": 40
+    },
+    "src-tauri/src/computer_use/manager.rs": {
+      "owner": "native/computer_use",
+      "functionLines": 312,
+      "complexity": 50
+    },
+    "src-tauri/src/computer_use/observation.rs": {
+      "owner": "native/computer_use",
+      "functionLines": 153
+    },
+    "src-tauri/src/computer_use/verification.rs": {
+      "owner": "native/computer_use",
+      "complexity": 49
+    },
+    "src-tauri/src/condition_expression.rs": {
+      "owner": "native/condition_expression",
+      "complexity": 27
+    },
+    "src-tauri/src/connectors/api.rs": {
+      "owner": "native/connectors",
+      "maxLineBytes": 969,
+      "complexity": 37
+    },
+    "src-tauri/src/connectors/commands.rs": {
+      "owner": "native/connectors",
+      "complexity": 30
+    },
+    "src-tauri/src/connectors/microsoft365/graph.rs": {
+      "owner": "native/connectors",
+      "functionLines": 155,
+      "complexity": 65
+    },
+    "src-tauri/src/connectors/microsoft365/graph_response.rs": {
+      "owner": "native/connectors",
+      "complexity": 29
+    },
+    "src-tauri/src/connectors/microsoft365/oidc.rs": {
+      "owner": "native/connectors",
+      "maxLineBytes": 675
+    },
+    "src-tauri/src/connectors/repository.rs": {
+      "owner": "native/connectors",
+      "maxLineBytes": 758
+    },
+    "src-tauri/src/connectors/runtime.rs": {
+      "owner": "native/connectors",
+      "maxLineBytes": 768,
+      "complexity": 27
+    },
+    "src-tauri/src/connectors/setup.rs": {
+      "owner": "native/connectors",
+      "complexity": 39
+    },
+    "src-tauri/src/db.rs": {
+      "owner": "persistence/core-transactions",
+      "bytes": 333775,
+      "functionLines": 443,
+      "complexity": 89
+    },
+    "src-tauri/src/db/agent_execution.rs": {
+      "owner": "native/db",
+      "functionLines": 184,
+      "complexity": 36
+    },
+    "src-tauri/src/db/agent_execution/cancellation.rs": {
+      "owner": "native/db",
+      "functionLines": 154,
+      "complexity": 34
+    },
+    "src-tauri/src/db/agent_execution_restart.rs": {
+      "owner": "native/db",
+      "complexity": 55
+    },
+    "src-tauri/src/db/chat_turn_acceptance.rs": {
+      "owner": "native/db",
+      "functionLines": 180,
+      "complexity": 26
+    },
+    "src-tauri/src/db/filesystem_context.rs": {
+      "owner": "native/db",
+      "complexity": 30
+    },
+    "src-tauri/src/db/recovery_merge.rs": {
+      "owner": "native/db",
+      "complexity": 32
+    },
+    "src-tauri/src/db/terminal.rs": {
+      "owner": "native/db",
+      "functionLines": 207,
+      "complexity": 57
+    },
+    "src-tauri/src/db/tests/agent_execution_recovery.rs": {
+      "owner": "native/db",
+      "maxLineBytes": 623,
+      "functionLines": 345
+    },
+    "src-tauri/src/db/tests/agent_execution_restart.rs": {
+      "owner": "native/db",
+      "maxLineBytes": 504,
+      "functionLines": 329
+    },
+    "src-tauri/src/db/tests/chat.rs": {
+      "owner": "native/db",
+      "functionLines": 193
+    },
+    "src-tauri/src/db/tests/workflow.rs": {
+      "owner": "native/db",
+      "functionLines": 232
+    },
+    "src-tauri/src/decision_pack/analysis.rs": {
+      "owner": "native/decision_pack",
+      "maxLineBytes": 521
+    },
+    "src-tauri/src/decision_pack/research.rs": {
+      "owner": "native/decision_pack",
+      "functionLines": 202,
+      "complexity": 26
+    },
+    "src-tauri/src/decision_pack/runtime.rs": {
+      "owner": "native/decision_pack",
+      "functionLines": 262,
+      "complexity": 50
+    },
+    "src-tauri/src/delegation/policy.rs": {
+      "owner": "native/delegation",
+      "complexity": 39
+    },
+    "src-tauri/src/delegation/repository.rs": {
+      "owner": "native/delegation",
+      "maxLineBytes": 924
+    },
+    "src-tauri/src/dom_streaming.rs": {
+      "owner": "native/dom_streaming",
+      "functionLines": 163
+    },
+    "src-tauri/src/gateway.rs": {
+      "owner": "channels/gateway-workers",
+      "functionLines": 194,
+      "complexity": 40
+    },
+    "src-tauri/src/gemma.rs": {
+      "owner": "inference/local-model-lifecycle",
+      "bytes": 118311,
+      "maxLineBytes": 1293
+    },
+    "src-tauri/src/gemma/action_plan_prompt.rs": {
+      "owner": "native/gemma",
+      "maxLineBytes": 3225
+    },
+    "src-tauri/src/inference/dynamic_routing.rs": {
+      "owner": "native/inference",
+      "maxLineBytes": 1386
+    },
+    "src-tauri/src/inference/mod.rs": {
+      "owner": "inference/routing-transports",
+      "bytes": 259916,
+      "maxLineBytes": 2053,
+      "functionLines": 1750,
+      "complexity": 218
+    },
+    "src-tauri/src/inference/provider_stream.rs": {
+      "owner": "native/inference",
+      "functionLines": 160,
+      "complexity": 33
+    },
+    "src-tauri/src/knowledge.rs": {
+      "owner": "knowledge/vault",
+      "complexity": 29
+    },
+    "src-tauri/src/learning/repository.rs": {
+      "owner": "native/learning",
+      "maxLineBytes": 801,
+      "complexity": 37
+    },
+    "src-tauri/src/lib.rs": {
+      "owner": "app-shell/command-handler-wiring",
+      "functionLines": 346,
+      "complexity": 61
+    },
+    "src-tauri/src/local_context.rs": {
+      "owner": "native/local_context",
+      "functionLines": 240,
+      "complexity": 50
+    },
+    "src-tauri/src/mcp/client.rs": {
+      "owner": "integrations/mcp-client",
+      "bytes": 154621,
+      "functionLines": 153,
+      "complexity": 31
+    },
+    "src-tauri/src/mcp/client/tests/invocation.rs": {
+      "owner": "native/mcp",
+      "functionLines": 173
+    },
+    "src-tauri/src/mcp/taskflow.rs": {
+      "owner": "native/mcp",
+      "complexity": 43
+    },
+    "src-tauri/src/media/repository.rs": {
+      "owner": "native/media",
+      "maxLineBytes": 863,
+      "complexity": 29
+    },
+    "src-tauri/src/memory_ledger.rs": {
+      "owner": "memory/ledger",
+      "bytes": 171743,
+      "maxLineBytes": 2141,
+      "functionLines": 182,
+      "complexity": 34
+    },
+    "src-tauri/src/memory_ledger/session_boundary.rs": {
+      "owner": "native/memory_ledger",
+      "maxLineBytes": 604
+    },
+    "src-tauri/src/native_runtime.rs": {
+      "owner": "inference/native-runtime",
+      "bytes": 114924,
+      "functionLines": 258,
+      "complexity": 52
+    },
+    "src-tauri/src/network_policy.rs": {
+      "owner": "native/network_policy",
+      "complexity": 36
+    },
+    "src-tauri/src/projects/deletion.rs": {
+      "owner": "native/projects",
+      "functionLines": 198,
+      "complexity": 80
+    },
+    "src-tauri/src/projects/deletion_tests.rs": {
+      "owner": "native/projects",
+      "functionLines": 151
+    },
+    "src-tauri/src/remote_access/artifact_transfer.rs": {
+      "owner": "native/remote_access",
+      "complexity": 29
+    },
+    "src-tauri/src/remote_access/command_store.rs": {
+      "owner": "native/remote_access",
+      "functionLines": 257,
+      "complexity": 57
+    },
+    "src-tauri/src/remote_access/execution_commit.rs": {
+      "owner": "native/remote_access",
+      "complexity": 41
+    },
+    "src-tauri/src/remote_access/repository.rs": {
+      "owner": "native/remote_access",
+      "maxLineBytes": 519
+    },
+    "src-tauri/src/remote_routines.rs": {
+      "owner": "native/remote_routines",
+      "complexity": 29
+    },
+    "src-tauri/src/routines/commands.rs": {
+      "owner": "native/routines",
+      "maxLineBytes": 1358
+    },
+    "src-tauri/src/routines/history.rs": {
+      "owner": "native/routines",
+      "complexity": 27
+    },
+    "src-tauri/src/routines/repository.rs": {
+      "owner": "native/routines",
+      "maxLineBytes": 1082,
+      "complexity": 28
+    },
+    "src-tauri/src/scenario_one_e2e_profile.rs": {
+      "owner": "native/scenario_one_e2e_profile",
+      "complexity": 43
+    },
+    "src-tauri/src/security/mod_package.rs": {
+      "owner": "native/security",
+      "complexity": 30
+    },
+    "src-tauri/src/security/mod_trust.rs": {
+      "owner": "native/security",
+      "complexity": 32
+    },
+    "src-tauri/src/security/mods.rs": {
+      "owner": "security/mods",
+      "bytes": 101872,
+      "complexity": 30
+    },
+    "src-tauri/src/shield_gate.rs": {
+      "owner": "security/shield",
+      "bytes": 151622,
+      "functionLines": 347,
+      "complexity": 68
+    },
+    "src-tauri/src/shield_gate/external_file_binding.rs": {
+      "owner": "native/shield_gate",
+      "complexity": 30
+    },
+    "src-tauri/src/sovereign_search.rs": {
+      "owner": "native/sovereign_search",
+      "functionLines": 189
+    },
+    "src-tauri/src/system_diagnostics.rs": {
+      "owner": "diagnostics/native",
+      "functionLines": 153
+    },
+    "src-tauri/src/taskflow.rs": {
+      "owner": "orchestration/taskflow",
+      "bytes": 114567,
+      "functionLines": 312,
+      "complexity": 59
+    },
+    "src-tauri/src/tasks/effect_verification.rs": {
+      "owner": "native/tasks",
+      "maxLineBytes": 807,
+      "complexity": 38
+    },
+    "src-tauri/src/tasks/repository.rs": {
+      "owner": "native/tasks",
+      "complexity": 38
+    },
+    "src-tauri/src/tests/agentic_loop/continuation.rs": {
+      "owner": "native/tests",
+      "maxLineBytes": 1406
+    },
+    "src-tauri/src/tests/gemma.rs": {
+      "owner": "native/tests",
+      "maxLineBytes": 643
+    },
+    "src-tauri/src/tests/scenario_one_functional.rs": {
+      "owner": "native/tests",
+      "maxLineBytes": 1480
+    },
+    "src-tauri/src/tools/decision_pack_mail.rs": {
+      "owner": "native/tools",
+      "complexity": 27
+    },
+    "src-tauri/src/tools/eventkit_calendar/create.rs": {
+      "owner": "native/tools",
+      "functionLines": 161,
+      "complexity": 26
+    },
+    "src-tauri/src/tools/evidence_artifacts.rs": {
+      "owner": "native/tools",
+      "maxLineBytes": 2196,
+      "functionLines": 186,
+      "complexity": 26
+    },
+    "src-tauri/src/tools/evidence_artifacts/cloud_analysis.rs": {
+      "owner": "native/tools",
+      "complexity": 29
+    },
+    "src-tauri/src/tools/registry.rs": {
+      "owner": "native/tools",
+      "functionLines": 214
+    },
+    "src-tauri/src/tools/registry/objective_scope.rs": {
+      "owner": "native/tools",
+      "complexity": 42
+    },
+    "src-tauri/src/tools/registry/objective_scope_tests.rs": {
+      "owner": "native/tools",
+      "functionLines": 227
+    },
+    "src-tauri/src/tools/system_calendar_event.rs": {
+      "owner": "native/tools",
+      "functionLines": 212,
+      "complexity": 39
+    },
+    "src-tauri/src/tools/system_calendar_event/exact_conflict.rs": {
+      "owner": "native/tools",
+      "complexity": 38
+    },
+    "src-tauri/src/tools/system_contacts.rs": {
+      "owner": "native/tools",
+      "functionLines": 189
+    },
+    "src-tauri/src/tools/system_mail.rs": {
+      "owner": "native/tools",
+      "functionLines": 164
+    },
+    "src-tauri/src/verifier.rs": {
+      "owner": "native/verifier",
+      "complexity": 32
+    },
+    "src-tauri/src/workflow_compiler.rs": {
+      "owner": "workflows/compiler",
+      "bytes": 113865
+    },
+    "src-tauri/src/workflow_compiler/registered_task_capabilities.rs": {
+      "owner": "native/workflow_compiler",
+      "functionLines": 191,
+      "complexity": 39
+    },
+    "src-tauri/src/workflow_compiler/registered_task_capabilities/evidence_report_binding.rs": {
+      "owner": "native/workflow_compiler",
+      "complexity": 43
+    },
+    "src-tauri/src/workflow_compiler/specialist_composer.rs": {
+      "owner": "native/workflow_compiler",
+      "maxLineBytes": 1104
+    },
+    "src-tauri/src/workflow_compiler/tests/capability.rs": {
+      "owner": "native/workflow_compiler",
+      "maxLineBytes": 1235,
+      "functionLines": 164
+    },
+    "src-tauri/src/workflow_compiler/tests/compiler.rs": {
+      "owner": "native/workflow_compiler",
+      "maxLineBytes": 997
+    },
+    "src-tauri/src/workflow_ir.rs": {
+      "owner": "native/workflow_ir",
+      "functionLines": 235,
+      "complexity": 44
+    },
+    "src-tauri/src/workflow_prompts.rs": {
+      "owner": "native/workflow_prompts",
+      "maxLineBytes": 934
+    },
+    "src-tauri/src/workflow_runtime.rs": {
+      "owner": "workflows/runtime",
+      "bytes": 166919,
+      "functionLines": 388,
+      "complexity": 54
+    },
+    "src-tauri/src/workflow_runtime/task_tools.rs": {
+      "owner": "native/workflow_runtime",
+      "functionLines": 170,
+      "complexity": 38
+    },
+    "src-tauri/src/workflow_runtime/tests/support_continued/mcp.rs": {
+      "owner": "native/workflow_runtime",
+      "functionLines": 172
+    },
+    "src-tauri/src/workflow_scheduler.rs": {
+      "owner": "native/workflow_scheduler",
+      "maxLineBytes": 715,
+      "functionLines": 227,
+      "complexity": 31
+    },
+    "src-tauri/src/workflow_scheduler/delivery.rs": {
+      "owner": "native/workflow_scheduler",
+      "maxLineBytes": 624,
+      "complexity": 26
+    },
+    "src-tauri/src/workflow_scheduler/tests/orchestration.rs": {
+      "owner": "native/workflow_scheduler",
+      "functionLines": 197
+    },
+    "src/app/components/AgentTemplateLibraryScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 383
+    },
+    "src/app/components/ChannelsDashboard.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 254
+    },
+    "src/app/components/ChatComposer.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 656,
+      "complexity": 22
+    },
+    "src/app/components/ChatScreen.tsx": {
+      "owner": "chat/presentation-orchestration",
+      "bytes": 321766,
+      "functionLines": 5454,
+      "complexity": 136
+    },
+    "src/app/components/HomeChrome.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 387
+    },
+    "src/app/components/ImportAgentScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 528
+    },
+    "src/app/components/ModelsScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 689
+    },
+    "src/app/components/ModsScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 517
+    },
+    "src/app/components/SavedWorkflows.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 350
+    },
+    "src/app/components/SovereignLedger.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 468
+    },
+    "src/app/components/WorkflowComposer.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 1027,
+      "complexity": 22
+    },
+    "src/app/components/WorkflowStoryboard.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 219
+    },
+    "src/app/components/__tests__/AgentProfileView.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 153
+    },
+    "src/app/components/__tests__/ChatComposer.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 158
+    },
+    "src/app/components/__tests__/ChatScreen.execution-boundaries.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 457
+    },
+    "src/app/components/__tests__/ChatScreen.mail.test.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 515,
+      "functionLines": 230
+    },
+    "src/app/components/__tests__/ChatScreen.native-contracts.test.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1080
+    },
+    "src/app/components/__tests__/ChatScreen.presentation-contracts.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 473
+    },
+    "src/app/components/__tests__/ChatScreen.test.tsx": {
+      "owner": "chat/real-component-tests",
+      "bytes": 225947,
+      "functionLines": 5982
+    },
+    "src/app/components/__tests__/ChatScreen.verified-execution-boundaries.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 199
+    },
+    "src/app/components/__tests__/DegradedModeLanding.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 309
+    },
+    "src/app/components/__tests__/ModsScreen.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 774
+    },
+    "src/app/components/__tests__/TrustSummary.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 129
+    },
+    "src/app/components/__tests__/WorkflowComposer.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 773
+    },
+    "src/app/components/__tests__/WorkflowStoryboard.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 233
+    },
+    "src/app/components/__tests__/useWorkflowRun.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 129
+    },
+    "src/app/components/__tests__/workflowLibrary.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 174
+    },
+    "src/app/components/analysis/AnalysisResults.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 2118
+    },
+    "src/app/components/artifacts/ArtifactStudio.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 181
+    },
+    "src/app/components/artifacts/ArtifactStudio.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 2712
+    },
+    "src/app/components/artifacts/presentations/PresentationDocumentReview.test.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 527,
+      "functionLines": 172
+    },
+    "src/app/components/artifacts/presentations/PresentationDocumentReview.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 2500
+    },
+    "src/app/components/artifacts/review/CreateDocumentAction.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1786
+    },
+    "src/app/components/artifacts/workbooks/WorkbookDocumentReview.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 2959
+    },
+    "src/app/components/browser_automation/BrowserTaskPanel.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 248
+    },
+    "src/app/components/browser_automation/BrowserTaskPanel.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 217
+    },
+    "src/app/components/chat/BrowserModPanel.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 169
+    },
+    "src/app/components/chat/ChatFirstRun.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 173
+    },
+    "src/app/components/chat/ChatScreenIcons.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 525
+    },
+    "src/app/components/chat/RecoveryReceiptCard.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 405
+    },
+    "src/app/components/chat/RecoveryReceiptCard.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 641,
+      "complexity": 123
+    },
+    "src/app/components/chat/RecoveryReceiptChatIntegration.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 480,
+      "complexity": 27
+    },
+    "src/app/components/chat/ShieldApprovalDialog.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 773
+    },
+    "src/app/components/chat/ShieldApprovalDialog.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 902,
+      "functionLines": 334,
+      "complexity": 76
+    },
+    "src/app/components/chat/agentExecutionRecovery.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 345
+    },
+    "src/app/components/chat/chatErrorGroups.ts": {
+      "owner": "renderer/components",
+      "functionLines": 143,
+      "complexity": 78
+    },
+    "src/app/components/chat/directLocalFileRead.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 134
+    },
+    "src/app/components/chat/executionIntentPolicy.ts": {
+      "owner": "renderer/components",
+      "maxLineBytes": 514
+    },
+    "src/app/components/chat/localPathIntent.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 155
+    },
+    "src/app/components/chat/localPathIntent.ts": {
+      "owner": "renderer/components",
+      "maxLineBytes": 618
+    },
+    "src/app/components/chat/localSearchContext.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 163
+    },
+    "src/app/components/chat/localSearchContext.ts": {
+      "owner": "renderer/components",
+      "complexity": 16
+    },
+    "src/app/components/chat/mcpToolResults.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 204
+    },
+    "src/app/components/chat/mcpToolResults.ts": {
+      "owner": "renderer/components",
+      "complexity": 16
+    },
+    "src/app/components/chat/useRecoveryReceiptProjection.ts": {
+      "owner": "renderer/components",
+      "functionLines": 157
+    },
+    "src/app/components/computer_use/AppControlMonitor.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 214
+    },
+    "src/app/components/dashboard/OperationsControl.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 274,
+      "complexity": 17
+    },
+    "src/app/components/delegation/ChildWorkstreams.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1379
+    },
+    "src/app/components/hero/DecisionBriefScreen.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 156
+    },
+    "src/app/components/hero/DecisionBriefScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 177
+    },
+    "src/app/components/integrations/IntegrationsScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 151
+    },
+    "src/app/components/integrations/SetupJourney.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 363
+    },
+    "src/app/components/integrations/microsoft365/Microsoft365ControlPanel.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 130
+    },
+    "src/app/components/integrations/microsoft365/Microsoft365ControlPanel.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1285
+    },
+    "src/app/components/learning/LearningReview.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 368
+    },
+    "src/app/components/learning/learningClient.ts": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1049
+    },
+    "src/app/components/media/MediaTaskPanel.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 3202
+    },
+    "src/app/components/media/mediaClient.ts": {
+      "owner": "renderer/components",
+      "maxLineBytes": 505
+    },
+    "src/app/components/projects/ProjectsScreen.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 207
+    },
+    "src/app/components/projects/ProjectsScreen.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 3085,
+      "functionLines": 167
+    },
+    "src/app/components/routines/RoutineAuthorityReview.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 142,
+      "complexity": 16
+    },
+    "src/app/components/routines/RoutineDetails.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 174
+    },
+    "src/app/components/routines/RoutinesScreen.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 453
+    },
+    "src/app/components/routines/RoutinesScreen.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 515
+    },
+    "src/app/components/routines/ScheduleBuilder.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 373
+    },
+    "src/app/components/routines/ScheduleCadenceFields.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 228
+    },
+    "src/app/components/routines/routineLabels.ts": {
+      "owner": "renderer/components",
+      "complexity": 19
+    },
+    "src/app/components/routines/workflowReviewCapabilities.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 271
+    },
+    "src/app/components/routines/workflowReviewCapabilities.ts": {
+      "owner": "renderer/components",
+      "complexity": 23
+    },
+    "src/app/components/settings/GeneralSettingsPanel.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 404
+    },
+    "src/app/components/settings/PrivacyPanel.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 264
+    },
+    "src/app/components/settings/RemoteDevicesPanel.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 197
+    },
+    "src/app/components/settings/TrustPanel.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1278,
+      "functionLines": 580
+    },
+    "src/app/components/settings/UserConfigPanel.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 259
+    },
+    "src/app/components/tasks/EvidenceTimeline.tsx": {
+      "owner": "renderer/components",
+      "maxLineBytes": 1513
+    },
+    "src/app/components/tasks/TaskCenter.operations.test.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 361
+    },
+    "src/app/components/tasks/TaskCenter.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 427
+    },
+    "src/app/components/tasks/TaskEffectVerificationCard.tsx": {
+      "owner": "renderer/components",
+      "functionLines": 133
+    },
+    "src/app/components/useWorkflowRun.ts": {
+      "owner": "renderer/components",
+      "functionLines": 328
+    },
+    "src/app/components/useWorkflowTemplateLoader.ts": {
+      "owner": "renderer/components",
+      "functionLines": 153
+    },
+    "src/app/components/workflowApprovalPreview.test.ts": {
+      "owner": "renderer/components",
+      "functionLines": 293
+    },
+    "src/app/components/workflowApprovalPreview.ts": {
+      "owner": "renderer/components",
+      "complexity": 21
+    },
+    "src/app/components/workflowIr.ts": {
+      "owner": "renderer/components",
+      "functionLines": 194
+    },
+    "src/app/page.tsx": {
+      "owner": "renderer/application",
+      "functionLines": 1329,
+      "complexity": 35
+    },
+    "src/components/AgentProfileView.tsx": {
+      "owner": "renderer/shell",
+      "functionLines": 912,
+      "complexity": 24
+    },
+    "src/components/AppShell.tsx": {
+      "owner": "renderer/shell",
+      "functionLines": 282,
+      "complexity": 17
+    },
+    "src/components/Sidebar.tsx": {
+      "owner": "renderer/shell",
+      "maxLineBytes": 558
+    },
+    "src/components/__tests__/AppShell.test.tsx": {
+      "owner": "renderer/shell",
+      "functionLines": 183
+    },
+    "src/components/mcp/McpConfirmationModal.test.tsx": {
+      "owner": "renderer/shell",
+      "functionLines": 172
+    },
+    "src/context/ApprovalContext.tsx": {
+      "owner": "renderer/application",
+      "functionLines": 446
+    },
+    "src/context/I18nContext.tsx": {
+      "owner": "renderer/application",
+      "functionLines": 121
+    },
+    "src/context/__tests__/ApprovalContext.test.tsx": {
+      "owner": "renderer/application",
+      "functionLines": 268
+    },
+    "src/context/__tests__/I18nContext.test.tsx": {
+      "owner": "renderer/application",
+      "functionLines": 146
+    },
+    "src/hooks/useMcp.ts": {
+      "owner": "renderer/application",
+      "functionLines": 287
+    },
+    "src/lib/__tests__/p1Contracts.test.ts": {
+      "owner": "renderer/application",
+      "functionLines": 245
+    },
+    "src/lib/__tests__/webSearchIntent.test.ts": {
+      "owner": "renderer/application",
+      "functionLines": 169
+    },
+    "src/lib/artifacts/schema.ts": {
+      "owner": "renderer/application",
+      "maxLineBytes": 635
+    },
+    "src/lib/artifacts/workbooks/schema.ts": {
+      "owner": "renderer/application",
+      "maxLineBytes": 538
+    },
+    "src/lib/redaction.ts": {
+      "owner": "renderer/application",
+      "complexity": 17
+    }
+  }
+}

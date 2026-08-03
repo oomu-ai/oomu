@@ -1,0 +1,125 @@
+{
+  "schema_version": 3,
+  "kind": "oomu.release-sanitizer-policy",
+  "policy_revision": "sprint-297",
+  "executable_policy": {
+    "application_executables": [
+      "oomu",
+      "local_infer",
+      "pdf_extract_helper",
+      "artifact_build_helper",
+      "oomu-artifact-pdf-helper",
+      "oomu-vision-helper",
+      "oomu-speech-bridge"
+    ],
+    "developer_tools_forbidden": [
+      "debug_db",
+      "debug_executions",
+      "oomu_bench",
+      "stage_pre_alpha",
+      "sanitize_release_db",
+      "ark_verify"
+    ],
+    "portable_python_manifest": ".oomu-python-native-manifest.json"
+  },
+  "rules": [
+    {
+      "id": "temporary-log-suffix",
+      "description": "file name ends with .log",
+      "match": { "kind": "file_name_suffix", "value": ".log" }
+    },
+    {
+      "id": "temporary-file-suffix",
+      "description": "file name ends with .tmp",
+      "match": { "kind": "file_name_suffix", "value": ".tmp" }
+    },
+    {
+      "id": "environment-file-exact",
+      "description": "file name is exactly .env",
+      "match": { "kind": "file_name_exact", "value": ".env" }
+    },
+    {
+      "id": "environment-file-prefix",
+      "description": "file name starts with .env.",
+      "match": { "kind": "file_name_prefix", "value": ".env." }
+    },
+    {
+      "id": "environment-file-suffix",
+      "description": "file name ends with .env",
+      "match": { "kind": "file_name_suffix", "value": ".env" }
+    },
+    {
+      "id": "secret-file-exact",
+      "description": "file name is exactly secret",
+      "match": { "kind": "file_name_exact", "value": "secret" }
+    },
+    {
+      "id": "token-file-exact",
+      "description": "file name is exactly token",
+      "match": { "kind": "file_name_exact", "value": "token" }
+    },
+    {
+      "id": "supplier-proposals-fixture",
+      "description": "file name is the removed supplier proposals fixture",
+      "match": { "kind": "file_name_exact", "value": "supplier_proposals.json" }
+    },
+    {
+      "id": "supplier-audit-matrix-fixture",
+      "description": "file name is the removed supplier audit fixture",
+      "match": { "kind": "file_name_exact", "value": "supplier_audit_matrix.md" }
+    },
+    {
+      "id": "project-milestones-fixture",
+      "description": "file name is the removed project milestones fixture",
+      "match": { "kind": "file_name_exact", "value": "project_milestones.json" }
+    },
+    {
+      "id": "calendar-draft-fixture",
+      "description": "file name is the removed calendar fixture",
+      "match": { "kind": "file_name_exact", "value": "calendar_draft.md" }
+    },
+    {
+      "id": "claim-appeal-fixture",
+      "description": "file name is the removed claim fixture",
+      "match": { "kind": "file_name_exact", "value": "claim_appeal_es.md" }
+    },
+    {
+      "id": "claim-denial-pdf-fixture",
+      "description": "file name is the removed claim denial fixture",
+      "match": { "kind": "file_name_exact", "value": "apex_health_denial_example_user.pdf" }
+    }
+  ],
+  "content_signatures": [
+    { "id": "project-milestones-signature", "value": "project_milestones.json" },
+    { "id": "calendar-draft-signature", "value": "calendar_draft.md" },
+    { "id": "supplier-proposals-signature", "value": "supplier_proposals.json" },
+    { "id": "supplier-audit-matrix-signature", "value": "supplier_audit_matrix.md" },
+    { "id": "claim-appeal-signature", "value": "claim_appeal_es.md" },
+    { "id": "claim-denial-pdf-signature", "value": "apex_health_denial_example_user.pdf" },
+    { "id": "supplier-command-signature", "value": "run_supplier_reconciliation_audit" },
+    { "id": "icloud-testing-resolver-signature", "value": "resolve_icloud_planning_testing" },
+    { "id": "icloud-testing-roots-signature", "value": "icloud_planning_testing_roots" },
+    { "id": "oomu-testing-resolver-signature", "value": "resolve_oomu_testing_dir" },
+    { "id": "legacy-app-name-signature", "value": "Eldris OOMU.app" },
+    { "id": "planning-testing-path-signature", "value": "private-workspace/planning/testing" },
+    { "id": "fixture-date-signature", "value": "Wednesday, July 8, 2026" },
+    { "id": "taskflow-demo-role-signature", "value": "taskflowDemoRole" },
+    { "id": "directory-summarizer-input-signature", "value": "workspace/directory_summarizer_input" },
+    { "id": "directory-summarizer-report-signature", "value": "workspace/directory_summarizer_report.md" },
+    { "id": "directory-summarizer-seed-signature", "value": "ensure_directory_summarizer_seed" },
+    { "id": "mcp-sandbox-seed-signature", "value": "ensure_mcp_sandbox_seed_files" },
+    { "id": "mcp-sandbox-instruction-signature", "value": "MCP_SANDBOX_INSTRUCTION_INPUT" },
+    { "id": "mcp-sandbox-data-source-signature", "value": "MCP_SANDBOX_DATA_SOURCE" },
+    { "id": "taskflow-demo-workspace-signature", "value": "TaskFlow demo workspace" },
+    { "id": "legacy-ark-deliverable-signature", "value": "write_ark_deliverable" },
+    { "id": "implicit-ark-trigger-signature", "value": "should_write_ark_deliverable" },
+    { "id": "implicit-ark-writer-signature", "value": "write_ark_for_plan" },
+    { "id": "implicit-ark-export-signature", "value": "action_plan_direct_export" },
+    { "id": "textedit-report-signature", "value": "Opened markdown report in TextEdit" },
+    { "id": "taskflow-failure-simulator-signature", "value": "pub simulate_failure" },
+    { "id": "consultation-command-signature", "value": "spawn_agentic_consultation" },
+    { "id": "oomu-boardroom-signature", "value": "run_oomu_boardroom_actor" },
+    { "id": "consultation-combined-directive-signature", "value": "Combined directive: OOMU's serialized proposal" },
+    { "id": "consultation-oomu-payload-signature", "value": "I reviewed only OOMU's serialized proposal payload" }
+  ]
+}

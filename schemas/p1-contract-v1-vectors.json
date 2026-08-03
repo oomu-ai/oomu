@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "idVectors": {
+    "project": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+    "crossProject": "project_018f0c9a-7b6d-7c21-8a43-1234567890ac",
+    "task": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+    "taskRun": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+    "artifact": "artifact_018f0c9a-7b6d-7c21-8a43-4234567890ab",
+    "childRun": "childrun_018f0c9a-7b6d-7c21-8a43-6234567890ab",
+    "observation": "observation_018f0c9a-7b6d-7c21-8a43-7234567890ab",
+    "action": "action_018f0c9a-7b6d-7c21-8a43-8234567890ab",
+    "mediaAsset": "media_018f0c9a-7b6d-7c21-8a43-9234567890ab",
+    "remoteDevice": "device_018f0c9a-7b6d-7c21-8a43-a234567890ab",
+    "capabilityBundle": "bundle_018f0c9a-7b6d-7c21-8a43-b234567890ab",
+    "learningCandidate": "learning_018f0c9a-7b6d-7c21-8a43-c234567890ab",
+    "workGraph": "workgraph_018f0c9a-7b6d-7c21-8a43-d234567890ab"
+  },
+  "evidenceKinds": [
+    "model_assertion",
+    "observed_result",
+    "executed_mutation",
+    "verified_postcondition",
+    "signed_artifact"
+  ],
+  "contracts": {
+    "artifactWorkbook": {
+      "schemaVersion": 1,
+      "contractType": "artifact_workbook",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+      "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+      "artifactId": "artifact_018f0c9a-7b6d-7c21-8a43-4234567890ab",
+      "revision": 1,
+      "locale": "en-US",
+      "dateSystem": "1900",
+      "worksheets": [
+        {
+          "sheetId": "summary",
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "name": "Summary",
+          "rowCount": 24,
+          "columnCount": 8
+        }
+      ],
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "verified_postcondition",
+          "reference": "task-event:41",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    },
+    "artifactPresentation": {
+      "schemaVersion": 1,
+      "contractType": "artifact_presentation",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+      "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+      "artifactId": "artifact_018f0c9a-7b6d-7c21-8a43-4234567890ab",
+      "revision": 1,
+      "aspectRatio": "16:9",
+      "slides": [
+        {
+          "slideId": "executive-summary",
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "position": 0,
+          "layoutId": "title-and-content"
+        }
+      ],
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "signed_artifact",
+          "reference": "artifact-revision:1",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    },
+    "desktopObservation": {
+      "schemaVersion": 1,
+      "contractType": "desktop_observation",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+      "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+      "observationId": "observation_018f0c9a-7b6d-7c21-8a43-7234567890ab",
+      "revision": 3,
+      "observedAt": "2026-07-11T19:10:00.000Z",
+      "application": {
+        "bundleId": "com.apple.TextEdit",
+        "processId": 4242,
+        "name": "TextEdit"
+      },
+      "window": {
+        "windowRef": "window:main:3",
+        "title": "Quarterly notes"
+      },
+      "elements": [
+        {
+          "elementRef": "element:body:3",
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "role": "AXTextArea",
+          "secure": false,
+          "expiresAt": "2026-07-11T19:10:30.000Z"
+        }
+      ],
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "observed_result",
+          "reference": "desktop-observation:3",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    },
+    "desktopAction": {
+      "schemaVersion": 1,
+      "contractType": "desktop_action",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+      "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+      "actionId": "action_018f0c9a-7b6d-7c21-8a43-8234567890ab",
+      "observationId": "observation_018f0c9a-7b6d-7c21-8a43-7234567890ab",
+      "observationRevision": 3,
+      "actionKind": "type",
+      "applicationBundleId": "com.apple.TextEdit",
+      "target": {
+        "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+        "elementRef": "element:body:3"
+      },
+      "approvalId": "trustgrant_0123456789abcdef0123456789abcdef0123",
+      "requestedAt": "2026-07-11T19:10:05.000Z",
+      "arguments": {
+        "textLength": 19
+      },
+      "expectedPostcondition": {
+        "kind": "element_value",
+        "description": "The observed text area contains the requested text.",
+        "evidenceClass": "verified_postcondition",
+        "parameters": {
+          "contains": "Quarterly summary"
+        }
+      },
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "executed_mutation",
+          "reference": "desktop-action:1",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    },
+    "mediaAsset": {
+      "schemaVersion": 1,
+      "contractType": "media_asset",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+      "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+      "mediaAssetId": "media_018f0c9a-7b6d-7c21-8a43-9234567890ab",
+      "mediaKind": "image",
+      "mimeType": "image/png",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "byteLength": 8192,
+      "createdAt": "2026-07-11T19:11:00.000Z",
+      "source": {
+        "kind": "screenshot",
+        "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+        "reference": "desktop-observation:3"
+      },
+      "retentionPolicy": {
+        "mode": "project"
+      },
+      "redactionPolicy": {
+        "state": "not_required",
+        "categories": []
+      },
+      "providerRoutingPolicy": {
+        "mode": "local_only",
+        "providerIds": []
+      },
+      "relatedAssets": [],
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "observed_result",
+          "reference": "media-ingest:1",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    },
+    "remoteDevice": {
+      "schemaVersion": 1,
+      "contractType": "remote_device",
+      "remoteDeviceId": "device_018f0c9a-7b6d-7c21-8a43-a234567890ab",
+      "label": "Alex's phone",
+      "publicKey": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "allowedProjectIds": [
+        "project_018f0c9a-7b6d-7c21-8a43-1234567890ab"
+      ],
+      "scopes": [
+        "create_task",
+        "view_task",
+        "stop_task",
+        "request_artifact"
+      ],
+      "pairedAt": "2026-07-11T19:12:00.000Z",
+      "expiresAt": "2026-08-11T19:12:00.000Z",
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "verified_postcondition",
+          "reference": "device-pairing:1"
+        }
+      ],
+      "signature": {
+        "algorithm": "ed25519",
+        "keyId": "device-key:1",
+        "payloadSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "signature": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "signedAt": "2026-07-11T19:12:00.000Z"
+      }
+    },
+    "capabilityBundle": {
+      "schemaVersion": 1,
+      "contractType": "capability_bundle",
+      "capabilityBundleId": "bundle_018f0c9a-7b6d-7c21-8a43-b234567890ab",
+      "name": "Executive review",
+      "packageVersion": "1.0.0",
+      "publisher": {
+        "id": "eldris",
+        "name": "Eldris"
+      },
+      "scope": {
+        "kind": "project",
+        "projectIds": [
+          "project_018f0c9a-7b6d-7c21-8a43-1234567890ab"
+        ]
+      },
+      "capabilities": [
+        "file",
+        "connector",
+        "model"
+      ],
+      "requestedGrants": [
+        {
+          "capability": "file",
+          "scope": "project_artifacts",
+          "reason": "Read and write reviewed executive-review artifacts."
+        },
+        {
+          "capability": "connector",
+          "scope": "project_enabled_connectors",
+          "reason": "Read sources from connectors enabled for the Project."
+        }
+      ],
+      "payloadSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "signed_artifact",
+          "reference": "bundle-scan:1"
+        }
+      ],
+      "signature": {
+        "algorithm": "ed25519",
+        "keyId": "publisher-key:1",
+        "payloadSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "signature": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "signedAt": "2026-07-11T19:13:00.000Z"
+      }
+    },
+    "learningCandidate": {
+      "schemaVersion": 1,
+      "contractType": "learning_candidate",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "learningCandidateId": "learning_018f0c9a-7b6d-7c21-8a43-c234567890ab",
+      "candidateVersion": 1,
+      "candidateKind": "procedure",
+      "proposedScope": "project",
+      "summary": "Verify formulas before delivering the workbook.",
+      "proposedDiff": {
+        "base": "Deliver the workbook after generation.",
+        "proposed": "Recalculate and verify formulas before delivering the workbook.",
+        "changedFields": [
+          "postconditions"
+        ]
+      },
+      "status": "proposed",
+      "sourceTasks": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+          "evidence": [
+            {
+              "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+              "evidenceClass": "verified_postcondition",
+              "reference": "task-event:41",
+              "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+            }
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "verified_postcondition",
+          "reference": "learning-extraction:1",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    },
+    "workGraph": {
+      "schemaVersion": 1,
+      "contractType": "work_graph",
+      "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+      "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+      "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+      "workGraphId": "workgraph_018f0c9a-7b6d-7c21-8a43-d234567890ab",
+      "revision": 1,
+      "nodes": [
+        {
+          "nodeId": "parent",
+          "kind": "parent",
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "dependsOn": []
+        },
+        {
+          "nodeId": "research",
+          "kind": "specialist",
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "dependsOn": [
+            "parent"
+          ],
+          "childRunId": "childrun_018f0c9a-7b6d-7c21-8a43-6234567890ab"
+        },
+        {
+          "nodeId": "synthesis",
+          "kind": "synthesis",
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "dependsOn": [
+            "research"
+          ]
+        }
+      ],
+      "maxConcurrentChildren": 8,
+      "parentOwnsMutations": true,
+      "resourceBudget": {
+        "limits": {
+          "tokens": 120000,
+          "wallTimeMs": 3600000,
+          "memoryBytes": 8589934592,
+          "processes": 16,
+          "networkRequests": 400,
+          "toolCalls": 1000,
+          "concurrentChildren": 8,
+          "mutations": 12
+        },
+        "usage": {
+          "tokens": 4200,
+          "wallTimeMs": 90000,
+          "peakMemoryBytes": 1073741824,
+          "processes": 2,
+          "networkRequests": 12,
+          "toolCalls": 31,
+          "peakConcurrentChildren": 1,
+          "mutationAttempts": 0,
+          "mutationsCommitted": 0
+        },
+        "sampledAt": "2026-07-11T19:14:00.000Z"
+      },
+      "evidence": [
+        {
+          "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+          "evidenceClass": "observed_result",
+          "reference": "work-graph-checkpoint:1",
+          "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+const copy = {
+  detail: "Shows what OOMU used.",
+} satisfies Record<string, string>;
+
+export function SatisfiesCopyObject() {
+  return <p>{copy.detail}</p>;
+}

@@ -1,0 +1,80 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next
+/out
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Tauri / Rust
+/src-tauri/target
+/tools/**/target
+/src-tauri/gen
+/src-tauri/binaries
+/src-tauri/resources/.python-cache
+/src-tauri/resources/python
+
+# production
+/build
+/dist
+/release/candidates/
+/release/evidence/
+/release/testing/
+*.app
+*.dmg
+*.pkg
+
+# local OOMU state
+/app_data
+/src-tauri/app_data/*
+/src-tauri/app_data/*.db-shm
+/src-tauri/app_data/*.db-wal
+*.db
+*.db-*
+oomu_ops.db
+oomu_ops.db-shm
+oomu_ops.db-wal
+
+# local model assets
+/assets/models
+/public/models
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+/logs/
+
+# generated caches and local scratch fixtures
+__pycache__/
+*.py[cod]
+/sandbox/
+/test_mods/
+*.oomu
+
+# env
+.env*
+/venv/
+/scripts/sign_env.sh
+
+# system
+.DS_Store
+OOMU_M2M_LOG.md
+/gemma-4-12b-qat
+/.agents/
+/.claude/
+/.codegraph/
+/.codex/
+/.codex*_sprint_stage/
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
+/debug_messages.txt
+# Downloaded OAuth credential bundles contain protocol credentials and must
+# remain local even when a desktop provider requires their client-secret field.
+src-tauri/oauth/client_secret*.json
+src-tauri/oauth/google-desktop-client.json
+src-tauri/oauth/slack-desktop-client.json

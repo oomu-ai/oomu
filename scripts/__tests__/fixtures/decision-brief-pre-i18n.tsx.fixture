@@ -1,0 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { invoke } from "@/lib/invoke";
+import { projectApi, type ProjectRecord } from "../projects/projectClient";
+
+type HeroStatus = { title: string; description: string; cadence: string; readyOnDemand: boolean; readyWeekly: boolean; requirements: Array<{ id: string; label: string; state: string; detail: string; destination: string }> };
+const copy = { title: "Weekly Decision Brief", subtitle: "One evidence-bound path from Project context and current research to verified DOCX/PDF and weekly delivery.", project: "Project", ready: "Ready", setup: "Needs setup", onDemand: "On demand", weekly: "Weekly", evidence: "Results appear first. Child findings, observed evidence, mutations, verified postconditions, and signed artifacts remain distinguishable in the parent Task.", loading: "Inspecting the current Project…" };
+
+export function DecisionBriefScreen({ onNavigate }: { onNavigate: (destination: string) => void }) {
+  const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [projectId, setProjectId] = useState("");
+  const [status, setStatus] = useState<HeroStatus | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => { void projectApi.list().then((records) => { setProjects(records); setProjectId((current) => current || records[0]?.projectId || ""); }).catch((cause) => setError(String(cause))); }, []);
+  useEffect(() => {
+    if (!projectId) return;
+    let active = true;
+    const timeout = window.setTimeout(() => { void invoke<HeroStatus>("get_weekly_decision_brief_status", { request: { projectId } }).then((value) => { if (active) { setStatus(value); setError(""); } }).catch((cause) => { if (active) setError(String(cause)); }); }, 0);
+    return () => { active = false; window.clearTimeout(timeout); };
+  }, [projectId]);
+  return (
+    <section className="h-full overflow-y-auto p-7"><div className="mx-auto max-w-5xl">
+      <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-subtle)]">{"Hero workflow"}</p><h1 className="mt-1 text-3xl font-semibold">{copy.title}</h1><p className="mt-2 max-w-3xl text-sm text-[var(--foreground-muted)]">{copy.subtitle}</p></div><label className="grid gap-1 text-xs font-semibold">{copy.project}<select className="min-w-56 rounded border bg-[var(--background)] px-3 py-2 text-sm font-normal" onChange={(event) => setProjectId(event.target.value)} value={projectId}>{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.name}</option>)}</select></label></div>
+      {error ? <p className="mt-5 rounded bg-[var(--warning-background)] p-3 text-sm" role="alert">{error}</p> : null}
+      <div className="mt-6 flex gap-2"><StatusBadge label={copy.onDemand} ready={Boolean(status?.readyOnDemand)} /><StatusBadge label={copy.weekly} ready={Boolean(status?.readyWeekly)} /></div>
+      <p className="mt-4 rounded bg-[var(--accent-background)] p-4 text-sm text-[var(--foreground-muted)]">{copy.evidence}</p>
+      {status ? <ol className="mt-6 grid gap-3 sm:grid-cols-2">{status.requirements.map((item, index) => <li className="rounded-[var(--radius-md)] border border-[var(--border-soft)] p-4" key={item.id}><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--foreground-subtle)]">{index + 1}</p><h2 className="mt-1 text-sm font-semibold">{item.label}</h2></div><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${item.state === "ready" ? "bg-[var(--success-background)]" : "bg-[var(--warning-background)]"}`}>{item.state === "ready" ? copy.ready : copy.setup}</span></div><p className="mt-2 text-xs text-[var(--foreground-muted)]">{item.detail}</p><button className="mt-3 text-xs font-semibold underline" onClick={() => onNavigate(item.destination)} type="button">{`Open ${item.destination.replaceAll("_", " ")}`}</button></li>)}</ol> : <p className="mt-6 text-sm text-[var(--foreground-muted)]">{copy.loading}</p>}
+    </div></section>
+  );
+}
+
+function StatusBadge({ label, ready }: { label: string; ready: boolean }) { return <span className={`rounded-full px-3 py-1 text-xs font-semibold ${ready ? "bg-[var(--success-background)]" : "bg-[var(--warning-background)]"}`}>{label}: {ready ? copy.ready : copy.setup}</span>; }

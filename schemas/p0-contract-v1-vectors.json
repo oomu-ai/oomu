@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "idVectors": {
+    "project": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+    "task": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+    "taskRun": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+    "artifact": "artifact_018f0c9a-7b6d-7c21-8a43-4234567890ab",
+    "connector": "connector_018f0c9a-7b6d-7c21-8a43-5234567890ab",
+    "childRun": "childrun_018f0c9a-7b6d-7c21-8a43-6234567890ab"
+  },
+  "invalidIds": [
+    "project_00000000-0000-0000-0000-000000000000",
+    "task_018F0C9A-7B6D-7C21-8A43-2234567890AB",
+    "run_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+    "artifact_not-a-uuid",
+    "connector_018f0c9a-7b6d-0c21-8a43-5234567890ab",
+    "childrun_018f0c9a-7b6d-7c21-7a43-6234567890ab"
+  ],
+  "taskStates": [
+    "queued",
+    "planning",
+    "awaiting_approval",
+    "running",
+    "blocked",
+    "completed",
+    "failed",
+    "cancelled"
+  ],
+  "evidenceClasses": [
+    "model_assertion",
+    "observed_result",
+    "executed_mutation",
+    "verified_postcondition",
+    "signed_artifact"
+  ],
+  "eventEnvelope": {
+    "schemaVersion": 1,
+    "eventType": "task.state_changed",
+    "projectId": "project_018f0c9a-7b6d-7c21-8a43-1234567890ab",
+    "taskId": "task_018f0c9a-7b6d-7c21-8a43-2234567890ab",
+    "taskRunId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+    "correlationId": "taskrun_018f0c9a-7b6d-7c21-8a43-3234567890ab",
+    "sequence": 7,
+    "timestamp": "2026-07-10T20:15:30.123Z",
+    "evidenceClass": "observed_result",
+    "payload": {
+      "state": "running"
+    }
+  }
+}

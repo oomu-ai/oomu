@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-revoke-reviewed-approval-scope"
+description = "Enables the revoke_reviewed_approval_scope command without any pre-configured scope."
+commands.allow = ["revoke_reviewed_approval_scope"]
+
+[[permission]]
+identifier = "deny-revoke-reviewed-approval-scope"
+description = "Denies the revoke_reviewed_approval_scope command without any pre-configured scope."
+commands.deny = ["revoke_reviewed_approval_scope"]

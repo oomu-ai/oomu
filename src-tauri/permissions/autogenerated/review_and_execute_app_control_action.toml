@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-review-and-execute-app-control-action"
+description = "Enables the review_and_execute_app_control_action command without any pre-configured scope."
+commands.allow = ["review_and_execute_app_control_action"]
+
+[[permission]]
+identifier = "deny-review-and-execute-app-control-action"
+description = "Denies the review_and_execute_app_control_action command without any pre-configured scope."
+commands.deny = ["review_and_execute_app_control_action"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cleanup-reconciled-volatile-persistence"
+description = "Enables the cleanup_reconciled_volatile_persistence command without any pre-configured scope."
+commands.allow = ["cleanup_reconciled_volatile_persistence"]
+
+[[permission]]
+identifier = "deny-cleanup-reconciled-volatile-persistence"
+description = "Denies the cleanup_reconciled_volatile_persistence command without any pre-configured scope."
+commands.deny = ["cleanup_reconciled_volatile_persistence"]

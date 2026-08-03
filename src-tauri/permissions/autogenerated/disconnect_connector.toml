@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-disconnect-connector"
+description = "Enables the disconnect_connector command without any pre-configured scope."
+commands.allow = ["disconnect_connector"]
+
+[[permission]]
+identifier = "deny-disconnect-connector"
+description = "Denies the disconnect_connector command without any pre-configured scope."
+commands.deny = ["disconnect_connector"]

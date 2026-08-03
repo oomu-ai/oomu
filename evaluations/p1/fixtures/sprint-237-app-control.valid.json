@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "sprint": 237,
+  "qualificationStatus": "contract_tested_not_application_matrix_qualified",
+  "sessions": [
+    {
+      "sessionId": "appsession_111111111111111111111111111111111111111111111111",
+      "taskRunId": "taskrun_55555555-5555-4555-8555-555555555555",
+      "projectId": "project_22222222-2222-4222-8222-222222222222",
+      "state": "paused",
+      "application": {"name":"Mail","icon":"mail"},
+      "currentAction": {"kind":"type_text","targetLabel":null,"willChangeData":true},
+      "pauseReason": "secure_field",
+      "canPause": false,
+      "canTakeControl": true,
+      "canReturnToOomu": false,
+      "observationGeneration": 4,
+      "lastOutcome": {"status":"paused","actionKind":"type_text","receiptId":"appreceipt_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","recordedAtMs":1783818600000,"detailsAvailable":true},
+      "updatedAtMs": 1783818600000
+    },
+    {
+      "sessionId": "appsession_222222222222222222222222222222222222222222222222",
+      "taskRunId": "taskrun_77777777-7777-4777-8777-777777777777",
+      "projectId": "project_88888888-8888-4888-8888-888888888888",
+      "state": "completed",
+      "application": {"name":"Finder","icon":"finder"},
+      "currentAction": null,
+      "pauseReason": null,
+      "canPause": false,
+      "canTakeControl": false,
+      "canReturnToOomu": false,
+      "observationGeneration": 3,
+      "lastOutcome": {"status":"verified","actionKind":"press","receiptId":"appreceipt_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","recordedAtMs":1783818500000,"detailsAvailable":true},
+      "updatedAtMs": 1783818500000
+    }
+  ],
+  "evidence": {
+    "freshObservationRequired": true,
+    "postActionObservationRequired": true,
+    "taskBoundReferences": true,
+    "applicationProcessWindowBoundReferences": true,
+    "referenceTtlMs": 15000,
+    "takeoverInvalidatesReferences": true,
+    "returnRequiresReobservation": true,
+    "staleReplayAllowed": false
+  },
+  "adversarialChecks": {
+    "crossApplicationReferenceRejected": true,
+    "secureFieldRejected": true,
+    "staleReferenceRejected": true,
+    "hiddenWindowRejected": true,
+    "rawScriptRejected": true,
+    "rawCoordinatesRejected": true,
+    "unapprovedFileRejected": true,
+    "browserRouteRejected": true,
+    "missingPermissionRejected": true,
+    "userInputPausesImmediately": true
+  }
+}

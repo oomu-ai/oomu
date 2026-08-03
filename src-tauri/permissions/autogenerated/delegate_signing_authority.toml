@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-delegate-signing-authority"
+description = "Enables the delegate_signing_authority command without any pre-configured scope."
+commands.allow = ["delegate_signing_authority"]
+
+[[permission]]
+identifier = "deny-delegate-signing-authority"
+description = "Denies the delegate_signing_authority command without any pre-configured scope."
+commands.deny = ["delegate_signing_authority"]

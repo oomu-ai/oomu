@@ -1,0 +1,12 @@
+"NSCalendarsUsageDescription" = "OOMU は予定の重複を確認し、あなたが承認したカレンダーの予定だけを作成します。";
+"NSCalendarsFullAccessUsageDescription" = "OOMU は予定の重複を確認し、あなたが承認したカレンダーの予定だけを作成します。";
+"NSAppleEventsUsageDescription" = "OOMU は、あなたが依頼した場合にのみメール、メモ、リマインダー、メッセージなどの Apple アプリを操作します。";
+"NSRemindersUsageDescription" = "OOMU は、あなたが依頼した場合にのみリマインダーを読み取り、変更します。";
+"NSRemindersFullAccessUsageDescription" = "OOMU は、あなたが依頼した場合にのみリマインダーを読み取り、変更します。";
+"NSCameraUsageDescription" = "OOMU は、あなたが確認を依頼した場合にのみカメラを使用します。";
+"NSLocalNetworkUsageDescription" = "OOMU は、あなたが選んだローカルサービスにのみ接続します。";
+"NSMicrophoneUsageDescription" = "OOMU は、音声入力を使用するときにのみマイクを使用します。";
+"NSSpeechRecognitionUsageDescription" = "OOMU は、あなたが依頼した場合にのみ音声をテキストに変換します。";
+"NSPhotoLibraryUsageDescription" = "OOMU は、あなたが指定した写真だけを使用します。";
+"NSContactsUsageDescription" = "OOMU は、連絡先から人を探すよう依頼された場合にのみ連絡先を使用します。";
+"NSAppleMusicUsageDescription" = "OOMU は、あなたが依頼した場合にのみミュージックライブラリを読み取ります。";

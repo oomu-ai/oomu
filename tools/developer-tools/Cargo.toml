@@ -1,0 +1,53 @@
+[package]
+name = "oomu-developer-tools"
+version = "1.257.0-beta"
+edition = "2021"
+publish = false
+autobins = false
+
+[[bin]]
+name = "oomu_bench"
+path = "src/bin/oomu_bench.rs"
+required-features = ["benchmark"]
+
+[[bin]]
+name = "ark_verify"
+path = "src/bin/ark_verify.rs"
+required-features = ["ark-verify"]
+
+[[bin]]
+name = "stage_pre_alpha"
+path = "src/bin/stage_pre_alpha.rs"
+
+[[bin]]
+name = "debug_db"
+path = "src/bin/debug_db.rs"
+required-features = ["database-tools"]
+
+[[bin]]
+name = "debug_executions"
+path = "src/bin/debug_executions.rs"
+required-features = ["database-tools"]
+
+[[bin]]
+name = "sanitize_release_db"
+path = "src/bin/sanitize_release_db.rs"
+required-features = ["database-tools"]
+
+[features]
+default = []
+ark-verify = ["dep:base64", "dep:ed25519-dalek", "dep:oomu_lib", "dep:serde", "dep:serde_json"]
+benchmark = ["dep:oomu_lib", "dep:reqwest", "dep:serde", "dep:serde_json", "dep:sysinfo"]
+database-tools = ["dep:dirs", "dep:oomu_lib", "dep:rusqlite", "dep:serde_json", "dep:zeroize"]
+
+[dependencies]
+base64 = { version = "0.22", optional = true }
+dirs = { version = "6", optional = true }
+ed25519-dalek = { version = "2", features = ["rand_core"], optional = true }
+oomu_lib = { package = "oomu", path = "../../src-tauri", optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"], optional = true }
+rusqlite = { version = "0.32", features = ["backup", "bundled-sqlcipher"], optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+sysinfo = { version = "0.31", optional = true }
+zeroize = { version = "1", optional = true }

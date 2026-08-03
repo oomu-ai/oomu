@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "oomu.macos-permission-continuity",
+  "bundle_identifier": "ai.eldris.oomu.gpd",
+  "main_executable": "oomu",
+  "usage_description_keys": [
+    "NSAppleEventsUsageDescription",
+    "NSAppleMusicUsageDescription",
+    "NSCalendarsFullAccessUsageDescription",
+    "NSCalendarsUsageDescription",
+    "NSCameraUsageDescription",
+    "NSContactsUsageDescription",
+    "NSLocalNetworkUsageDescription",
+    "NSMicrophoneUsageDescription",
+    "NSPhotoLibraryUsageDescription",
+    "NSRemindersFullAccessUsageDescription",
+    "NSRemindersUsageDescription",
+    "NSSpeechRecognitionUsageDescription"
+  ],
+  "approved_n_plus_one_usage_key_additions": [
+    "NSCameraUsageDescription",
+    "NSLocalNetworkUsageDescription",
+    "NSRemindersFullAccessUsageDescription",
+    "NSRemindersUsageDescription"
+  ],
+  "entitlements": {
+    "com.apple.security.automation.apple-events": true,
+    "com.apple.security.network.client": true,
+    "com.apple.security.personal-information.calendars": true
+  },
+  "helper_executables": [
+    "artifact_build_helper",
+    "local_infer",
+    "oomu-artifact-pdf-helper",
+    "oomu-speech-bridge",
+    "oomu-vision-helper",
+    "pdf_extract_helper"
+  ]
+}

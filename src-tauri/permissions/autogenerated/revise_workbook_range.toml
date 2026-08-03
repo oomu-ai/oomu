@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-revise-workbook-range"
+description = "Enables the revise_workbook_range command without any pre-configured scope."
+commands.allow = ["revise_workbook_range"]
+
+[[permission]]
+identifier = "deny-revise-workbook-range"
+description = "Denies the revise_workbook_range command without any pre-configured scope."
+commands.deny = ["revise_workbook_range"]

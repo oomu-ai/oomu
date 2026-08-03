@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-export-artifact"
+description = "Enables the export_artifact command without any pre-configured scope."
+commands.allow = ["export_artifact"]
+
+[[permission]]
+identifier = "deny-export-artifact"
+description = "Denies the export_artifact command without any pre-configured scope."
+commands.deny = ["export_artifact"]

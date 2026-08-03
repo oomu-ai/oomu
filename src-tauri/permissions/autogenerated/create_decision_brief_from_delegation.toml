@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-create-decision-brief-from-delegation"
+description = "Enables the create_decision_brief_from_delegation command without any pre-configured scope."
+commands.allow = ["create_decision_brief_from_delegation"]
+
+[[permission]]
+identifier = "deny-create-decision-brief-from-delegation"
+description = "Denies the create_decision_brief_from_delegation command without any pre-configured scope."
+commands.deny = ["create_decision_brief_from_delegation"]

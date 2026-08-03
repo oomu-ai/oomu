@@ -1,0 +1,12 @@
+"NSCalendarsUsageDescription" = "OOMU vérifie les conflits dans votre calendrier et crée uniquement les événements Calendrier que vous approuvez.";
+"NSCalendarsFullAccessUsageDescription" = "OOMU vérifie les conflits dans votre calendrier et crée uniquement les événements Calendrier que vous approuvez.";
+"NSAppleEventsUsageDescription" = "OOMU interagit avec Mail, Notes, Rappels, Messages et d’autres apps Apple uniquement à votre demande.";
+"NSRemindersUsageDescription" = "OOMU lit ou modifie les rappels uniquement à votre demande.";
+"NSRemindersFullAccessUsageDescription" = "OOMU lit ou modifie les rappels uniquement à votre demande.";
+"NSCameraUsageDescription" = "OOMU utilise la caméra uniquement lorsque vous lui demandez de voir quelque chose.";
+"NSLocalNetworkUsageDescription" = "OOMU se connecte uniquement aux services locaux que vous choisissez.";
+"NSMicrophoneUsageDescription" = "OOMU écoute le microphone uniquement lorsque vous utilisez la saisie vocale.";
+"NSSpeechRecognitionUsageDescription" = "OOMU transforme votre voix en texte uniquement à votre demande.";
+"NSPhotoLibraryUsageDescription" = "OOMU utilise uniquement les photos que vous lui demandez d’utiliser.";
+"NSContactsUsageDescription" = "OOMU utilise vos contacts uniquement lorsque vous lui demandez de trouver quelqu’un.";
+"NSAppleMusicUsageDescription" = "OOMU lit votre bibliothèque Musique uniquement à votre demande.";

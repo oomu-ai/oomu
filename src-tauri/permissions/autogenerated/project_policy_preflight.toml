@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-project-policy-preflight"
+description = "Enables the project_policy_preflight command without any pre-configured scope."
+commands.allow = ["project_policy_preflight"]
+
+[[permission]]
+identifier = "deny-project-policy-preflight"
+description = "Denies the project_policy_preflight command without any pre-configured scope."
+commands.deny = ["project_policy_preflight"]

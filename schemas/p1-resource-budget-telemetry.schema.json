@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oomu.local/schemas/p1-resource-budget-telemetry.schema.json",
+  "title": "OOMU P1 Resource Budget Telemetry",
+  "description": "Observed resource and route metadata only. This record cannot select or override a model route.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sampleId", "build", "task", "phase", "sampledAt", "intervalMs", "process", "system", "resourceBudget", "routingObservation", "measurement"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sampleId": { "type": "string", "minLength": 1 },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["buildIdentifier", "sourceRevision"],
+      "properties": {
+        "buildIdentifier": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectId", "taskId", "taskRunId"],
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^project_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "taskId": { "type": "string", "pattern": "^task_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "taskRunId": { "type": "string", "pattern": "^taskrun_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "workGraphId": { "type": "string", "pattern": "^workgraph_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" }
+      }
+    },
+    "phase": { "enum": ["startup", "idle", "capture", "automation", "delegation", "rendering", "analysis", "remote_sync", "shutdown"] },
+    "sampledAt": { "type": "string", "format": "date-time" },
+    "intervalMs": { "type": "integer", "minimum": 1 },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "cpuTimeMs", "cpuPercent", "residentMemoryBytes", "peakResidentMemoryBytes", "threadCount", "childProcessCount"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 1 },
+        "cpuTimeMs": { "type": "integer", "minimum": 0 },
+        "cpuPercent": { "type": "number", "minimum": 0 },
+        "residentMemoryBytes": { "type": "integer", "minimum": 0 },
+        "peakResidentMemoryBytes": { "type": "integer", "minimum": 0 },
+        "threadCount": { "type": "integer", "minimum": 1 },
+        "childProcessCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpuPercent", "memoryUsedBytes", "memoryAvailableBytes", "thermalState", "powerSource"],
+      "properties": {
+        "cpuPercent": { "type": "number", "minimum": 0 },
+        "memoryUsedBytes": { "type": "integer", "minimum": 0 },
+        "memoryAvailableBytes": { "type": "integer", "minimum": 0 },
+        "thermalState": { "enum": ["nominal", "fair", "serious", "critical", "unavailable"] },
+        "powerSource": { "enum": ["battery", "external", "unavailable"] },
+        "batteryLevelPercent": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "resourceBudget": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["limits", "usage", "sampledAt"],
+      "properties": {
+        "limits": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["tokens", "wallTimeMs", "memoryBytes", "processes", "networkRequests", "toolCalls", "concurrentChildren", "mutations"],
+          "properties": {
+            "tokens": { "type": "integer", "minimum": 0 },
+            "wallTimeMs": { "type": "integer", "minimum": 0 },
+            "memoryBytes": { "type": "integer", "minimum": 0 },
+            "processes": { "type": "integer", "minimum": 0 },
+            "networkRequests": { "type": "integer", "minimum": 0 },
+            "toolCalls": { "type": "integer", "minimum": 0 },
+            "concurrentChildren": { "type": "integer", "minimum": 1, "maximum": 8 },
+            "mutations": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["tokens", "wallTimeMs", "peakMemoryBytes", "processes", "networkRequests", "toolCalls", "peakConcurrentChildren", "mutationAttempts", "mutationsCommitted"],
+          "properties": {
+            "tokens": { "type": "integer", "minimum": 0 },
+            "wallTimeMs": { "type": "integer", "minimum": 0 },
+            "peakMemoryBytes": { "type": "integer", "minimum": 0 },
+            "processes": { "type": "integer", "minimum": 0 },
+            "networkRequests": { "type": "integer", "minimum": 0 },
+            "toolCalls": { "type": "integer", "minimum": 0 },
+            "peakConcurrentChildren": { "type": "integer", "minimum": 0, "maximum": 8 },
+            "mutationAttempts": { "type": "integer", "minimum": 0 },
+            "mutationsCommitted": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "sampledAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "routingObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerId", "modelId", "routeClass", "policyMutation"],
+      "properties": {
+        "providerId": { "type": "string", "minLength": 1 },
+        "modelId": { "type": "string", "minLength": 1 },
+        "routeClass": { "enum": ["local", "cloud"] },
+        "policyMutation": { "const": false }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collector", "source", "clock", "monotonicSequence"],
+      "properties": {
+        "collector": { "type": "string", "minLength": 1 },
+        "source": { "const": "observed" },
+        "clock": { "enum": ["monotonic", "wall_and_monotonic"] },
+        "monotonicSequence": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

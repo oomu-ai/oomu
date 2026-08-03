@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-review-learning-offer"
+description = "Enables the review_learning_offer command without any pre-configured scope."
+commands.allow = ["review_learning_offer"]
+
+[[permission]]
+identifier = "deny-review-learning-offer"
+description = "Denies the review_learning_offer command without any pre-configured scope."
+commands.deny = ["review_learning_offer"]

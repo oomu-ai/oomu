@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-verify-task-effect"
+description = "Enables the verify_task_effect command without any pre-configured scope."
+commands.allow = ["verify_task_effect"]
+
+[[permission]]
+identifier = "deny-verify-task-effect"
+description = "Denies the verify_task_effect command without any pre-configured scope."
+commands.deny = ["verify_task_effect"]

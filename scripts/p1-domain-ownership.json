@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 2,
+  "sprint": 243,
+  "contractFreezeSprint": 233,
+  "latestImplementedSprint": 243,
+  "maximumLinesPerDomainFile": 750,
+  "domains": [
+    {
+      "name": "connectors",
+      "contract": "ConnectorId",
+      "contractSource": "p0",
+      "reusedP0Contracts": ["ConnectorAccount", "ProjectConnectorBinding"],
+      "owner": "connectors/microsoft-365",
+      "implementationSprint": 234,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-234-microsoft365-ui.valid.json",
+      "roots": ["src-tauri/src/connectors/microsoft365", "src/app/components/integrations/microsoft365"],
+      "cycleNodes": ["rust:connectors::microsoft365", "ts:src/app/components/integrations/microsoft365"]
+    },
+    {
+      "name": "workbooks",
+      "contract": "ArtifactWorkbook",
+      "contractSource": "p1",
+      "owner": "artifacts/workbooks",
+      "implementationSprint": 235,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-235-workbook-review.valid.json",
+      "roots": ["src-tauri/src/artifacts/workbooks", "src/lib/artifacts/workbooks", "src/app/components/artifacts/workbooks"],
+      "cycleNodes": ["rust:artifacts::workbooks", "ts:src/lib/artifacts/workbooks", "ts:src/app/components/artifacts/workbooks"]
+    },
+    {
+      "name": "presentations",
+      "contract": "ArtifactPresentation",
+      "contractSource": "p1",
+      "owner": "artifacts/presentations",
+      "implementationSprint": 236,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-236-presentation-review.valid.json",
+      "roots": ["src-tauri/src/artifacts/presentations", "src/lib/artifacts/presentations", "src/app/components/artifacts/presentations"],
+      "cycleNodes": ["rust:artifacts::presentations", "ts:src/lib/artifacts/presentations", "ts:src/app/components/artifacts/presentations"]
+    },
+    {
+      "name": "computer_use",
+      "contract": "DesktopAction",
+      "contractSource": "p1",
+      "secondaryContracts": ["DesktopObservation"],
+      "owner": "computer-use/guarded-macos",
+      "implementationSprint": 237,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-237-app-control.valid.json",
+      "roots": ["src-tauri/src/computer_use", "src/app/components/computer_use"],
+      "cycleNodes": ["rust:computer_use", "ts:src/app/components/computer_use"]
+    },
+    {
+      "name": "media",
+      "contract": "MediaAsset",
+      "contractSource": "p1",
+      "owner": "media/multimodal",
+      "implementationSprint": 238,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-238-media.valid.json",
+      "roots": ["src-tauri/src/media", "src/app/components/media"],
+      "cycleNodes": ["rust:media", "ts:src/app/components/media"]
+    },
+    {
+      "name": "remote_dispatch",
+      "contract": "RemoteDevice",
+      "contractSource": "p1",
+      "owner": "remote/dispatch",
+      "implementationSprint": 239,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-239-remote.valid.json",
+      "roots": ["src-tauri/src/remote_access", "src/app/components/settings"],
+      "cycleNodes": ["rust:remote_access", "ts:src/app/components/settings"]
+    },
+    {
+      "name": "bundles",
+      "contract": "CapabilityBundle",
+      "contractSource": "p1",
+      "owner": "capabilities/bundles",
+      "implementationSprint": 240,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-240-bundles.valid.json",
+      "roots": ["src-tauri/src/capability_bundles", "src/app/components/capability_bundles"],
+      "cycleNodes": ["rust:capability_bundles", "ts:src/app/components/capability_bundles"]
+    },
+    {
+      "name": "learning",
+      "contract": "LearningCandidate",
+      "contractSource": "p1",
+      "owner": "learning/reviewed-recipes",
+      "implementationSprint": 241,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-241-learning.valid.json",
+      "roots": ["src-tauri/src/learning", "src/app/components/learning"],
+      "cycleNodes": ["rust:learning", "ts:src/app/components/learning"]
+    },
+    {
+      "name": "work_graphs",
+      "contract": "WorkGraph",
+      "contractSource": "p1",
+      "owner": "orchestration/work-graphs",
+      "implementationSprint": 242,
+      "reservationOnly": false,
+      "implemented": true,
+      "implementationStatus": "implemented",
+      "qualificationStatus": "contract-verified-external-not-run",
+      "contractFixture": "evaluations/p1/fixtures/sprint-242-work-graphs.valid.json",
+      "roots": ["src-tauri/src/analysis", "src/app/components/analysis", "src/app/components/delegation"],
+      "cycleNodes": ["rust:analysis", "ts:src/app/components/analysis", "ts:src/app/components/delegation"]
+    }
+  ],
+  "sharedContractFiles": [
+    {
+      "path": "src/lib/p1Contracts.ts",
+      "owner": "contracts/p1-typescript",
+      "maximumLines": 1500
+    },
+    {
+      "path": "src-tauri/src/p1_contracts.rs",
+      "owner": "contracts/p1-rust",
+      "maximumLines": 1500
+    }
+  ],
+  "thinSharedSeams": [
+    {
+      "purpose": "command_routing",
+      "path": "src-tauri/src/command_registration.rs",
+      "requiredSymbol": "tauri::generate_handler![",
+      "editPolicy": "thin-registration-only"
+    },
+    {
+      "purpose": "permission_generation",
+      "path": "src-tauri/build.rs",
+      "requiredSymbol": ".commands(&[",
+      "editPolicy": "thin-registration-only"
+    },
+    {
+      "purpose": "database_migration",
+      "path": "src-tauri/src/db.rs",
+      "requiredSymbol": "const MIGRATIONS:",
+      "editPolicy": "thin-registration-only"
+    },
+    {
+      "purpose": "navigation",
+      "path": "src/app/page.tsx",
+      "requiredSymbol": "useAppShell",
+      "editPolicy": "thin-registration-only"
+    },
+    {
+      "purpose": "event_projection",
+      "path": "src/context/AppContext.tsx",
+      "requiredSymbol": "listen(eventName",
+      "editPolicy": "thin-registration-only"
+    }
+  ]
+}

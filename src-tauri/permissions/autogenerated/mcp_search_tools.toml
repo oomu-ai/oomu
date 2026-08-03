@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-mcp-search-tools"
+description = "Enables the mcp_search_tools command without any pre-configured scope."
+commands.allow = ["mcp_search_tools"]
+
+[[permission]]
+identifier = "deny-mcp-search-tools"
+description = "Denies the mcp_search_tools command without any pre-configured scope."
+commands.deny = ["mcp_search_tools"]

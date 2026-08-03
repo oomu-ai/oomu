@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-channel-configs"
+description = "Enables the list_channel_configs command without any pre-configured scope."
+commands.allow = ["list_channel_configs"]
+
+[[permission]]
+identifier = "deny-list-channel-configs"
+description = "Denies the list_channel_configs command without any pre-configured scope."
+commands.deny = ["list_channel_configs"]

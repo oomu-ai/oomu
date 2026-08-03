@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-media-assets"
+description = "Enables the list_media_assets command without any pre-configured scope."
+commands.allow = ["list_media_assets"]
+
+[[permission]]
+identifier = "deny-list-media-assets"
+description = "Denies the list_media_assets command without any pre-configured scope."
+commands.deny = ["list_media_assets"]

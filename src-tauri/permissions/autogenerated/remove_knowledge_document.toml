@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-remove-knowledge-document"
+description = "Enables the remove_knowledge_document command without any pre-configured scope."
+commands.allow = ["remove_knowledge_document"]
+
+[[permission]]
+identifier = "deny-remove-knowledge-document"
+description = "Denies the remove_knowledge_document command without any pre-configured scope."
+commands.deny = ["remove_knowledge_document"]

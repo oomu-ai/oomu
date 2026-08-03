@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sovereign-duckduckgo-search"
+description = "Enables the sovereign_duckduckgo_search command without any pre-configured scope."
+commands.allow = ["sovereign_duckduckgo_search"]
+
+[[permission]]
+identifier = "deny-sovereign-duckduckgo-search"
+description = "Denies the sovereign_duckduckgo_search command without any pre-configured scope."
+commands.deny = ["sovereign_duckduckgo_search"]

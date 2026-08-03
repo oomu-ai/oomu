@@ -1,0 +1,94 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OOMU",
+  "mainBinaryName": "oomu",
+  "version": "0.1.1",
+  "identifier": "ai.eldris.oomu.gpd",
+  "build": {
+    "beforeDevCommand": "npm run dev:frontend",
+    "beforeBuildCommand": "npm run tauri:prepare",
+    "beforeBundleCommand": "node scripts/assert-release-entrypoint.mjs && node scripts/prepare-macos-asset-catalog.mjs",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../out"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OOMU",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 640,
+        "visible": false,
+        "center": true,
+        "decorations": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 18,
+          "y": 18
+        },
+        "dragDropEnabled": true,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "capabilities": ["production"],
+      "csp": "default-src 'self' asset: http://asset.localhost; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data: blob:; connect-src ipc: http://ipc.localhost tauri:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg", "appimage"],
+    "externalBin": [
+      "binaries/local_infer",
+      "binaries/pdf_extract_helper",
+      "binaries/artifact_build_helper",
+      "binaries/oomu-artifact-pdf-helper",
+      "binaries/oomu-vision-helper",
+      "binaries/oomu-speech-bridge"
+    ],
+    "resources": [
+      "resources/mcp/mcp_applescript.py",
+      "resources/mcp/mcp_search.py",
+      "resources/python/**/*",
+      "icons/OOMU-macOS-ClearDark-1024x1024@1x.png",
+      "icons/OOMU-macOS-ClearLight-1024x1024@1x.png",
+      "icons/OOMU-macOS-Dark-1024x1024@1x.png",
+      "icons/OOMU-macOS-Default-1024x1024@1x.png",
+      "icons/OOMU-macOS-TintedDark-1024x1024@1x.png",
+      "icons/OOMU-macOS-TintedLight-1024x1024@1x.png",
+      "../THIRD_PARTY_NOTICES.md",
+      "../src/locales/**/*"
+    ],
+    "icon": ["icons/icon.icns", "icons/icon.png"],
+    "category": "Business",
+    "shortDescription": "Sovereign fleet command and tactical intelligence workstation.",
+    "longDescription": "OOMU provides local-first taskflow governance, grounded local context, cumulative intelligence inheritance, and visual evidence analysis for the GPD pilot.",
+    "copyright": "Copyright 2026 Eldris / OOMU",
+    "publisher": "Eldris",
+    "macOS": {
+      "bundleVersion": "6",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.plist",
+      "files": {
+        "Resources/Assets.car": "target/macos-asset-catalog/Assets.car",
+        "Resources/OOMU.icns": "target/macos-asset-catalog/OOMU.icns",
+        "Resources/de.lproj/InfoPlist.strings": "macos-localizations/de.lproj/InfoPlist.strings",
+        "Resources/en.lproj/InfoPlist.strings": "macos-localizations/en.lproj/InfoPlist.strings",
+        "Resources/es.lproj/InfoPlist.strings": "macos-localizations/es.lproj/InfoPlist.strings",
+        "Resources/fr.lproj/InfoPlist.strings": "macos-localizations/fr.lproj/InfoPlist.strings",
+        "Resources/id.lproj/InfoPlist.strings": "macos-localizations/id.lproj/InfoPlist.strings",
+        "Resources/ja.lproj/InfoPlist.strings": "macos-localizations/ja.lproj/InfoPlist.strings",
+        "Resources/pt-BR.lproj/InfoPlist.strings": "macos-localizations/pt-BR.lproj/InfoPlist.strings",
+        "Resources/ru.lproj/InfoPlist.strings": "macos-localizations/ru.lproj/InfoPlist.strings",
+        "Resources/uk.lproj/InfoPlist.strings": "macos-localizations/uk.lproj/InfoPlist.strings",
+        "Resources/vi.lproj/InfoPlist.strings": "macos-localizations/vi.lproj/InfoPlist.strings",
+        "Resources/zh-Hans.lproj/InfoPlist.strings": "macos-localizations/zh-Hans.lproj/InfoPlist.strings",
+        "Resources/zh-Hant.lproj/InfoPlist.strings": "macos-localizations/zh-Hant.lproj/InfoPlist.strings"
+      },
+      "infoPlist": "Info.plist",
+      "minimumSystemVersion": "14.0"
+    }
+  }
+}

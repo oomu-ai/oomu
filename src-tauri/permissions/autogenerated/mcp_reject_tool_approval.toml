@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-mcp-reject-tool-approval"
+description = "Enables the mcp_reject_tool_approval command without any pre-configured scope."
+commands.allow = ["mcp_reject_tool_approval"]
+
+[[permission]]
+identifier = "deny-mcp-reject-tool-approval"
+description = "Denies the mcp_reject_tool_approval command without any pre-configured scope."
+commands.deny = ["mcp_reject_tool_approval"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-audit-ark-artifacts"
+description = "Enables the audit_ark_artifacts command without any pre-configured scope."
+commands.allow = ["audit_ark_artifacts"]
+
+[[permission]]
+identifier = "deny-audit-ark-artifacts"
+description = "Denies the audit_ark_artifacts command without any pre-configured scope."
+commands.deny = ["audit_ark_artifacts"]

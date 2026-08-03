@@ -1,0 +1,14 @@
+{
+  "inputDirectory": "/private/tmp/oomu-scenario-one-e2e-input",
+  "inputPaths": [
+    "/private/tmp/oomu-scenario-one-e2e-input/supplier_proposals.json",
+    "/private/tmp/oomu-scenario-one-e2e-input/q3_strategic_vendor_proposals.txt"
+  ],
+  "outputDirectory": "/private/tmp/oomu-scenario-one-e2e-output",
+  "outputPaths": [
+    "/private/tmp/oomu-scenario-one-e2e-output/supplier_decision.xlsx",
+    "/private/tmp/oomu-scenario-one-e2e-output/supplier_decision.pptx",
+    "/private/tmp/oomu-scenario-one-e2e-output/supplier_decision.pdf",
+    "/private/tmp/oomu-scenario-one-e2e-output/sources.md"
+  ]
+}

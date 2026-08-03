@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users('me')/messages",
+  "@odata.nextLink": "https://graph.microsoft.com/v1.0/me/messages?$skiptoken=opaque-test-value",
+  "value": [
+    {
+      "id": "message-1",
+      "subject": "Fixture message",
+      "receivedDateTime": "2026-07-11T12:00:00Z"
+    }
+  ]
+}

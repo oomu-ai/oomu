@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-provider-configs"
+description = "Enables the list_provider_configs command without any pre-configured scope."
+commands.allow = ["list_provider_configs"]
+
+[[permission]]
+identifier = "deny-list-provider-configs"
+description = "Denies the list_provider_configs command without any pre-configured scope."
+commands.deny = ["list_provider_configs"]

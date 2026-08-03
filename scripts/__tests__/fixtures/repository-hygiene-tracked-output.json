@@ -1,0 +1,5 @@
+[
+  "tools/developer-tools/target/debug/stage_pre_alpha",
+  "src/.next/server/app.js",
+  "coverage/index.html"
+]

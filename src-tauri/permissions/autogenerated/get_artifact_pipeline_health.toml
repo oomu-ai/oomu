@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-artifact-pipeline-health"
+description = "Enables the get_artifact_pipeline_health command without any pre-configured scope."
+commands.allow = ["get_artifact_pipeline_health"]
+
+[[permission]]
+identifier = "deny-get-artifact-pipeline-health"
+description = "Denies the get_artifact_pipeline_health command without any pre-configured scope."
+commands.deny = ["get_artifact_pipeline_health"]

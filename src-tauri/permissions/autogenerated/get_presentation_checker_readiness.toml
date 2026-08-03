@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-presentation-checker-readiness"
+description = "Enables the get_presentation_checker_readiness command without any pre-configured scope."
+commands.allow = ["get_presentation_checker_readiness"]
+
+[[permission]]
+identifier = "deny-get-presentation-checker-readiness"
+description = "Denies the get_presentation_checker_readiness command without any pre-configured scope."
+commands.deny = ["get_presentation_checker_readiness"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-uninstall-mod"
+description = "Enables the uninstall_mod command without any pre-configured scope."
+commands.allow = ["uninstall_mod"]
+
+[[permission]]
+identifier = "deny-uninstall-mod"
+description = "Denies the uninstall_mod command without any pre-configured scope."
+commands.deny = ["uninstall_mod"]

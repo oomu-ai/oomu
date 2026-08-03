@@ -1,0 +1,12 @@
+"NSCalendarsUsageDescription" = "OOMU 会检查日程冲突，并且只创建你批准的日历日程。";
+"NSCalendarsFullAccessUsageDescription" = "OOMU 会检查日程冲突，并且只创建你批准的日历日程。";
+"NSAppleEventsUsageDescription" = "OOMU 仅在你提出请求时使用 Mail、备忘录、提醒事项、信息及其他 Apple App。";
+"NSRemindersUsageDescription" = "OOMU 仅在你提出请求时读取或更改提醒事项。";
+"NSRemindersFullAccessUsageDescription" = "OOMU 仅在你提出请求时读取或更改提醒事项。";
+"NSCameraUsageDescription" = "OOMU 仅在你要求它查看内容时使用相机。";
+"NSLocalNetworkUsageDescription" = "OOMU 仅连接你选择的本地服务。";
+"NSMicrophoneUsageDescription" = "OOMU 仅在你使用语音输入时使用麦克风。";
+"NSSpeechRecognitionUsageDescription" = "OOMU 仅在你提出请求时将语音转换为文字。";
+"NSPhotoLibraryUsageDescription" = "OOMU 仅使用你指定的照片。";
+"NSContactsUsageDescription" = "OOMU 仅在你要求查找联系人时使用通讯录。";
+"NSAppleMusicUsageDescription" = "OOMU 仅在你提出请求时读取音乐资料库。";

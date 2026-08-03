@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-agent-execution-recovery-states"
+description = "Enables the get_agent_execution_recovery_states command without any pre-configured scope."
+commands.allow = ["get_agent_execution_recovery_states"]
+
+[[permission]]
+identifier = "deny-get-agent-execution-recovery-states"
+description = "Denies the get_agent_execution_recovery_states command without any pre-configured scope."
+commands.deny = ["get_agent_execution_recovery_states"]

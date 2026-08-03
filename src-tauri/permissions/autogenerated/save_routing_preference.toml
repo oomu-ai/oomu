@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-routing-preference"
+description = "Enables the save_routing_preference command without any pre-configured scope."
+commands.allow = ["save_routing_preference"]
+
+[[permission]]
+identifier = "deny-save-routing-preference"
+description = "Denies the save_routing_preference command without any pre-configured scope."
+commands.deny = ["save_routing_preference"]

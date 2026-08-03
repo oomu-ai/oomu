@@ -1,0 +1,27 @@
+-- Immutable migration contract: OOMU state core schema, revision 1.
+--
+-- The runner substitutes the current encryption-state marker, workspace identifier,
+-- and default context budget into the declarative schema embedded in db.rs. This
+-- contract is authoritative for the ordered set of objects created by that runner:
+--
+-- Tables:
+--   intents, actions, certificates, plan_generation_states,
+--   agent_execution_logs, agent_executions,
+--   chat_messages, chat_sessions, chat_turns,
+--   workflows, workflow_approvals,
+--   routing_preferences, app_preferences, user_routing_preferences,
+--   active_session_configs, message_queue,
+--   gateway_message_receipts, channel_configs.
+--
+-- Required channel invariants:
+--   channel_configs.platform is limited to signal/whatsapp/telegram/discord.
+--   an active WhatsApp row must have a non-empty owner_id on insert and update.
+--
+-- Required persistence invariants:
+--   chat_turn generation tokens are unique;
+--   JSON-bearing fields have json_valid checks where defined by the runner;
+--   agent execution and chat turn statuses are constrained;
+--   queue/session/workspace lookup indexes defined by the runner are present.
+--
+-- This file is immutable once released. Any change to the implementation contract
+-- above requires a new ordered migration instead of editing this source.

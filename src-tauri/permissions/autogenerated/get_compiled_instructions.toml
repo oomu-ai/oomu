@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-compiled-instructions"
+description = "Enables the get_compiled_instructions command without any pre-configured scope."
+commands.allow = ["get_compiled_instructions"]
+
+[[permission]]
+identifier = "deny-get-compiled-instructions"
+description = "Denies the get_compiled_instructions command without any pre-configured scope."
+commands.deny = ["get_compiled_instructions"]

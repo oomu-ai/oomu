@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-system-photos"
+description = "Enables the read_system_photos command without any pre-configured scope."
+commands.allow = ["read_system_photos"]
+
+[[permission]]
+identifier = "deny-read-system-photos"
+description = "Denies the read_system_photos command without any pre-configured scope."
+commands.deny = ["read_system_photos"]

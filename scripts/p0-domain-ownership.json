@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "maximumLinesPerDomainFile": 750,
+  "domains": [
+    {
+      "name": "projects",
+      "sprint": 225,
+      "roots": ["src-tauri/src/projects", "src/app/components/projects"],
+      "cycleNodes": ["rust:projects", "ts:src/app/components/projects"]
+    },
+    {
+      "name": "tasks",
+      "sprint": 226,
+      "roots": ["src-tauri/src/tasks", "src/app/components/tasks"],
+      "cycleNodes": ["rust:tasks", "ts:src/app/components/tasks"]
+    },
+    {
+      "name": "connectors",
+      "sprint": 227,
+      "roots": ["src-tauri/src/connectors", "src/app/components/integrations"],
+      "cycleNodes": ["rust:connectors", "ts:src/app/components/integrations"]
+    },
+    {
+      "name": "routines",
+      "sprint": 228,
+      "roots": ["src-tauri/src/routines", "src/app/components/routines"],
+      "cycleNodes": ["rust:routines", "ts:src/app/components/routines"]
+    },
+    {
+      "name": "browser_automation",
+      "sprint": 229,
+      "roots": ["src-tauri/src/browser_automation", "src/app/components/browser_automation"],
+      "cycleNodes": ["rust:browser_automation", "ts:src/app/components/browser_automation"]
+    },
+    {
+      "name": "artifacts",
+      "sprint": 230,
+      "roots": ["src-tauri/src/artifacts", "src/lib/artifacts", "src/app/components/artifacts"],
+      "cycleNodes": ["rust:artifacts", "ts:src/lib/artifacts", "ts:src/app/components/artifacts"]
+    },
+    {
+      "name": "delegation",
+      "sprint": 231,
+      "roots": ["src-tauri/src/delegation", "src/app/components/delegation"],
+      "cycleNodes": ["rust:delegation", "ts:src/app/components/delegation"]
+    }
+  ],
+  "thinIntegrationFiles": [
+    "src-tauri/src/db.rs",
+    "src-tauri/src/inference/mod.rs",
+    "src-tauri/src/lib.rs",
+    "src-tauri/src/workflow_runtime.rs",
+    "src/app/components/ChatScreen.tsx"
+  ]
+}

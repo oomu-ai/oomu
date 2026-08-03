@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-request-agent-plan-authority"
+description = "Enables the request_agent_plan_authority command without any pre-configured scope."
+commands.allow = ["request_agent_plan_authority"]
+
+[[permission]]
+identifier = "deny-request-agent-plan-authority"
+description = "Denies the request_agent_plan_authority command without any pre-configured scope."
+commands.deny = ["request_agent_plan_authority"]

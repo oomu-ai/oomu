@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-automated-web-grounding-enabled"
+description = "Enables the set_automated_web_grounding_enabled command without any pre-configured scope."
+commands.allow = ["set_automated_web_grounding_enabled"]
+
+[[permission]]
+identifier = "deny-set-automated-web-grounding-enabled"
+description = "Denies the set_automated_web_grounding_enabled command without any pre-configured scope."
+commands.deny = ["set_automated_web_grounding_enabled"]

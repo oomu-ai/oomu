@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-run-pre-alpha-audit"
+description = "Enables the run_pre_alpha_audit command without any pre-configured scope."
+commands.allow = ["run_pre_alpha_audit"]
+
+[[permission]]
+identifier = "deny-run-pre-alpha-audit"
+description = "Denies the run_pre_alpha_audit command without any pre-configured scope."
+commands.deny = ["run_pre_alpha_audit"]

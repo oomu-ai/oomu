@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-create-chat-session"
+description = "Enables the create_chat_session command without any pre-configured scope."
+commands.allow = ["create_chat_session"]
+
+[[permission]]
+identifier = "deny-create-chat-session"
+description = "Denies the create_chat_session command without any pre-configured scope."
+commands.deny = ["create_chat_session"]

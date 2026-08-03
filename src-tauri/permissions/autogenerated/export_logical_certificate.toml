@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-export-logical-certificate"
+description = "Enables the export_logical_certificate command without any pre-configured scope."
+commands.allow = ["export_logical_certificate"]
+
+[[permission]]
+identifier = "deny-export-logical-certificate"
+description = "Denies the export_logical_certificate command without any pre-configured scope."
+commands.deny = ["export_logical_certificate"]

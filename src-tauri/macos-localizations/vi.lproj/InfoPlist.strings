@@ -1,0 +1,12 @@
+"NSCalendarsUsageDescription" = "OOMU kiểm tra xung đột trong lịch trình và chỉ tạo các sự kiện Lịch mà bạn phê duyệt.";
+"NSCalendarsFullAccessUsageDescription" = "OOMU kiểm tra xung đột trong lịch trình và chỉ tạo các sự kiện Lịch mà bạn phê duyệt.";
+"NSAppleEventsUsageDescription" = "OOMU chỉ làm việc với Mail, Ghi chú, Lời nhắc, Tin nhắn và các ứng dụng Apple khác khi bạn yêu cầu.";
+"NSRemindersUsageDescription" = "OOMU chỉ đọc hoặc thay đổi lời nhắc khi bạn yêu cầu.";
+"NSRemindersFullAccessUsageDescription" = "OOMU chỉ đọc hoặc thay đổi lời nhắc khi bạn yêu cầu.";
+"NSCameraUsageDescription" = "OOMU chỉ dùng camera khi bạn yêu cầu xem một nội dung nào đó.";
+"NSLocalNetworkUsageDescription" = "OOMU chỉ kết nối với các dịch vụ cục bộ mà bạn chọn.";
+"NSMicrophoneUsageDescription" = "OOMU chỉ nghe micrô khi bạn dùng tính năng nhập bằng giọng nói.";
+"NSSpeechRecognitionUsageDescription" = "OOMU chỉ chuyển lời nói thành văn bản khi bạn yêu cầu.";
+"NSPhotoLibraryUsageDescription" = "OOMU chỉ dùng những ảnh mà bạn yêu cầu.";
+"NSContactsUsageDescription" = "OOMU chỉ dùng danh bạ khi bạn yêu cầu tìm một người.";
+"NSAppleMusicUsageDescription" = "OOMU chỉ đọc thư viện Nhạc khi bạn yêu cầu.";

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-activate-sovereign-trust-session"
+description = "Enables the activate_sovereign_trust_session command without any pre-configured scope."
+commands.allow = ["activate_sovereign_trust_session"]
+
+[[permission]]
+identifier = "deny-activate-sovereign-trust-session"
+description = "Denies the activate_sovereign_trust_session command without any pre-configured scope."
+commands.deny = ["activate_sovereign_trust_session"]

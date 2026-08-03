@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-connector-connection-status"
+description = "Enables the get_connector_connection_status command without any pre-configured scope."
+commands.allow = ["get_connector_connection_status"]
+
+[[permission]]
+identifier = "deny-get-connector-connection-status"
+description = "Denies the get_connector_connection_status command without any pre-configured scope."
+commands.deny = ["get_connector_connection_status"]

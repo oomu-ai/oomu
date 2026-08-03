@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-apply-surgical-patch-directive"
+description = "Enables the apply_surgical_patch_directive command without any pre-configured scope."
+commands.allow = ["apply_surgical_patch_directive"]
+
+[[permission]]
+identifier = "deny-apply-surgical-patch-directive"
+description = "Denies the apply_surgical_patch_directive command without any pre-configured scope."
+commands.deny = ["apply_surgical_patch_directive"]

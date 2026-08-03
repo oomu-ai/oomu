@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-delete-media-asset"
+description = "Enables the delete_media_asset command without any pre-configured scope."
+commands.allow = ["delete_media_asset"]
+
+[[permission]]
+identifier = "deny-delete-media-asset"
+description = "Denies the delete_media_asset command without any pre-configured scope."
+commands.deny = ["delete_media_asset"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-request-native-authority"
+description = "Enables the request_native_authority command without any pre-configured scope."
+commands.allow = ["request_native_authority"]
+
+[[permission]]
+identifier = "deny-request-native-authority"
+description = "Denies the request_native_authority command without any pre-configured scope."
+commands.deny = ["request_native_authority"]

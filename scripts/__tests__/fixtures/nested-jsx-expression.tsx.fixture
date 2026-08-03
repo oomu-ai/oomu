@@ -1,0 +1,7 @@
+export function NestedExpressionCopy({ blocked, name }: { blocked: boolean; name: string }) {
+  return (
+    <section aria-label={`Open ${name}`}>
+      {blocked ? "Navigation blocked" : "Confirm browser navigation"}
+    </section>
+  );
+}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-artifact-preview-page"
+description = "Enables the get_artifact_preview_page command without any pre-configured scope."
+commands.allow = ["get_artifact_preview_page"]
+
+[[permission]]
+identifier = "deny-get-artifact-preview-page"
+description = "Denies the get_artifact_preview_page command without any pre-configured scope."
+commands.deny = ["get_artifact_preview_page"]

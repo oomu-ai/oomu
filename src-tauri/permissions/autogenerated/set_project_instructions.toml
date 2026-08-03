@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-project-instructions"
+description = "Enables the set_project_instructions command without any pre-configured scope."
+commands.allow = ["set_project_instructions"]
+
+[[permission]]
+identifier = "deny-set-project-instructions"
+description = "Denies the set_project_instructions command without any pre-configured scope."
+commands.deny = ["set_project_instructions"]

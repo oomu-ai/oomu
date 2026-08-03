@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-check-mail-automation-access"
+description = "Enables the check_mail_automation_access command without any pre-configured scope."
+commands.allow = ["check_mail_automation_access"]
+
+[[permission]]
+identifier = "deny-check-mail-automation-access"
+description = "Denies the check_mail_automation_access command without any pre-configured scope."
+commands.deny = ["check_mail_automation_access"]

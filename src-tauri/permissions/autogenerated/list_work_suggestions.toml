@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-work-suggestions"
+description = "Enables the list_work_suggestions command without any pre-configured scope."
+commands.allow = ["list_work_suggestions"]
+
+[[permission]]
+identifier = "deny-list-work-suggestions"
+description = "Denies the list_work_suggestions command without any pre-configured scope."
+commands.deny = ["list_work_suggestions"]

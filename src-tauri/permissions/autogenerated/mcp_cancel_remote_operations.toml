@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-mcp-cancel-remote-operations"
+description = "Enables the mcp_cancel_remote_operations command without any pre-configured scope."
+commands.allow = ["mcp_cancel_remote_operations"]
+
+[[permission]]
+identifier = "deny-mcp-cancel-remote-operations"
+description = "Denies the mcp_cancel_remote_operations command without any pre-configured scope."
+commands.deny = ["mcp_cancel_remote_operations"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cancel-permission-recovery-turn"
+description = "Enables the cancel_permission_recovery_turn command without any pre-configured scope."
+commands.allow = ["cancel_permission_recovery_turn"]
+
+[[permission]]
+identifier = "deny-cancel-permission-recovery-turn"
+description = "Denies the cancel_permission_recovery_turn command without any pre-configured scope."
+commands.deny = ["cancel_permission_recovery_turn"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-commander-state"
+description = "Enables the get_commander_state command without any pre-configured scope."
+commands.allow = ["get_commander_state"]
+
+[[permission]]
+identifier = "deny-get-commander-state"
+description = "Denies the get_commander_state command without any pre-configured scope."
+commands.deny = ["get_commander_state"]

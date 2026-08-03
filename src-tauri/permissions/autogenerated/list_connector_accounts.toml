@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-connector-accounts"
+description = "Enables the list_connector_accounts command without any pre-configured scope."
+commands.allow = ["list_connector_accounts"]
+
+[[permission]]
+identifier = "deny-list-connector-accounts"
+description = "Denies the list_connector_accounts command without any pre-configured scope."
+commands.deny = ["list_connector_accounts"]

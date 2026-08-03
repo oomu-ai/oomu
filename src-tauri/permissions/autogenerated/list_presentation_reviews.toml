@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-presentation-reviews"
+description = "Enables the list_presentation_reviews command without any pre-configured scope."
+commands.allow = ["list_presentation_reviews"]
+
+[[permission]]
+identifier = "deny-list-presentation-reviews"
+description = "Denies the list_presentation_reviews command without any pre-configured scope."
+commands.deny = ["list_presentation_reviews"]

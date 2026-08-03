@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-refresh-capability-registry"
+description = "Enables the refresh_capability_registry command without any pre-configured scope."
+commands.allow = ["refresh_capability_registry"]
+
+[[permission]]
+identifier = "deny-refresh-capability-registry"
+description = "Denies the refresh_capability_registry command without any pre-configured scope."
+commands.deny = ["refresh_capability_registry"]

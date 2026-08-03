@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "definitionStatus": "contract_only",
+  "executable": false,
+  "requiredP0Ids": ["projectId", "taskId", "taskRunId", "evidenceIds"],
+  "allowedEvidenceClasses": [
+    "model_assertion",
+    "observed_result",
+    "executed_mutation",
+    "verified_postcondition",
+    "signed_artifact"
+  ],
+  "workflows": [
+    {
+      "id": "p1-hero-executive-review",
+      "title": "Executive review",
+      "implementationSprints": [234, 235, 236, 239, 242, 243],
+      "requiredContracts": ["RemoteDevice", "ArtifactWorkbook", "ArtifactPresentation", "WorkGraph"],
+      "postconditions": [
+        {
+          "id": "remote-intent-bound",
+          "evidenceClass": "observed_result",
+          "observable": "The accepted request identifies a currently paired, non-revoked device and one existing Project and Task.",
+          "requiredFields": ["remoteDevice.remoteDeviceId", "remoteDevice.allowedProjectIds", "remoteDevice.revokedAt", "projectId", "taskId", "taskRunId"]
+        },
+        {
+          "id": "source-lineage-complete",
+          "evidenceClass": "observed_result",
+          "observable": "Every Microsoft 365 and local Project input records its source identity, content digest, access grant, and retrieval timestamp.",
+          "requiredFields": ["sourceEvidence.sourceId", "sourceEvidence.sha256", "sourceEvidence.grantId", "sourceEvidence.observedAt"]
+        },
+        {
+          "id": "analysis-budgets-enforced",
+          "evidenceClass": "verified_postcondition",
+          "observable": "The bounded analysis records concurrency, token, time, tool-call, and mutation use at or below its declared limits.",
+          "requiredFields": ["workGraph.workGraphId", "workGraph.resourceBudget.limits.concurrentChildren", "workGraph.resourceBudget.limits.tokens", "workGraph.resourceBudget.limits.wallTimeMs", "workGraph.resourceBudget.limits.toolCalls", "workGraph.resourceBudget.limits.mutations", "resourceTelemetryRefs"]
+        },
+        {
+          "id": "consequential-actions-approved",
+          "evidenceClass": "verified_postcondition",
+          "observable": "Each consequential connector or remote-delivery mutation has an approval bound to its exact arguments before execution.",
+          "requiredFields": ["approval.id", "approval.argumentsHash", "approval.decidedAt", "mutationEvidence.approvalId"]
+        },
+        {
+          "id": "workbook-professionally-verified",
+          "evidenceClass": "signed_artifact",
+          "observable": "A real XLSX artifact opens successfully, its formulas recalculate to recorded values, structural checks pass, and its signed digest matches the delivered bytes.",
+          "requiredFields": ["artifactWorkbook.artifactId", "artifactWorkbook.revision", "artifactWorkbook.worksheets", "artifactWorkbook.evidence", "artifactVerification.sha256", "artifactVerification.recalculationEvidence", "artifactVerification.structuralVerification", "artifactVerification.signature"]
+        },
+        {
+          "id": "presentation-professionally-verified",
+          "evidenceClass": "signed_artifact",
+          "observable": "A real PPTX artifact opens successfully, structural and rendered-slide checks pass, and its signed digest matches the delivered bytes.",
+          "requiredFields": ["artifactPresentation.artifactId", "artifactPresentation.revision", "artifactPresentation.slides", "artifactPresentation.evidence", "artifactVerification.sha256", "artifactVerification.structuralVerification", "artifactVerification.renderVerification", "artifactVerification.signature"]
+        },
+        {
+          "id": "protected-remote-delivery-confirmed",
+          "evidenceClass": "observed_result",
+          "observable": "The paired device receives protected references to both verified artifacts, with no raw local path or credential in the delivery payload.",
+          "requiredFields": ["deliveryReceipt.deviceId", "deliveryReceipt.artifactIds", "deliveryReceipt.deliveredAt", "deliveryReceipt.payloadRedactionVerified"]
+        }
+      ]
+    },
+    {
+      "id": "p1-hero-meeting-to-action",
+      "title": "Meeting-to-action loop",
+      "implementationSprints": [237, 238, 243],
+      "requiredContracts": ["MediaAsset", "DesktopObservation", "DesktopAction"],
+      "postconditions": [
+        {
+          "id": "media-provenance-preserved",
+          "evidenceClass": "observed_result",
+          "observable": "Each voice note and screenshot has a capture timestamp, media digest, retention decision, redaction result, and Project binding.",
+          "requiredFields": ["mediaAsset.mediaAssetId", "mediaAsset.sha256", "mediaAsset.createdAt", "mediaAsset.retentionPolicy", "mediaAsset.redactionPolicy", "mediaAsset.projectId"]
+        },
+        {
+          "id": "transcript-edits-auditable",
+          "evidenceClass": "observed_result",
+          "observable": "The transcript, user corrections, extracted decisions, and their exact source time ranges are visible in the Task evidence.",
+          "requiredFields": ["transcript.text", "transcript.corrections", "decisions.sourceRanges", "evidenceIds"]
+        },
+        {
+          "id": "desktop-observation-fresh",
+          "evidenceClass": "observed_result",
+          "observable": "Every proposed desktop action references a successful observation of the target application and window captured within the allowed freshness interval.",
+          "requiredFields": ["desktopObservation.observationId", "desktopObservation.application.bundleId", "desktopObservation.window.windowRef", "desktopObservation.observedAt", "desktopObservation.elements"]
+        },
+        {
+          "id": "desktop-mutation-authorized",
+          "evidenceClass": "verified_postcondition",
+          "observable": "No Mac application mutation occurs until the exact DesktopAction target and arguments receive an approval decision.",
+          "requiredFields": ["desktopAction.actionId", "desktopAction.observationId", "desktopAction.target", "desktopAction.arguments", "desktopAction.approvalId", "desktopAction.expectedPostcondition"]
+        },
+        {
+          "id": "takeover-and-interruption-terminal",
+          "evidenceClass": "verified_postcondition",
+          "observable": "User takeover or interruption stops pending actions, records a terminal state, and prevents later mutations under the interrupted action identity.",
+          "requiredFields": ["actionReceipt.actionId", "actionReceipt.terminalState", "actionReceipt.interruptedAt", "actionReceipt.lateMutationCount"]
+        },
+        {
+          "id": "application-state-verified",
+          "evidenceClass": "verified_postcondition",
+          "observable": "Each approved mutation has a post-action observation proving the intended application state or an accurate failed terminal result.",
+          "requiredFields": ["actionReceipt.actionId", "actionReceipt.postconditionObservationId", "actionReceipt.terminalState", "actionReceipt.postconditionStatus", "evidenceIds"]
+        }
+      ]
+    },
+    {
+      "id": "p1-hero-teach-once-reuse",
+      "title": "Teach once, reuse safely",
+      "implementationSprints": [240, 241, 242, 243],
+      "requiredContracts": ["LearningCandidate", "CapabilityBundle", "WorkGraph"],
+      "postconditions": [
+        {
+          "id": "candidate-derived-from-success",
+          "evidenceClass": "observed_result",
+          "observable": "The learning candidate references a successfully completed source Task and exposes a versioned, inspectable recipe diff.",
+          "requiredFields": ["learningCandidate.learningCandidateId", "learningCandidate.sourceTasks", "learningCandidate.proposedDiff", "learningCandidate.candidateVersion", "learningCandidate.projectId"]
+        },
+        {
+          "id": "candidate-reviewed-explicitly",
+          "evidenceClass": "verified_postcondition",
+          "observable": "The candidate remains inactive until an explicit review records the accepted diff, Project scope, reviewer, and decision timestamp.",
+          "requiredFields": ["learningCandidate.status", "learningCandidate.proposedScope", "learningReview.reviewedBy", "learningReview.reviewedAt", "learningCandidate.projectId"]
+        },
+        {
+          "id": "bundle-inspected-before-install",
+          "evidenceClass": "verified_postcondition",
+          "observable": "The signed bundle passes static inspection and declares every connector, specialist role, recipe, capability, and requested grant before installation.",
+          "requiredFields": ["capabilityBundle.capabilityBundleId", "capabilityBundle.signature", "bundleInspection.status", "capabilityBundle.capabilities", "capabilityBundle.requestedGrants"]
+        },
+        {
+          "id": "second-project-install-scoped",
+          "evidenceClass": "executed_mutation",
+          "observable": "Installation into a second Project records the target Project, installed version, explicit grants, and a receipt without copying source-Project authority.",
+          "requiredFields": ["installationReceipt.projectId", "installationReceipt.bundleId", "installationReceipt.version", "installationReceipt.grantIds"]
+        },
+        {
+          "id": "scope-difference-reviewed",
+          "evidenceClass": "verified_postcondition",
+          "observable": "Any connector, path, mutation, or role scope difference in the second Project creates a new review instead of inheriting hidden authority.",
+          "requiredFields": ["scopeDiff.changedScopes", "scopeDiff.reviewId", "scopeDiff.decision"]
+        },
+        {
+          "id": "rerun-lineage-and-result-verified",
+          "evidenceClass": "verified_postcondition",
+          "observable": "The rerun records the installed recipe version, bounded WorkGraph, exact inputs, result evidence, and zero child self-authorization events.",
+          "requiredFields": ["workGraph.workGraphId", "workGraph.taskId", "workGraph.taskRunId", "workGraph.parentOwnsMutations", "workGraph.resourceBudget", "rerunReceipt.recipeVersion", "rerunReceipt.childSelfAuthorizationCount", "evidenceIds"]
+        },
+        {
+          "id": "rollback-restores-prior-version",
+          "evidenceClass": "verified_postcondition",
+          "observable": "Rollback deactivates the reviewed version, restores the prior installed version, and proves subsequent runs resolve only the restored version.",
+          "requiredFields": ["rollbackReceipt.bundleId", "rollbackReceipt.fromVersion", "rollbackReceipt.toVersion", "rollbackReceipt.verifiedAt"]
+        }
+      ]
+    }
+  ]
+}

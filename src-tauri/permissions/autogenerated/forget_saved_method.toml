@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-forget-saved-method"
+description = "Enables the forget_saved_method command without any pre-configured scope."
+commands.allow = ["forget_saved_method"]
+
+[[permission]]
+identifier = "deny-forget-saved-method"
+description = "Denies the forget_saved_method command without any pre-configured scope."
+commands.deny = ["forget_saved_method"]

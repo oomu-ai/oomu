@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-scan-agent-import-directory"
+description = "Enables the scan_agent_import_directory command without any pre-configured scope."
+commands.allow = ["scan_agent_import_directory"]
+
+[[permission]]
+identifier = "deny-scan-agent-import-directory"
+description = "Denies the scan_agent_import_directory command without any pre-configured scope."
+commands.deny = ["scan_agent_import_directory"]

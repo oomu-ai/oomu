@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-analyze-media-image"
+description = "Enables the analyze_media_image command without any pre-configured scope."
+commands.allow = ["analyze_media_image"]
+
+[[permission]]
+identifier = "deny-analyze-media-image"
+description = "Denies the analyze_media_image command without any pre-configured scope."
+commands.deny = ["analyze_media_image"]

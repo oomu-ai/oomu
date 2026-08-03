@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-edit-workflow"
+description = "Enables the edit_workflow command without any pre-configured scope."
+commands.allow = ["edit_workflow"]
+
+[[permission]]
+identifier = "deny-edit-workflow"
+description = "Denies the edit_workflow command without any pre-configured scope."
+commands.deny = ["edit_workflow"]

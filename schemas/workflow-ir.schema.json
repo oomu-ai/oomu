@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oomu.local/schemas/workflow-ir.schema.json",
+  "title": "OOMU Workflow Intermediate Representation",
+  "description": "Structural schema for compile-on-save workflow graphs. Referential integrity, port rules, reachability, and acyclicity are enforced by the companion runtime validators.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workflowId",
+    "workflowVersion",
+    "name",
+    "compiler",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "workflowId": { "$ref": "#/$defs/nonEmptyString" },
+    "workflowVersion": { "type": "integer", "minimum": 1 },
+    "name": { "$ref": "#/$defs/nonEmptyString" },
+    "description": { "type": "string", "default": "" },
+    "metadata": { "type": "object" },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model"],
+      "properties": {
+        "model": {
+          "enum": [
+            "gemma-4-e4b-qat",
+            "gemma-4-e2b-qat"
+          ]
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/edge" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "jsonSchema": {
+      "type": "object"
+    },
+    "node": {
+      "oneOf": [
+        { "$ref": "#/$defs/inputNode" },
+        { "$ref": "#/$defs/agentNode" },
+        { "$ref": "#/$defs/routerNode" },
+        { "$ref": "#/$defs/conditionalNode" },
+        { "$ref": "#/$defs/loopNode" },
+        { "$ref": "#/$defs/permissionNode" },
+        { "$ref": "#/$defs/mcpToolNode" },
+        { "$ref": "#/$defs/systemActionNode" },
+        { "$ref": "#/$defs/outputNode" }
+      ]
+    },
+    "inputNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "outputKey", "inputSchema"],
+      "properties": {
+        "kind": { "const": "input" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "outputKey": { "$ref": "#/$defs/nonEmptyString" },
+        "inputSchema": { "$ref": "#/$defs/jsonSchema" }
+      }
+    },
+    "agentNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "objective", "outputKey"],
+      "properties": {
+        "kind": { "const": "agent" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "objective": { "$ref": "#/$defs/nonEmptyString" },
+        "inputMappings": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/nonEmptyString" },
+          "default": {}
+        },
+        "outputKey": { "$ref": "#/$defs/nonEmptyString" },
+        "systemTimeoutMs": { "type": "integer", "minimum": 1, "maximum": 300000 }
+      }
+    },
+    "routerNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "expression", "routes"],
+      "properties": {
+        "kind": { "const": "router" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "expression": { "$ref": "#/$defs/nonEmptyString" },
+        "routes": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["port", "condition"],
+            "properties": {
+              "port": { "$ref": "#/$defs/nonEmptyString" },
+              "condition": { "$ref": "#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "systemTimeoutMs": { "type": "integer", "minimum": 1, "maximum": 300000 }
+      }
+    },
+    "conditionalNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "condition"],
+      "properties": {
+        "kind": { "const": "conditional" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "condition": { "$ref": "#/$defs/nonEmptyString" },
+        "inputMapping": { "$ref": "#/$defs/nonEmptyString" },
+        "systemTimeoutMs": { "type": "integer", "minimum": 1, "maximum": 300000 }
+      }
+    },
+    "loopNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "itemsMapping"],
+      "properties": {
+        "kind": { "const": "loop" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "itemsMapping": { "$ref": "#/$defs/nonEmptyString" },
+        "itemVariable": { "$ref": "#/$defs/nonEmptyString", "default": "item" },
+        "systemTimeoutMs": { "type": "integer", "minimum": 1, "maximum": 300000 }
+      }
+    },
+    "permissionNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "permission", "reason", "onDenied"],
+      "properties": {
+        "kind": { "const": "permission" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "permission": {
+          "enum": ["file_read", "file_write", "network", "process", "mcp_tool", "custom"]
+        },
+        "reason": { "$ref": "#/$defs/nonEmptyString" },
+        "onDenied": { "enum": ["fail", "branch"] }
+      }
+    },
+    "mcpToolNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "serverName", "toolName"],
+      "properties": {
+        "kind": { "const": "mcp_tool" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "serverName": { "$ref": "#/$defs/nonEmptyString" },
+        "toolName": { "$ref": "#/$defs/nonEmptyString" },
+        "arguments": {},
+        "inputSchema": {},
+        "outputSchema": {},
+        "systemTimeoutMs": { "type": "integer", "minimum": 1, "maximum": 300000 }
+      }
+    },
+    "systemActionNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "actionType", "command"],
+      "properties": {
+        "kind": { "const": "system_action" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "actionType": { "enum": ["shell", "python", "binary"] },
+        "command": { "$ref": "#/$defs/nonEmptyString" },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "workingDirectory": { "type": "string" },
+        "systemTimeoutMs": { "type": "integer", "minimum": 1, "maximum": 300000 },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30000
+        },
+        "maxOutputBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 51200,
+          "default": 51200
+        }
+      }
+    },
+    "outputNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "label", "inputMapping", "outputSchema"],
+      "properties": {
+        "kind": { "const": "output" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "inputMapping": { "$ref": "#/$defs/nonEmptyString" },
+        "outputSchema": { "$ref": "#/$defs/jsonSchema" },
+        "completionKind": { "enum": ["result", "empty_collection"], "default": "result" }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sourceNodeId", "sourcePort", "targetNodeId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceNodeId": { "$ref": "#/$defs/nonEmptyString" },
+        "sourcePort": { "$ref": "#/$defs/nonEmptyString" },
+        "targetNodeId": { "$ref": "#/$defs/nonEmptyString" },
+        "targetPort": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

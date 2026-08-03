@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-record-accepted-chat-turn-checkpoint"
+description = "Enables the record_accepted_chat_turn_checkpoint command without any pre-configured scope."
+commands.allow = ["record_accepted_chat_turn_checkpoint"]
+
+[[permission]]
+identifier = "deny-record-accepted-chat-turn-checkpoint"
+description = "Denies the record_accepted_chat_turn_checkpoint command without any pre-configured scope."
+commands.deny = ["record_accepted_chat_turn_checkpoint"]

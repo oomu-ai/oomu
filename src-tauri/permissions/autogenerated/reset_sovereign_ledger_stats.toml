@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-reset-sovereign-ledger-stats"
+description = "Enables the reset_sovereign_ledger_stats command without any pre-configured scope."
+commands.allow = ["reset_sovereign_ledger_stats"]
+
+[[permission]]
+identifier = "deny-reset-sovereign-ledger-stats"
+description = "Denies the reset_sovereign_ledger_stats command without any pre-configured scope."
+commands.deny = ["reset_sovereign_ledger_stats"]

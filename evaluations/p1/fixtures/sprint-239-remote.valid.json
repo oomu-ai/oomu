@@ -1,0 +1,1 @@
+{"schemaVersion":1,"sprint":239,"qualificationStatus":"contract_tested_not_remote_client_qualified","contracts":["RemoteDevice"],"checks":{"pairingExpires":true,"commandsSigned":true,"nonceReplayRejected":true,"taskOwnershipChecked":true,"artifactGrantOneUse":true}}

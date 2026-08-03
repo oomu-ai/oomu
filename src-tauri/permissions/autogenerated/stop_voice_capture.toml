@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-stop-voice-capture"
+description = "Enables the stop_voice_capture command without any pre-configured scope."
+commands.allow = ["stop_voice_capture"]
+
+[[permission]]
+identifier = "deny-stop-voice-capture"
+description = "Denies the stop_voice_capture command without any pre-configured scope."
+commands.deny = ["stop_voice_capture"]

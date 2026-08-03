@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "sprint": 235,
+  "qualificationStatus": "contract_tested_not_excel_qualified",
+  "reviews": [
+    {
+      "schemaVersion": 1,
+      "artifactId": "artifact_44444444-4444-4444-8444-444444444444",
+      "projectId": "project_22222222-2222-4222-8222-222222222222",
+      "taskRunId": "taskrun_55555555-5555-4555-8555-555555555555",
+      "title": "Quarterly operating review",
+      "currentRevision": 3,
+      "safePriorRevision": 2,
+      "calculation": {"status":"stale"},
+      "verification": {"status":"stale","structural":"not_run","formula":"not_run","visual":"not_run"},
+      "sheets": [
+        {
+          "sheetId": "summary",
+          "name": "Summary",
+          "rowCount": 0,
+          "columnCount": 0,
+          "formulaCells": [
+            {"address":"F12","formula":"=SUM(F5:F11)","displayValue":"$1,240,000","status":"stale","sourceRefs":[]}
+          ],
+          "lineage": [
+            {"range":"F5:F11","sourceId":"source-quarterly-actuals","sourceLabel":"","freshness":"unknown"}
+          ],
+          "warnings": [
+            {"warningId":"needs_recalculation:0","severity":"warning","code":"needs_recalculation","ranges":["F12"],"sheetId":"summary"}
+          ],
+          "previewPageCount": 1
+        }
+      ],
+      "revisions": [
+        {"revision":3,"createdAt":"2026-07-11T18:05:00.000Z","status":"stale","recoverable":true},
+        {"revision":2,"createdAt":"2026-07-11T17:45:00.000Z","status":"verified","recoverable":true}
+      ],
+      "versionReviews": [
+        {
+          "revision": 3,
+          "status": "stale",
+          "calculation": {"status":"stale"},
+          "verification": {"status":"stale","structural":"not_run","formula":"not_run","visual":"not_run"},
+          "sheets": [
+            {
+              "sheetId": "summary",
+              "name": "Summary",
+              "rowCount": 0,
+              "columnCount": 0,
+              "formulaCells": [
+                {"address":"F12","formula":"=SUM(F5:F11)","displayValue":"$1,240,000","status":"stale","sourceRefs":[]}
+              ],
+              "lineage": [
+                {"range":"F5:F11","sourceId":"source-quarterly-actuals","sourceLabel":"","freshness":"unknown"}
+              ],
+              "warnings": [
+                {"warningId":"needs_recalculation:0","severity":"warning","code":"needs_recalculation","ranges":["F12"],"sheetId":"summary"}
+              ],
+              "previewPageCount": 1
+            }
+          ],
+          "exportable": false
+        },
+        {
+          "revision": 2,
+          "status": "verified",
+          "calculation": {"status":"calculated"},
+          "verification": {"status":"verified","structural":"passed","formula":"passed","visual":"passed"},
+          "sheets": [
+            {
+              "sheetId": "summary",
+              "name": "Summary",
+              "rowCount": 0,
+              "columnCount": 0,
+              "formulaCells": [
+                {"address":"F12","formula":"=SUM(F5:F11)","displayValue":"$1,240,000","status":"calculated","sourceRefs":[]}
+              ],
+              "lineage": [
+                {"range":"F5:F11","sourceId":"source-quarterly-actuals","sourceLabel":"","freshness":"unknown"}
+              ],
+              "warnings": [],
+              "previewPageCount": 1
+            }
+          ],
+          "exportable": true
+        }
+      ],
+      "exportable": false
+    }
+  ]
+}

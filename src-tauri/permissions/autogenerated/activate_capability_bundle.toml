@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-activate-capability-bundle"
+description = "Enables the activate_capability_bundle command without any pre-configured scope."
+commands.allow = ["activate_capability_bundle"]
+
+[[permission]]
+identifier = "deny-activate-capability-bundle"
+description = "Denies the activate_capability_bundle command without any pre-configured scope."
+commands.deny = ["activate_capability_bundle"]

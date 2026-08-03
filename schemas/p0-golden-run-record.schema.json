@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oomu.local/schemas/p0-golden-run-record.schema.json",
+  "title": "OOMU P0 Golden Task Run Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "taskId", "startedAt", "finishedAt", "build", "model", "machine", "metrics", "rawEvents"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "runId": { "type": "string", "minLength": 1 },
+    "taskId": { "type": "string", "pattern": "^p0-[0-9]{2}-[a-z0-9-]+$" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "sourceRevision"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerId", "modelId"],
+      "properties": {
+        "providerId": { "type": "string", "minLength": 1 },
+        "modelId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "machine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architecture", "platform", "osRelease"],
+      "properties": {
+        "architecture": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "osRelease": { "type": "string", "minLength": 1 }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completionStatus", "approvalCount", "retryCount", "elapsedMs", "artifactValidity", "evidenceCompleteness"],
+      "properties": {
+        "completionStatus": { "enum": ["passed", "failed", "environment-blocked", "not-run"] },
+        "approvalCount": { "type": "integer", "minimum": 0 },
+        "retryCount": { "type": "integer", "minimum": 0 },
+        "elapsedMs": { "type": "integer", "minimum": 0 },
+        "artifactValidity": { "enum": ["valid", "invalid", "not-applicable", "not-run"] },
+        "evidenceCompleteness": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "rawEvents": { "type": "array", "items": { "type": "object" } }
+  }
+}

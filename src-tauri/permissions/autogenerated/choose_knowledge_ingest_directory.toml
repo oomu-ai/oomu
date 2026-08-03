@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-choose-knowledge-ingest-directory"
+description = "Enables the choose_knowledge_ingest_directory command without any pre-configured scope."
+commands.allow = ["choose_knowledge_ingest_directory"]
+
+[[permission]]
+identifier = "deny-choose-knowledge-ingest-directory"
+description = "Denies the choose_knowledge_ingest_directory command without any pre-configured scope."
+commands.deny = ["choose_knowledge_ingest_directory"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-authorize-native-browser-navigation"
+description = "Enables the authorize_native_browser_navigation command without any pre-configured scope."
+commands.allow = ["authorize_native_browser_navigation"]
+
+[[permission]]
+identifier = "deny-authorize-native-browser-navigation"
+description = "Denies the authorize_native_browser_navigation command without any pre-configured scope."
+commands.deny = ["authorize_native_browser_navigation"]

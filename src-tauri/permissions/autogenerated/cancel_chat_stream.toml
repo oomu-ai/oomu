@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cancel-chat-stream"
+description = "Enables the cancel_chat_stream command without any pre-configured scope."
+commands.allow = ["cancel_chat_stream"]
+
+[[permission]]
+identifier = "deny-cancel-chat-stream"
+description = "Denies the cancel_chat_stream command without any pre-configured scope."
+commands.deny = ["cancel_chat_stream"]

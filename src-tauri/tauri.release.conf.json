@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "externalBin": [
+      "binaries/local_infer",
+      "binaries/pdf_extract_helper",
+      "binaries/artifact_build_helper",
+      "binaries/oomu-artifact-pdf-helper",
+      "binaries/oomu-vision-helper",
+      "binaries/oomu-speech-bridge"
+    ]
+  }
+}

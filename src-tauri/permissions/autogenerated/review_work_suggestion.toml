@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-review-work-suggestion"
+description = "Enables the review_work_suggestion command without any pre-configured scope."
+commands.allow = ["review_work_suggestion"]
+
+[[permission]]
+identifier = "deny-review-work-suggestion"
+description = "Denies the review_work_suggestion command without any pre-configured scope."
+commands.deny = ["review_work_suggestion"]

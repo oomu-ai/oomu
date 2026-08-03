@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-propose-routine"
+description = "Enables the propose_routine command without any pre-configured scope."
+commands.allow = ["propose_routine"]
+
+[[permission]]
+identifier = "deny-propose-routine"
+description = "Denies the propose_routine command without any pre-configured scope."
+commands.deny = ["propose_routine"]

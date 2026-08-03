@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-choose-recommended-model-install-location"
+description = "Enables the choose_recommended_model_install_location command without any pre-configured scope."
+commands.allow = ["choose_recommended_model_install_location"]
+
+[[permission]]
+identifier = "deny-choose-recommended-model-install-location"
+description = "Denies the choose_recommended_model_install_location command without any pre-configured scope."
+commands.deny = ["choose_recommended_model_install_location"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-subagent-yield"
+description = "Enables the subagent_yield command without any pre-configured scope."
+commands.allow = ["subagent_yield"]
+
+[[permission]]
+identifier = "deny-subagent-yield"
+description = "Denies the subagent_yield command without any pre-configured scope."
+commands.deny = ["subagent_yield"]

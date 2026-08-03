@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-auto-route-classifier-health"
+description = "Enables the get_auto_route_classifier_health command without any pre-configured scope."
+commands.allow = ["get_auto_route_classifier_health"]
+
+[[permission]]
+identifier = "deny-get-auto-route-classifier-health"
+description = "Denies the get_auto_route_classifier_health command without any pre-configured scope."
+commands.deny = ["get_auto_route_classifier_health"]

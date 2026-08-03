@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-validate-mod-compatibility-for-turn"
+description = "Enables the validate_mod_compatibility_for_turn command without any pre-configured scope."
+commands.allow = ["validate_mod_compatibility_for_turn"]
+
+[[permission]]
+identifier = "deny-validate-mod-compatibility-for-turn"
+description = "Denies the validate_mod_compatibility_for_turn command without any pre-configured scope."
+commands.deny = ["validate_mod_compatibility_for_turn"]

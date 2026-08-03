@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-export-presentation-revision"
+description = "Enables the export_presentation_revision command without any pre-configured scope."
+commands.allow = ["export_presentation_revision"]
+
+[[permission]]
+identifier = "deny-export-presentation-revision"
+description = "Denies the export_presentation_revision command without any pre-configured scope."
+commands.deny = ["export_presentation_revision"]

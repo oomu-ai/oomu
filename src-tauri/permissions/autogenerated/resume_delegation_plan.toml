@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-resume-delegation-plan"
+description = "Enables the resume_delegation_plan command without any pre-configured scope."
+commands.allow = ["resume_delegation_plan"]
+
+[[permission]]
+identifier = "deny-resume-delegation-plan"
+description = "Denies the resume_delegation_plan command without any pre-configured scope."
+commands.deny = ["resume_delegation_plan"]

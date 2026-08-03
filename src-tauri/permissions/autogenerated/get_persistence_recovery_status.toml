@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-persistence-recovery-status"
+description = "Enables the get_persistence_recovery_status command without any pre-configured scope."
+commands.allow = ["get_persistence_recovery_status"]
+
+[[permission]]
+identifier = "deny-get-persistence-recovery-status"
+description = "Denies the get_persistence_recovery_status command without any pre-configured scope."
+commands.deny = ["get_persistence_recovery_status"]

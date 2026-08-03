@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-resize-native-browser"
+description = "Enables the resize_native_browser command without any pre-configured scope."
+commands.allow = ["resize_native_browser"]
+
+[[permission]]
+identifier = "deny-resize-native-browser"
+description = "Denies the resize_native_browser command without any pre-configured scope."
+commands.deny = ["resize_native_browser"]

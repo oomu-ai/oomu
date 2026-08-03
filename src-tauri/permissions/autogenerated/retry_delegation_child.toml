@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-retry-delegation-child"
+description = "Enables the retry_delegation_child command without any pre-configured scope."
+commands.allow = ["retry_delegation_child"]
+
+[[permission]]
+identifier = "deny-retry-delegation-child"
+description = "Denies the retry_delegation_child command without any pre-configured scope."
+commands.deny = ["retry_delegation_child"]

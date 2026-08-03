@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-task-analyses"
+description = "Enables the list_task_analyses command without any pre-configured scope."
+commands.allow = ["list_task_analyses"]
+
+[[permission]]
+identifier = "deny-list-task-analyses"
+description = "Denies the list_task_analyses command without any pre-configured scope."
+commands.deny = ["list_task_analyses"]

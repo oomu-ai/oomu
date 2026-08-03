@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIconFile</key>
+  <string>OOMU</string>
+  <key>CFBundleIconName</key>
+  <string>OOMU</string>
+  <key>CSResourcesFileMapped</key>
+  <false/>
+  <key>LSRequiresCarbon</key>
+  <false/>
+  <key>LSMultipleInstancesProhibited</key>
+  <true/>
+  <key>OOMUBuildNumber</key>
+  <integer>6</integer>
+  <key>NSCalendarsUsageDescription</key>
+  <string>OOMU checks your schedule for conflicts and creates only the Calendar events you approve.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>OOMU checks your schedule for conflicts and creates only the Calendar events you approve.</string>
+  <key>NSRemindersFullAccessUsageDescription</key>
+  <string>OOMU reads or changes reminders only when you ask.</string>
+  <key>NSRemindersUsageDescription</key>
+  <string>OOMU reads or changes reminders only when you ask.</string>
+  <key>NSAppleMusicUsageDescription</key>
+  <string>OOMU reads only the music library metadata you ask it to review.</string>
+  <key>NSAppleEventsUsageDescription</key>
+  <string>OOMU works with Mail, Notes, Reminders, Messages, and other Apple apps only when you ask.</string>
+  <key>NSContactsUsageDescription</key>
+  <string>OOMU reads only the contacts you ask it to find.</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>OOMU reads only the photo details you ask it to review.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>OOMU listens only while you use voice input.</string>
+  <key>NSCameraUsageDescription</key>
+  <string>OOMU uses the camera only when you ask it to see something.</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>OOMU connects only to local services you choose.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>OOMU turns your voice into text on this Mac.</string>
+</dict>
+</plist>

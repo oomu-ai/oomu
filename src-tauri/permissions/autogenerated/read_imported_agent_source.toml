@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-imported-agent-source"
+description = "Enables the read_imported_agent_source command without any pre-configured scope."
+commands.allow = ["read_imported_agent_source"]
+
+[[permission]]
+identifier = "deny-read-imported-agent-source"
+description = "Denies the read_imported_agent_source command without any pre-configured scope."
+commands.deny = ["read_imported_agent_source"]

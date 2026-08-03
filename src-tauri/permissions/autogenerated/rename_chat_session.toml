@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-rename-chat-session"
+description = "Enables the rename_chat_session command without any pre-configured scope."
+commands.allow = ["rename_chat_session"]
+
+[[permission]]
+identifier = "deny-rename-chat-session"
+description = "Denies the rename_chat_session command without any pre-configured scope."
+commands.deny = ["rename_chat_session"]

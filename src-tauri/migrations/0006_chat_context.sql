@@ -1,0 +1,18 @@
+-- Immutable migration contract: chat/session context isolation, revision 1.
+--
+-- Idempotently add to chat_messages:
+--   workspace_id TEXT NOT NULL, session_id TEXT NOT NULL,
+--   provider_id TEXT, model_id TEXT, metadata_json TEXT,
+--   is_compacted INTEGER NOT NULL, compaction_type TEXT.
+-- Idempotently add to chat_sessions:
+--   workspace_id TEXT NOT NULL, title_source TEXT NOT NULL,
+--   web_grounding_override INTEGER, dynamic_routing_override INTEGER.
+-- Idempotently add to message_queue:
+--   turn_id, generation_token, parent_turn_id, root_turn_id, turn_kind,
+--   automated_web_grounding_enabled, dynamic_routing_override.
+-- Normalize legacy user-authored chat titles to title_source='user'.
+-- Create the session/workspace/agent/active-message and session-updated indexes
+-- named in verify_schema_invariants.
+--
+-- Workspace defaults are substituted by the runner and are not checksum material.
+-- This file is immutable once released; extend the schema with a new migration.

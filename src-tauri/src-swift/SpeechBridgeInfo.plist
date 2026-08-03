@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleExecutable</key>
+  <string>oomu-speech-bridge</string>
+  <key>CFBundleIdentifier</key>
+  <string>ai.eldris.oomu.gpd.speech-bridge</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>OOMU Voice Input</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>14.0</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>OOMU listens only while you use voice input.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>OOMU turns your voice into text on this Mac.</string>
+</dict>
+</plist>

@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    {
+      "id": "p0-01-project-setup",
+      "outcome": "Create an approved working surface from a user-selected local folder.",
+      "inputs": ["user-selected folder", "project instructions", "data policy"],
+      "productionCommands": [
+        { "name": "choose_local_context", "authority": "user_grant" },
+        { "name": "read_local_context", "authority": "user_grant" },
+        { "name": "get_memory_ledger_state", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "observed_result", "observation": "The selected folder is readable only through its native grant." },
+        { "evidenceClass": "verified_postcondition", "observation": "Project scope, instructions, and data policy survive a native reload once Sprint 225 owns the project record." }
+      ]
+    },
+    {
+      "id": "p0-02-local-knowledge",
+      "outcome": "Ingest user-selected knowledge and retrieve its observed state.",
+      "inputs": ["user-selected knowledge directory", "query grounded in ingested content"],
+      "productionCommands": [
+        { "name": "choose_knowledge_ingest_directory", "authority": "user_grant" },
+        { "name": "ingest_knowledge", "authority": "user_grant" },
+        { "name": "get_knowledge_state", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "executed_mutation", "observation": "The native knowledge ledger records ingested document identities." },
+        { "evidenceClass": "observed_result", "observation": "A grounded answer cites content present in the selected source." }
+      ]
+    },
+    {
+      "id": "p0-03-mail-calendar",
+      "outcome": "Prepare a brief from current Apple Mail and Calendar observations.",
+      "inputs": ["date window", "briefing objective"],
+      "productionCommands": [
+        { "name": "read_system_emails", "authority": "read_only" },
+        { "name": "read_system_calendar", "authority": "read_only" },
+        { "name": "chat_turn", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "observed_result", "observation": "Mail and Calendar source counts and permission outcomes are recorded." },
+        { "evidenceClass": "model_assertion", "observation": "The brief is traceable to the observed source window." }
+      ]
+    },
+    {
+      "id": "p0-04-web-research",
+      "outcome": "Research a current question using the production web-search boundary.",
+      "inputs": ["current-fact research question", "source recency requirement"],
+      "productionCommands": [
+        { "name": "sovereign_duckduckgo_search", "authority": "read_only" },
+        { "name": "chat_turn", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "observed_result", "observation": "Returned source URLs and snippets are recorded as observations." },
+        { "evidenceClass": "model_assertion", "observation": "Claims remain bounded to retrieved sources." }
+      ]
+    },
+    {
+      "id": "p0-05-scheduled-routine",
+      "outcome": "Persist a recurring workflow and observe its next eligible run.",
+      "inputs": ["natural-language schedule", "saved workflow"],
+      "productionCommands": [
+        { "name": "save_workflow", "authority": "shield" },
+        { "name": "get_workflows", "authority": "read_only" },
+        { "name": "run_workflow", "authority": "shield" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "executed_mutation", "observation": "The schedule is persisted through the workflow scheduling adapter." },
+        { "evidenceClass": "verified_postcondition", "observation": "The next run and last-run identity are recoverable after restart." }
+      ]
+    },
+    {
+      "id": "p0-06-browser-action",
+      "outcome": "Open an authorized page and complete one guarded browser action.",
+      "inputs": ["approved HTTPS destination", "bounded browser objective"],
+      "productionCommands": [
+        { "name": "authorize_native_browser_navigation", "authority": "shield" },
+        { "name": "open_authorized_native_browser", "authority": "shield" },
+        { "name": "close_native_browser", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "executed_mutation", "observation": "The browser action is bound to an approved origin and action receipt." },
+        { "evidenceClass": "verified_postcondition", "observation": "The resulting page state is observed after the action once Sprint 229 supplies guarded actions." }
+      ]
+    },
+    {
+      "id": "p0-07-verified-artifact",
+      "outcome": "Produce and reveal a verified decision-brief artifact.",
+      "inputs": ["grounded brief content", "DOCX and PDF output request"],
+      "productionCommands": [
+        { "name": "run_workflow", "authority": "shield" },
+        { "name": "reveal_workflow_output_file", "authority": "user_grant" },
+        { "name": "verify_artifact_signature", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "verified_postcondition", "observation": "DOCX structure and rendered PDF pages pass the Sprint 230 validators." },
+        { "evidenceClass": "signed_artifact", "observation": "The native artifact workflow binds bytes, provenance, signature, and verification results to one digest identity without renderer signing authority." }
+      ]
+    },
+    {
+      "id": "p0-08-approval-boundary",
+      "outcome": "Require and resolve approval before an irreversible external action.",
+      "inputs": ["high-risk MCP action", "explicit user decision"],
+      "productionCommands": [
+        { "name": "mcp_prepare_tool_approval", "authority": "shield" },
+        { "name": "mcp_execute_tool", "authority": "shield" },
+        { "name": "mcp_reject_tool_approval", "authority": "shield" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "observed_result", "observation": "No mutation occurs before an approval decision." },
+        { "evidenceClass": "verified_postcondition", "observation": "Approval, denial, and scope are correlated to the exact action." }
+      ]
+    },
+    {
+      "id": "p0-09-restart-recovery",
+      "outcome": "Resume persisted delegated work after application restart without replaying side effects.",
+      "inputs": ["in-progress task identity", "persisted execution checkpoint"],
+      "productionCommands": [
+        { "name": "restore_agent_sessions", "authority": "read_only" },
+        { "name": "get_agentic_state", "authority": "read_only" },
+        { "name": "get_taskflow_state", "authority": "read_only" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "observed_result", "observation": "The persisted run returns to the same task identity after restart." },
+        { "evidenceClass": "verified_postcondition", "observation": "Previously confirmed side effects are not executed again." }
+      ]
+    },
+    {
+      "id": "p0-10-cancellation",
+      "outcome": "Cancel active model and tool work and observe terminal cancellation.",
+      "inputs": ["running chat stream", "running MCP operation"],
+      "productionCommands": [
+        { "name": "cancel_chat_stream", "authority": "read_only" },
+        { "name": "mcp_cancel_remote_operations", "authority": "shield" },
+        { "name": "revoke_actuation_lease", "authority": "shield" }
+      ],
+      "expectedPostconditions": [
+        { "evidenceClass": "executed_mutation", "observation": "Cancellation is delivered to each active production runtime." },
+        { "evidenceClass": "verified_postcondition", "observation": "No later mutation is accepted for the cancelled run identity." }
+      ]
+    }
+  ],
+  "requiredMetrics": [
+    "completionStatus",
+    "approvalCount",
+    "retryCount",
+    "elapsedMs",
+    "artifactValidity",
+    "evidenceCompleteness"
+  ]
+}

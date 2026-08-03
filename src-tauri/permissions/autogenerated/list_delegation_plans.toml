@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-delegation-plans"
+description = "Enables the list_delegation_plans command without any pre-configured scope."
+commands.allow = ["list_delegation_plans"]
+
+[[permission]]
+identifier = "deny-list-delegation-plans"
+description = "Denies the list_delegation_plans command without any pre-configured scope."
+commands.deny = ["list_delegation_plans"]

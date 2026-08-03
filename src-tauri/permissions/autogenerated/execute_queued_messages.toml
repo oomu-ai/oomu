@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-execute-queued-messages"
+description = "Enables the execute_queued_messages command without any pre-configured scope."
+commands.allow = ["execute_queued_messages"]
+
+[[permission]]
+identifier = "deny-execute-queued-messages"
+description = "Denies the execute_queued_messages command without any pre-configured scope."
+commands.deny = ["execute_queued_messages"]

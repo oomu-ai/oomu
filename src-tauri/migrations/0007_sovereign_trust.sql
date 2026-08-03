@@ -1,0 +1,10 @@
+-- Immutable migration contract: sovereign trust persistence, revision 1.
+--
+-- Idempotently create sovereign_trust_policies and active_trust_sessions with
+-- their uniqueness, scope, expiry, budget, usage, status, and encryption fields.
+-- Create idx_sovereign_trust_policies_active,
+-- idx_active_trust_sessions_lookup, and idx_active_trust_sessions_scope.
+-- Preserve the migration index for databases created by earlier OOMU builds.
+-- No agent record is created or modified by this public migration.
+--
+-- This file is immutable once released; extend the schema with a new migration.

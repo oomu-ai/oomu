@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-connector-project-scope"
+description = "Enables the set_connector_project_scope command without any pre-configured scope."
+commands.allow = ["set_connector_project_scope"]
+
+[[permission]]
+identifier = "deny-set-connector-project-scope"
+description = "Denies the set_connector_project_scope command without any pre-configured scope."
+commands.deny = ["set_connector_project_scope"]

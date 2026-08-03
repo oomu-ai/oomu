@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-mcp-connect-builtin-server"
+description = "Enables the mcp_connect_builtin_server command without any pre-configured scope."
+commands.allow = ["mcp_connect_builtin_server"]
+
+[[permission]]
+identifier = "deny-mcp-connect-builtin-server"
+description = "Denies the mcp_connect_builtin_server command without any pre-configured scope."
+commands.deny = ["mcp_connect_builtin_server"]

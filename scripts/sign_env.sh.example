@@ -1,0 +1,49 @@
+#!/usr/bin/env zsh
+
+# Template values only. Replace these placeholders with real Apple Developer
+# credentials in your local environment or CI secret store before running
+# npm run build:prod. The release entrypoint never sources or parses this file;
+# use it only as a reviewed list of variable names and export values explicitly.
+
+# The canonical pipeline also requires the reviewed Ed25519 release trust root
+# and the reviewed release lab's mutual-TLS client material. These paths must
+# refer to local secret/provisioned files; never commit private key material.
+export OOMU_RELEASE_MANIFEST_PRIVATE_KEY_PATH="/secure/path/release-private.pem"
+export OOMU_RELEASE_MANIFEST_PUBLIC_KEY_PATH="/secure/path/release-public.pem"
+export OOMU_RELEASE_LAB_URL="https://release-lab.example.invalid"
+export OOMU_RELEASE_LAB_CLIENT_CERT_PATH="/secure/path/release-lab-client.pem"
+export OOMU_RELEASE_LAB_CLIENT_KEY_PATH="/secure/path/release-lab-client-key.pem"
+export OOMU_RELEASE_LAB_CA_PATH="/secure/path/release-lab-ca.pem"
+export OOMU_OAUTH_SECRET_SCAN_CANARIES_BASE64="BASE64_JSON_ARRAY_FROM_CI_SECRET_STORE"
+
+# Optional public Slack messaging-service configuration. These values are
+# reviewed metadata, not credentials. Direct Slack work access remains available
+# without them; real-time inbound Slack messaging requires both values.
+export OOMU_SLACK_OAUTH_BROKER_URL="https://secure-connect.example.invalid/v1/slack/oauth"
+export OOMU_SLACK_OAUTH_BROKER_CERT_SHA256="64_HEX_CHARACTERS"
+export OOMU_MICROSOFT_OAUTH_CLIENT_ID="YOUR_PUBLIC_MICROSOFT_DESKTOP_CLIENT_ID"
+
+# Signing identity accepted by Tauri. Use the Developer ID Application identity
+# name or SHA-1 hash from: security find-identity -v -p codesigning
+export APPLE_SIGNING_IDENTITY="Developer ID Application: TEAM NAME (TEAMID1234)"
+
+# CI certificate import. These are required together when the signing
+# certificate is imported from a .p12 file instead of already being available
+# in the macOS keychain.
+export APPLE_CERTIFICATE="BASE64_ENCODED_DEVELOPER_ID_APPLICATION_P12"
+export APPLE_CERTIFICATE_PASSWORD="P12_PASSWORD"
+
+# Apple ID notarization flow. APPLE_PASSWORD must be an app-specific password,
+# not your normal Apple account password.
+export APPLE_ID="developer@example.com"
+export APPLE_PASSWORD="app-specific-password"
+export APPLE_TEAM_ID="TEAMID1234"
+
+# Alternative notarization flow. Leave these unset when using APPLE_ID,
+# APPLE_PASSWORD, and APPLE_TEAM_ID above.
+# export APPLE_API_ISSUER="00000000-0000-0000-0000-000000000000"
+# export APPLE_API_KEY="ABC123DEFG"
+# export APPLE_API_KEY_PATH="/absolute/path/to/AuthKey_ABC123DEFG.p8"
+
+# Bundle identifier registered in Apple Developer portal:
+# ai.eldris.oomu.gpd, configured in src-tauri/tauri.conf.json.

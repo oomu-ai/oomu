@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-presentation-checker-download"
+description = "Enables the open_presentation_checker_download command without any pre-configured scope."
+commands.allow = ["open_presentation_checker_download"]
+
+[[permission]]
+identifier = "deny-open-presentation-checker-download"
+description = "Denies the open_presentation_checker_download command without any pre-configured scope."
+commands.deny = ["open_presentation_checker_download"]

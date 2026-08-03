@@ -1,0 +1,5 @@
+app_data/
+*.db
+*.db-shm
+*.db-wal
+binaries/

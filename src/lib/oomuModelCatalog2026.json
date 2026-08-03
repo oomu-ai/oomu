@@ -1,0 +1,1531 @@
+{
+  "version": "2026.07.25",
+  "updated_at": "2026-07-25T15:30:00Z",
+  "description": "OOMU Master Model Catalog verified against current official provider documentation.",
+  "providers": [
+    {
+      "provider_id": "google",
+      "provider_name": "Google AI Studio Direct",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "models": [
+        {
+          "model_id": "gemini-3.6-flash",
+          "display_name": "Google Gemini 3.6 Flash",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 1.5,
+            "output": 7.5
+          }
+        },
+        {
+          "model_id": "gemini-3.5-flash",
+          "display_name": "Google Gemini 3.5 Flash",
+          "context_window": 1048576,
+          "max_output_tokens": 65535,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 1.5,
+            "output": 9.0
+          }
+        },
+        {
+          "model_id": "gemini-3.5-flash-lite",
+          "display_name": "Google Gemini 3.5 Flash-Lite",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "off"
+          },
+          "pricing_per_1m": {
+            "input": 0.3,
+            "output": 2.5
+          }
+        },
+        {
+          "model_id": "gemini-3.1-flash-lite",
+          "display_name": "Google Gemini 3.1 Flash-Lite",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 0.25,
+            "output": 1.5
+          }
+        },
+        {
+          "model_id": "gemini-3.1-pro-preview",
+          "display_name": "Google Gemini 3.1 Pro Preview",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 1.25,
+            "output": 5.0
+          }
+        },
+        {
+          "model_id": "gemini-2.5-pro",
+          "display_name": "Google Gemini 2.5 Pro",
+          "context_window": 1048576,
+          "max_output_tokens": 65535,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 1.25,
+            "output": 5.0
+          }
+        },
+        {
+          "model_id": "gemini-2.5-flash",
+          "display_name": "Google Gemini 2.5 Flash",
+          "context_window": 1048576,
+          "max_output_tokens": 65535,
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 0.075,
+            "output": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "openai",
+      "provider_name": "OpenAI Direct",
+      "base_url": "https://api.openai.com/v1",
+      "models": [
+        {
+          "model_id": "gpt-5.6-sol",
+          "display_name": "OpenAI GPT-5.6 Sol",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 5.0,
+            "output": 30.0
+          }
+        },
+        {
+          "model_id": "gpt-5.6-terra",
+          "display_name": "OpenAI GPT-5.6 Terra",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 2.5,
+            "output": 15.0
+          }
+        },
+        {
+          "model_id": "gpt-5.6-luna",
+          "display_name": "OpenAI GPT-5.6 Luna",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 1.0,
+            "output": 6.0
+          }
+        },
+        {
+          "model_id": "gpt-5.5",
+          "display_name": "OpenAI GPT-5.5",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 5.0,
+            "output": 30.0
+          }
+        },
+        {
+          "model_id": "gpt-5.4",
+          "display_name": "OpenAI GPT-5.4",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 2.5,
+            "output": 15.0
+          }
+        },
+        {
+          "model_id": "gpt-5.4-mini",
+          "display_name": "OpenAI GPT-5.4 Mini",
+          "context_window": 400000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 0.75,
+            "output": 4.5
+          }
+        },
+        {
+          "model_id": "gpt-5.4-nano",
+          "display_name": "OpenAI GPT-5.4 Nano",
+          "context_window": 400000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 0.2,
+            "output": 1.25
+          }
+        },
+        {
+          "model_id": "gpt-5.2",
+          "display_name": "OpenAI GPT-5.2",
+          "context_window": 400000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "off"
+          },
+          "pricing_per_1m": {
+            "input": 1.75,
+            "output": 14.0
+          }
+        },
+        {
+          "model_id": "gpt-5-mini",
+          "display_name": "OpenAI GPT-5 Mini",
+          "context_window": 400000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 0.25,
+            "output": 2.0
+          }
+        },
+        {
+          "model_id": "gpt-5-nano",
+          "display_name": "OpenAI GPT-5 Nano",
+          "context_window": 400000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 0.05,
+            "output": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "anthropic",
+      "provider_name": "Anthropic Claude Direct",
+      "base_url": "https://api.anthropic.com/v1",
+      "models": [
+        {
+          "model_id": "claude-fable-5",
+          "display_name": "Anthropic Claude Fable 5",
+          "context_window": 1000000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "output_config.effort",
+            "levels": ["low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 10.0,
+            "output": 50.0
+          }
+        },
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "Anthropic Claude Opus 5",
+          "context_window": 1000000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "output_config.effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 5.0,
+            "output": 25.0
+          }
+        },
+        {
+          "model_id": "claude-sonnet-5",
+          "display_name": "Anthropic Claude Sonnet 5",
+          "context_window": 1000000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "output_config.effort",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 3.0,
+            "output": 15.0
+          }
+        },
+        {
+          "model_id": "claude-haiku-4-5-20251001",
+          "display_name": "Anthropic Claude Haiku 4.5",
+          "context_window": 200000,
+          "max_output_tokens": 64000,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "thinking.budget_tokens",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 1.0,
+            "output": 5.0
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "x-ai",
+      "provider_name": "xAI Grok Direct",
+      "base_url": "https://api.x.ai/v1",
+      "models": [
+        {
+          "model_id": "grok-4.5",
+          "display_name": "xAI Grok 4.5",
+          "context_window": 500000,
+          "max_output_tokens": 500000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["low", "medium", "high"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 2.0,
+            "output": 6.0
+          }
+        },
+        {
+          "model_id": "grok-build-0.1",
+          "display_name": "xAI Grok Build 0.1",
+          "context_window": 256000,
+          "max_output_tokens": 256000,
+          "thinking_support": {
+            "type": "none",
+            "parameter_name": null,
+            "levels": [],
+            "default": "off"
+          },
+          "pricing_per_1m": {
+            "input": 1.0,
+            "output": 2.0
+          }
+        },
+        {
+          "model_id": "grok-4.3",
+          "display_name": "xAI Grok 4.3",
+          "context_window": 1000000,
+          "max_output_tokens": 1000000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "low", "medium", "high"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {
+            "input": 1.25,
+            "output": 2.5
+          }
+        },
+        {
+          "model_id": "grok-4.20-multi-agent-0309",
+          "display_name": "xAI Grok 4.20 Multi-Agent",
+          "context_window": 1000000,
+          "max_output_tokens": 1000000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 1.25,
+            "output": 2.5
+          }
+        },
+        {
+          "model_id": "grok-4.20-0309-reasoning",
+          "display_name": "xAI Grok 4.20 Reasoning",
+          "context_window": 1000000,
+          "max_output_tokens": 1000000,
+          "thinking_support": {
+            "type": "none",
+            "parameter_name": null,
+            "levels": [],
+            "default": "off"
+          },
+          "pricing_per_1m": {
+            "input": 1.25,
+            "output": 2.5
+          }
+        },
+        {
+          "model_id": "grok-4.20-0309-non-reasoning",
+          "display_name": "xAI Grok 4.20 Non-Reasoning",
+          "context_window": 1000000,
+          "max_output_tokens": 1000000,
+          "thinking_support": {
+            "type": "none",
+            "parameter_name": null,
+            "levels": [],
+            "default": "off"
+          },
+          "pricing_per_1m": {
+            "input": 1.25,
+            "output": 2.5
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "deepseek",
+      "provider_name": "DeepSeek Direct",
+      "base_url": "https://api.deepseek.com/v1",
+      "models": [
+        {
+          "model_id": "deepseek-v4-pro",
+          "display_name": "DeepSeek V4 Pro",
+          "context_window": 1000000,
+          "max_output_tokens": 384000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.435,
+            "output": 0.87
+          }
+        },
+        {
+          "model_id": "deepseek-v4-flash",
+          "display_name": "DeepSeek V4 Flash",
+          "context_window": 1000000,
+          "max_output_tokens": 384000,
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["off", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.14,
+            "output": 0.28
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "qwen_us",
+      "provider_name": "Alibaba Qwen (United States)",
+      "base_url": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+      "models": [
+        {
+          "model_id": "qwen3.7-max",
+          "display_name": "Qwen 3.7 Max",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 2.5,
+            "output": 7.5
+          }
+        },
+        {
+          "model_id": "qwen3.7-plus",
+          "display_name": "Qwen 3.7 Plus",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.4,
+            "output": 1.6
+          }
+        },
+        {
+          "model_id": "qwen3.6-flash",
+          "display_name": "Qwen 3.6 Flash",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.2,
+            "output": 1.2
+          }
+        },
+        {
+          "model_id": "qwen3.6-plus",
+          "display_name": "Qwen 3.6 Plus",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.4,
+            "output": 2.4
+          }
+        },
+        {
+          "model_id": "qwen3.5-plus",
+          "display_name": "Qwen 3.5 Plus",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 0.4, "output": 2.4}
+        },
+        {
+          "model_id": "qwen3.5-flash",
+          "display_name": "Qwen 3.5 Flash",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "medium"
+          },
+          "pricing_per_1m": {"input": 0.2, "output": 1.2}
+        },
+        {
+          "model_id": "qwen3-max",
+          "display_name": "Qwen 3 Max",
+          "context_window": 256000,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 1.2, "output": 6.0}
+        },
+        {
+          "model_id": "qwen3-coder-plus",
+          "display_name": "Qwen 3 Coder Plus",
+          "context_window": 1000000,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "none",
+            "parameter_name": null,
+            "levels": [],
+            "default": "off"
+          },
+          "pricing_per_1m": {"input": 0.2, "output": 0.6}
+        },
+        {
+          "model_id": "qwen3-coder-next",
+          "display_name": "Qwen 3 Coder Next",
+          "context_window": 262144,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "none",
+            "parameter_name": null,
+            "levels": [],
+            "default": "off"
+          },
+          "pricing_per_1m": {"input": 0.15, "output": 0.45}
+        },
+        {
+          "model_id": "qwen3.6-35b-a3b",
+          "display_name": "Qwen 3.6 35B A3B",
+          "context_window": 1000000,
+          "max_output_tokens": 65536,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 0.1, "output": 0.3}
+        }
+      ]
+    },
+    {
+      "provider_id": "qwen",
+      "provider_name": "Alibaba Qwen (International)",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "models": [
+        {
+          "model_id": "qwen3.7-max",
+          "display_name": "Qwen 3.7 Max",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 2.5, "output": 7.5}
+        },
+        {
+          "model_id": "qwen3.7-plus",
+          "display_name": "Qwen 3.7 Plus",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 0.4, "output": 1.6}
+        },
+        {
+          "model_id": "qwen3.6-flash",
+          "display_name": "Qwen 3.6 Flash",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 0.2, "output": 1.2}
+        },
+        {
+          "model_id": "qwen3.6-plus",
+          "display_name": "Qwen 3.6 Plus",
+          "context_window": 1000000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "enable_thinking",
+            "levels": ["off", "low", "medium", "high", "max"],
+            "default": "high"
+          },
+          "pricing_per_1m": {"input": 0.4, "output": 2.4}
+        }
+      ]
+    },
+    {
+      "provider_id": "zai",
+      "provider_name": "Z.AI GLM API (Global)",
+      "base_url": "https://api.z.ai/api/paas/v4",
+      "models": [
+        {
+          "model_id": "zai/glm-5.2",
+          "display_name": "GLM-5.2",
+          "context_window": 1048576,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        {
+          "model_id": "zai/glm-5.1",
+          "display_name": "GLM-5.1",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 1.4,
+            "output": 4.4
+          }
+        },
+        {
+          "model_id": "zai/glm-5",
+          "display_name": "GLM-5",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 1,
+            "output": 3.2
+          }
+        },
+        {
+          "model_id": "zai/glm-4.7",
+          "display_name": "GLM-4.7",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.6,
+            "output": 2.2
+          }
+        },
+        {
+          "model_id": "zai/glm-4.7-flash",
+          "display_name": "GLM-4.7 Flash",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0,
+            "output": 0
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "zai_coding",
+      "provider_name": "Z.AI GLM Coding Plan (Global)",
+      "base_url": "https://api.z.ai/api/coding/paas/v4",
+      "models": [
+        {
+          "model_id": "zai/glm-5.2",
+          "display_name": "GLM-5.2",
+          "context_window": 1048576,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        {
+          "model_id": "zai/glm-5-turbo",
+          "display_name": "GLM-5 Turbo",
+          "context_window": 200000,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        {
+          "model_id": "zai/glm-4.7",
+          "display_name": "GLM-4.7",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0,
+            "output": 0
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "zhipu",
+      "provider_name": "Zhipu AI GLM Direct (Mainland China)",
+      "base_url": "https://open.bigmodel.cn/api/paas/v4",
+      "models": [
+        {
+          "model_id": "zai/glm-5.2",
+          "display_name": "Zhipu GLM-5.2",
+          "context_window": 1048576,
+          "max_output_tokens": 131072,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        {
+          "model_id": "zai/glm-5.1",
+          "display_name": "Zhipu GLM-5.1",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.3,
+            "output": 0.9
+          }
+        },
+        {
+          "model_id": "zai/glm-5",
+          "display_name": "Zhipu GLM-5",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.3,
+            "output": 0.9
+          }
+        },
+        {
+          "model_id": "zai/glm-4.7",
+          "display_name": "Zhipu GLM-4.7",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.25,
+            "output": 0.75
+          }
+        },
+        {
+          "model_id": "zai/glm-4.7-flash",
+          "display_name": "Zhipu GLM-4.7 Flash",
+          "context_window": 200000,
+          "max_output_tokens": 128000,
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          },
+          "pricing_per_1m": {
+            "input": 0.1,
+            "output": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "moonshot_global",
+      "provider_name": "Moonshot AI (Global)",
+      "base_url": "https://api.moonshot.ai/v1",
+      "models": [
+        {
+          "model_id": "kimi-k3",
+          "display_name": "Kimi K3",
+          "context_window": 1000000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 3.0,
+            "output": 15.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": ["low", "high", "max"],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "kimi-k2.7-code",
+          "display_name": "Kimi K2.7 Code",
+          "context_window": 262144,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 0.95,
+            "output": 4.0
+          },
+          "thinking_support": {
+            "type": "none",
+            "parameter_name": null,
+            "levels": [],
+            "default": "off"
+          }
+        },
+        {
+          "model_id": "kimi-k2.6",
+          "display_name": "Kimi K2.6",
+          "context_window": 262144,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 0.95,
+            "output": 4.0
+          },
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": ["off", "high"],
+            "default": "high"
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "moonshot",
+      "provider_name": "Moonshot AI (Mainland China)",
+      "base_url": "https://api.moonshot.cn/v1",
+      "models": [
+        {
+          "model_id": "kimi-k2.6",
+          "display_name": "Kimi K2.6",
+          "context_window": 262144,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 0.95,
+            "output": 4.0
+          },
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "thinking",
+            "levels": ["off", "high"],
+            "default": "high"
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "openrouter",
+      "provider_name": "OpenRouter Aggregator",
+      "base_url": "https://openrouter.ai/api/v1",
+      "models": [
+        {
+          "model_id": "google/gemini-3.6-flash",
+          "display_name": "Google: Gemini 3.6 Flash",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 1.5,
+            "output": 7.5
+          },
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "google/gemini-3.5-flash-lite",
+          "display_name": "Google: Gemini 3.5 Flash Lite",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 0.3,
+            "output": 2.5
+          },
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "openai/gpt-5.6-luna-pro",
+          "display_name": "OpenAI: GPT-5.6 Luna Pro",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 1.0,
+            "output": 6.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "openai/gpt-5.6-luna",
+          "display_name": "OpenAI: GPT-5.6 Luna",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 1.0,
+            "output": 6.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "openai/gpt-5.6-terra-pro",
+          "display_name": "OpenAI: GPT-5.6 Terra Pro",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 2.5,
+            "output": 15.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "openai/gpt-5.6-terra",
+          "display_name": "OpenAI: GPT-5.6 Terra",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 2.5,
+            "output": 15.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "openai/gpt-5.6-sol-pro",
+          "display_name": "OpenAI: GPT-5.6 Sol Pro",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 5.0,
+            "output": 30.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "openai/gpt-5.6-sol",
+          "display_name": "OpenAI: GPT-5.6 Sol",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 5.0,
+            "output": 30.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "x-ai/grok-4.5",
+          "display_name": "xAI: Grok 4.5",
+          "context_window": 500000,
+          "max_output_tokens": 16384,
+          "pricing_per_1m": {
+            "input": 2.0,
+            "output": 6.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "anthropic/claude-sonnet-5",
+          "display_name": "Anthropic: Claude Sonnet 5",
+          "context_window": 1000000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 2.0,
+            "output": 10.0
+          },
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "thinking.budget_tokens",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "default": "medium"
+          }
+        }
+      ]
+    },
+    {
+      "provider_id": "synthetic",
+      "provider_name": "Synthetic Aggregator",
+      "base_url": "https://api.synthetic.ai/v1",
+      "models": [
+        {
+          "model_id": "synthetic/gpt-5.6-sol-wholesale",
+          "display_name": "Synthetic OpenAI GPT-5.6 Sol (Wholesale)",
+          "context_window": 1050000,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 1.1,
+            "output": 4.4
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "ultra"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "synthetic/claude-sonnet-5-wholesale",
+          "display_name": "Synthetic Claude 5 Sonnet (Wholesale)",
+          "context_window": 1000000,
+          "max_output_tokens": 64000,
+          "pricing_per_1m": {
+            "input": 2.25,
+            "output": 11.0
+          },
+          "thinking_support": {
+            "type": "thinking_budget",
+            "parameter_name": "thinking.budget_tokens",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh",
+              "max"
+            ],
+            "default": "medium"
+          }
+        },
+        {
+          "model_id": "synthetic/gemini-3.6-flash-wholesale",
+          "display_name": "Synthetic Gemini 3.6 Flash (Wholesale)",
+          "context_window": 1048576,
+          "max_output_tokens": 8192,
+          "pricing_per_1m": {
+            "input": 0.06,
+            "output": 0.24
+          },
+          "thinking_support": {
+            "type": "thinking_level",
+            "parameter_name": "generationConfig.thinkingConfig.thinkingLevel",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "synthetic/deepseek-v4-pro-wholesale",
+          "display_name": "Synthetic DeepSeek V4 Pro (Wholesale)",
+          "context_window": 1048576,
+          "max_output_tokens": 16384,
+          "pricing_per_1m": {
+            "input": 0.12,
+            "output": 0.48
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "synthetic/grok-4.5-wholesale",
+          "display_name": "Synthetic Grok 4.5 (Wholesale)",
+          "context_window": 500000,
+          "max_output_tokens": 32768,
+          "pricing_per_1m": {
+            "input": 1.5,
+            "output": 6.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "synthetic/qwen3.7-max-wholesale",
+          "display_name": "Synthetic Qwen 3.7 Max (Wholesale)",
+          "context_window": 1000000,
+          "max_output_tokens": 16384,
+          "pricing_per_1m": {
+            "input": 0.3,
+            "output": 1.2
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "synthetic/glm-5.2-wholesale",
+          "display_name": "Synthetic GLM-5.2 (Wholesale)",
+          "context_window": 1048576,
+          "max_output_tokens": 16384,
+          "pricing_per_1m": {
+            "input": 0.25,
+            "output": 1.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning_effort",
+            "levels": [
+              "off",
+              "low",
+              "medium",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        }
+      ]
+    }
+  ]
+}

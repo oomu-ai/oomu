@@ -1,0 +1,5 @@
+{
+  "cycles": [
+    "rust:agent_manager|rust:agentic_loop|rust:approval_scopes|rust:context_manager|rust:db|rust:delegation|rust:gateway|rust:gemma|rust:inference|rust:knowledge|rust:memory_ledger|rust:native_runtime|rust:projects|rust:shield_gate|rust:sovereign_search|rust:system_diagnostics|rust:tools|rust:verifier"
+  ]
+}

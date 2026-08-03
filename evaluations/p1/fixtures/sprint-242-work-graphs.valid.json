@@ -1,0 +1,1 @@
+{"schemaVersion":1,"sprint":242,"qualificationStatus":"contract_tested_not_eight_child_mac_matrix_qualified","contracts":["WorkGraph"],"checks":{"maximumEightEnforced":true,"nestedHelpersRejected":true,"pauseBoundaryPersisted":true,"suggestionsNeedParentReview":true,"analysisHashesRecorded":true,"analysisNetworkDenied":true}}

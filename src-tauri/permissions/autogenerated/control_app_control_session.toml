@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-control-app-control-session"
+description = "Enables the control_app_control_session command without any pre-configured scope."
+commands.allow = ["control_app_control_session"]
+
+[[permission]]
+identifier = "deny-control-app-control-session"
+description = "Denies the control_app_control_session command without any pre-configured scope."
+commands.deny = ["control_app_control_session"]

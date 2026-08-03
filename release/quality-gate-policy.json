@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "oomu.public-quality-gate-policy",
+  "releaseClaim": false,
+  "protectedSurfaceDigest": "sha256:642259e53936a2d4014587e5b7d3cb14d22896f34cb6a6020a37d3e36d9fda8a",
+  "requiredChecks": [
+    "real-components",
+    "source-line-ratchet",
+    "p0-architecture",
+    "module-cycles",
+    "repository-hygiene",
+    "p0-golden-discovery",
+    "p0-schema-parity",
+    "p0-release-validator-tests",
+    "command-parity",
+    "migration-integrity",
+    "local-bundle-codesign-integrity"
+  ],
+  "requiredExternalQualification": [
+    "signed-notarized-release",
+    "fresh-install-hero",
+    "external-channel-acceptance"
+  ]
+}

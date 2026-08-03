@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-commit-memory-proposal"
+description = "Enables the commit_memory_proposal command without any pre-configured scope."
+commands.allow = ["commit_memory_proposal"]
+
+[[permission]]
+identifier = "deny-commit-memory-proposal"
+description = "Denies the commit_memory_proposal command without any pre-configured scope."
+commands.deny = ["commit_memory_proposal"]

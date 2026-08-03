@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-control-browser-automation"
+description = "Enables the control_browser_automation command without any pre-configured scope."
+commands.allow = ["control_browser_automation"]
+
+[[permission]]
+identifier = "deny-control-browser-automation"
+description = "Denies the control_browser_automation command without any pre-configured scope."
+commands.deny = ["control_browser_automation"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-revoke-remote-device"
+description = "Enables the revoke_remote_device command without any pre-configured scope."
+commands.allow = ["revoke_remote_device"]
+
+[[permission]]
+identifier = "deny-revoke-remote-device"
+description = "Denies the revoke_remote_device command without any pre-configured scope."
+commands.deny = ["revoke_remote_device"]

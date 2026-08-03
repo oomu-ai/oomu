@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-saved-method-enabled"
+description = "Enables the set_saved_method_enabled command without any pre-configured scope."
+commands.allow = ["set_saved_method_enabled"]
+
+[[permission]]
+identifier = "deny-set-saved-method-enabled"
+description = "Denies the set_saved_method_enabled command without any pre-configured scope."
+commands.deny = ["set_saved_method_enabled"]

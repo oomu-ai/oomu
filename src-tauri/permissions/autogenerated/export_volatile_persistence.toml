@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-export-volatile-persistence"
+description = "Enables the export_volatile_persistence command without any pre-configured scope."
+commands.allow = ["export_volatile_persistence"]
+
+[[permission]]
+identifier = "deny-export-volatile-persistence"
+description = "Denies the export_volatile_persistence command without any pre-configured scope."
+commands.deny = ["export_volatile_persistence"]

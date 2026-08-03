@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-session-context-policy"
+description = "Enables the save_session_context_policy command without any pre-configured scope."
+commands.allow = ["save_session_context_policy"]
+
+[[permission]]
+identifier = "deny-save-session-context-policy"
+description = "Denies the save_session_context_policy command without any pre-configured scope."
+commands.deny = ["save_session_context_policy"]

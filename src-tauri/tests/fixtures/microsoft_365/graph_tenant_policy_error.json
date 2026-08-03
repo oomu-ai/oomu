@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "Authorization_RequestDenied",
+    "message": "Fixture detail must never become product copy or persisted diagnostics."
+  }
+}

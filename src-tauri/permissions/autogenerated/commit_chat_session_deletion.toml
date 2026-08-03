@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-commit-chat-session-deletion"
+description = "Enables the commit_chat_session_deletion command without any pre-configured scope."
+commands.allow = ["commit_chat_session_deletion"]
+
+[[permission]]
+identifier = "deny-commit-chat-session-deletion"
+description = "Denies the commit_chat_session_deletion command without any pre-configured scope."
+commands.deny = ["commit_chat_session_deletion"]

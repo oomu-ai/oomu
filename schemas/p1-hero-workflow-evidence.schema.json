@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oomu.local/schemas/p1-hero-workflow-evidence.schema.json",
+  "title": "OOMU P1 Hero Workflow Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "workflowId", "buildBinding", "executed", "terminalState", "startedAt", "finishedAt", "projectId", "taskId", "taskRunId", "postconditions", "resourceTelemetryRefs"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workflowId": { "enum": ["p1-hero-executive-review", "p1-hero-meeting-to-action", "p1-hero-teach-once-reuse"] },
+    "buildBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["buildIdentifier", "sourceRevision", "artifactDigest"],
+      "properties": {
+        "buildIdentifier": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "artifactDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "executed": { "const": true },
+    "terminalState": { "enum": ["completed", "failed", "blocked", "cancelled"] },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "projectId": { "type": "string", "pattern": "^project_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+    "taskId": { "type": "string", "pattern": "^task_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+    "taskRunId": { "type": "string", "pattern": "^taskrun_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+    "postconditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "evidenceClass", "status", "observedAt", "evidenceIds", "details"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "evidenceClass": { "enum": ["model_assertion", "observed_result", "executed_mutation", "verified_postcondition", "signed_artifact"] },
+          "status": { "enum": ["verified", "failed", "blocked"] },
+          "observedAt": { "type": "string", "format": "date-time" },
+          "evidenceIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "artifactIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "details": { "type": "object" }
+        }
+      }
+    },
+    "resourceTelemetryRefs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "workflowId": { "const": "p1-hero-executive-review" } }, "required": ["workflowId"] },
+      "then": { "properties": { "postconditions": { "minItems": 7, "maxItems": 7 } } }
+    },
+    {
+      "if": { "properties": { "workflowId": { "const": "p1-hero-meeting-to-action" } }, "required": ["workflowId"] },
+      "then": { "properties": { "postconditions": { "minItems": 6, "maxItems": 6 } } }
+    },
+    {
+      "if": { "properties": { "workflowId": { "const": "p1-hero-teach-once-reuse" } }, "required": ["workflowId"] },
+      "then": { "properties": { "postconditions": { "minItems": 7, "maxItems": 7 } } }
+    }
+  ]
+}

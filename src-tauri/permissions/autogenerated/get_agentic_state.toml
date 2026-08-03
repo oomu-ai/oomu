@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-agentic-state"
+description = "Enables the get_agentic_state command without any pre-configured scope."
+commands.allow = ["get_agentic_state"]
+
+[[permission]]
+identifier = "deny-get-agentic-state"
+description = "Denies the get_agentic_state command without any pre-configured scope."
+commands.deny = ["get_agentic_state"]

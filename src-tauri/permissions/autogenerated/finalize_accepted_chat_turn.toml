@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-finalize-accepted-chat-turn"
+description = "Enables the finalize_accepted_chat_turn command without any pre-configured scope."
+commands.allow = ["finalize_accepted_chat_turn"]
+
+[[permission]]
+identifier = "deny-finalize-accepted-chat-turn"
+description = "Denies the finalize_accepted_chat_turn command without any pre-configured scope."
+commands.deny = ["finalize_accepted_chat_turn"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-create-taskflow"
+description = "Enables the create_taskflow command without any pre-configured scope."
+commands.allow = ["create_taskflow"]
+
+[[permission]]
+identifier = "deny-create-taskflow"
+description = "Denies the create_taskflow command without any pre-configured scope."
+commands.deny = ["create_taskflow"]

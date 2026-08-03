@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "sprint": 236,
+  "qualificationStatus": "contract_tested_not_external_engine_qualified",
+  "reviews": [
+    {
+      "summary": {
+        "presentationId": "presentation_44444444-4444-4444-8444-444444444444",
+        "projectId": "project_22222222-2222-4222-8222-222222222222",
+        "taskId": "task_33333333-3333-4333-8333-333333333333",
+        "taskRunId": "taskrun_55555555-5555-4555-8555-555555555555",
+        "artifactId": "artifact_66666666-6666-4666-8666-666666666666",
+        "title": "Quarterly operating review",
+        "currentRevision": 2,
+        "status": "ready",
+        "slideCount": 1,
+        "issueCount": 0,
+        "blockerCount": 0,
+        "structurallyVerified": true,
+        "visuallyVerified": true,
+        "exportable": true,
+        "updatedAtMs": 1783818600000
+      },
+      "selectedRevision": 2,
+      "presentation": {
+        "schemaVersion": 1,
+        "title": "Quarterly operating review",
+        "locale": "en-US",
+        "revision": 2,
+        "aspectRatio": "16:9",
+        "theme": {
+          "themeId": "oomu_theme",
+          "name": "OOMU Light",
+          "colors": {"dark":"171717","light":"FFFFFF","accent1":"007AFF","accent2":"34C759","accent3":"5856D6","accent4":"FF9500","hyperlink":"0066CC"},
+          "fonts": {"heading":"Arial","body":"Arial"}
+        },
+        "masters": [{"masterId":"oomu_master","name":"OOMU","themeId":"oomu_theme","layoutIds":["content_layout"]}],
+        "layouts": [{"layoutId":"content_layout","masterId":"oomu_master","name":"Title and content","kind":"title_and_content","placeholders":[]}],
+        "slides": [{
+          "slideId": "summary",
+          "layoutId": "content_layout",
+          "title": "What changed this quarter",
+          "elements": [{
+            "objectId": "summary_text",
+            "frame": {"x":914400,"y":914400,"width":10363200,"height":4114800},
+            "content": {"kind":"text_box","text":{"paragraphs":[{"runs":[{"text":"Revenue grew while support volume fell.","fontFamily":"Arial","fontSizePt":28,"bold":false,"italic":false,"color":"202124"}],"alignment":"left","bullet":false}],"verticalAlignment":"top"}},
+            "provenance": [{"sourceRef":"task.completed","evidenceRef":"task-event:taskrun_55555555-5555-4555-8555-555555555555:4","note":null}]
+          }],
+          "notes": {"speakerNotes":"Review the verified result before choosing the next investment.","sourceRefs":["task.completed"]},
+          "animations": []
+        }],
+        "citations": [{"citationId":"source_1","slideId":"summary","objectId":"summary_text","sourceRef":"task.completed","evidenceRef":"task-event:taskrun_55555555-5555-4555-8555-555555555555:4","label":"Completed Task result","locator":null}],
+        "policy": {"overflow":"reject","missingFont":"reject","imageLicense":"require_known","unsupportedAnimation":"reject","minimumFontSizePt":16,"minimumImageDpi":144,"allowedFonts":["Arial"]},
+        "template": {"templateId":null,"name":"OOMU native","imported":false,"fingerprintSha256":""}
+      },
+      "revisionHistory": [
+        {"revision":2,"createdAtMs":1783818600000,"scope":"slide","changeSummary":"Updated the summary slide","structurallyVerified":true,"visuallyVerified":true,"exportable":true},
+        {"revision":1,"createdAtMs":1783818000000,"scope":"whole_presentation","changeSummary":"Created presentation","structurallyVerified":true,"visuallyVerified":true,"exportable":true}
+      ],
+      "filmstrip": [{"slideId":"summary","position":0,"title":"What changed this quarter","layoutId":"content_layout","thumbnail":{"mediaType":"image/png","bytesBase64":"iVBORw0KGgoAAAANSUhEUgAAASwAAADICAMAAABlASxnAAAACVBMVEUXFxf19fUAev8TJJPpAAAACXBIWXMAAAPoAAAD6AG1e1JrAAABGUlEQVR42u3bwQkAIAwEwYv9F20LEUEIzpYw/02pXRDAggULFixYCGDBggULFiwEsGDBggULFoJLrCiwYMGCBQuWYMGCBQsWLMGCBQsWLFiCBQsWLFiwBAsWLFiwYAkWLFiwYMESLFiw5mDJYQELFixYsAQLFixYsGAJFixYsGDBEixYsGDBgqUDrDUwWLBgwYIFCxYsWLBgwYIFCxYsWP9iCRYsWLBgwRIsWLBgwYIlWLBgwYIFS7BgwYIFC5ZgwYIFCxYswYIFCxYsWIIFCxYsWLAECxYsWLBgCRYsWLBgwRIsWLBgwYIlWLBgwYIFS7BgwYIFC5ZgwYIFCxYswYIFCxYsWIIFCxYsWLAECxYsWLBgCRasl1gbs5/NARVzCgoAAAAASUVORK5CYII=","width":300,"height":200},"issueCount":0,"blockerCount":0}],
+      "issues": [],
+      "notes": [{"slideId":"summary","speakerNotes":"Review the verified result before choosing the next investment.","sourceRefs":["task.completed"]}],
+      "citations": [{"citationId":"source_1","slideId":"summary","objectId":"summary_text","sourceRef":"task.completed","evidenceRef":"task-event:taskrun_55555555-5555-4555-8555-555555555555:4","label":"Completed Task result","locator":null}],
+      "provenance": [{"slideId":"summary","objectId":"summary_text","sourceRef":"task.completed","evidenceRef":"task-event:taskrun_55555555-5555-4555-8555-555555555555:4","evidenceClass":"verified_postcondition"}],
+      "templateIdentity": {"templateId":null,"name":"OOMU native","imported":false,"fingerprintSha256":"","masterIds":["oomu_master"],"layoutIds":["content_layout"]},
+      "verification": {
+        "packageSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "structurallyVerified": true,
+        "visuallyVerified": true,
+        "exportable": true,
+        "checkedAtMs": 1783818600000,
+        "renderer": "LibreOffice 26.2.4.2 qualified exact-package conversion -> oomu-artifact-pdf-helper/apple-pdfkit-v1",
+        "checks": [
+          {"code":"package_structure_valid","passed":true,"detail":"Canonical parts checked.","slideId":null,"objectId":null},
+          {"code":"semantic_checks_completed","passed":true,"detail":"Supplemental semantic checks covered every slide.","slideId":null,"objectId":null},
+          {"code":"exact_package_pages_rendered","passed":true,"detail":"Every page was rendered from the exact PPTX package.","slideId":null,"objectId":null}
+        ],
+        "issues": []
+      }
+    }
+  ]
+}

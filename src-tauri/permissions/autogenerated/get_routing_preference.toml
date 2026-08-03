@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-routing-preference"
+description = "Enables the get_routing_preference command without any pre-configured scope."
+commands.allow = ["get_routing_preference"]
+
+[[permission]]
+identifier = "deny-get-routing-preference"
+description = "Denies the get_routing_preference command without any pre-configured scope."
+commands.deny = ["get_routing_preference"]

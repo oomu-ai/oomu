@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 2,
+  "sprint": 243,
+  "contractFreezeSprint": 233,
+  "latestImplementedSprint": 243,
+  "qualityPolicyPath": "release/quality-gate-policy.json",
+  "protectedSurfaceDigest": "sha256:642259e53936a2d4014587e5b7d3cb14d22896f34cb6a6020a37d3e36d9fda8a",
+  "contractNames": [
+    "ArtifactWorkbook",
+    "ArtifactPresentation",
+    "DesktopObservation",
+    "DesktopAction",
+    "MediaAsset",
+    "RemoteDevice",
+    "CapabilityBundle",
+    "LearningCandidate",
+    "WorkGraph"
+  ],
+  "sharedContractFixturePath": "schemas/p1-contract-v1-vectors.json",
+  "crossLanguageParity": {
+    "rustPath": "src-tauri/src/p1_contracts.rs",
+    "rustRequiredSymbol": "P1_CONTRACT_VERSION",
+    "typescriptPath": "src/lib/p1Contracts.ts",
+    "typescriptRequiredSymbol": "P1_CONTRACT_VERSION",
+    "rustTestPath": "src-tauri/src/p1_contracts.rs",
+    "rustTestRequiredSymbol": "zero_and_unknown_versions_fail_closed",
+    "typescriptTestPath": "src/lib/__tests__/p1Contracts.test.ts",
+    "typescriptTestRequiredSymbol": "rejects zero and unknown"
+  },
+  "protectedP0Domains": [
+    "projects",
+    "tasks",
+    "connectors",
+    "routines",
+    "browser_automation",
+    "artifacts",
+    "delegation"
+  ],
+  "implementationFixtures": [
+    {
+      "sprint": 234,
+      "path": "evaluations/p1/fixtures/sprint-234-microsoft365-ui.valid.json",
+      "qualificationStatus": "contract-tested-not-real-tenant"
+    },
+    {
+      "sprint": 235,
+      "path": "evaluations/p1/fixtures/sprint-235-workbook-review.valid.json",
+      "qualificationStatus": "contract-tested-not-excel-qualified"
+    },
+    {
+      "sprint": 236,
+      "path": "evaluations/p1/fixtures/sprint-236-presentation-review.valid.json",
+      "qualificationStatus": "contract-tested-not-external-engine-qualified"
+    },
+    {
+      "sprint": 237,
+      "path": "evaluations/p1/fixtures/sprint-237-app-control.valid.json",
+      "qualificationStatus": "contract-tested-not-application-matrix-qualified"
+    },
+    {
+      "sprint": 238,
+      "path": "evaluations/p1/fixtures/sprint-238-media.valid.json",
+      "qualificationStatus": "contract-tested-not-provider-and-device-qualified"
+    },
+    {
+      "sprint": 239,
+      "path": "evaluations/p1/fixtures/sprint-239-remote.valid.json",
+      "qualificationStatus": "contract-tested-not-remote-client-qualified"
+    },
+    {
+      "sprint": 240,
+      "path": "evaluations/p1/fixtures/sprint-240-bundles.valid.json",
+      "qualificationStatus": "contract-tested-not-registry-qualified"
+    },
+    {
+      "sprint": 241,
+      "path": "evaluations/p1/fixtures/sprint-241-learning.valid.json",
+      "qualificationStatus": "contract-tested-not-longitudinal-qualified"
+    },
+    {
+      "sprint": 242,
+      "path": "evaluations/p1/fixtures/sprint-242-work-graphs.valid.json",
+      "qualificationStatus": "contract-tested-not-eight-child-mac-matrix-qualified"
+    }
+  ],
+  "gates": [
+    {
+      "id": "qualified-matrix",
+      "kind": "production-path",
+      "path": "scripts/verification-matrix.mjs",
+      "requiredSymbol": "runVerificationMatrix",
+      "command": ["npm", "run", "verify:qualified"],
+      "postcondition": "Every qualified check passes; environmental blocks remain failures."
+    },
+    {
+      "id": "real-components",
+      "kind": "production-path",
+      "path": "scripts/check-real-components.mjs",
+      "requiredSymbol": "runRealComponentCheck",
+      "command": ["npm", "run", "check:real-components"],
+      "postcondition": "No production simulation mechanism or placeholder runtime is present."
+    },
+    {
+      "id": "p0-schema-parity",
+      "kind": "schema-parity",
+      "path": "src/lib/__tests__/p0Contracts.test.ts",
+      "requiredSymbol": "parseP0EventEnvelope",
+      "command": ["npx", "vitest", "run", "src/lib/__tests__/p0Contracts.test.ts"],
+      "postcondition": "P0 TypeScript vectors preserve exact version and fail-closed parsing."
+    },
+    {
+      "id": "p1-typescript-schema-parity",
+      "kind": "schema-parity",
+      "path": "src/lib/__tests__/p1Contracts.test.ts",
+      "requiredSymbol": "rejects zero and unknown",
+      "command": ["npx", "vitest", "run", "src/lib/__tests__/p1Contracts.test.ts"],
+      "postcondition": "TypeScript parses all nine shared P1 vectors and rejects version, project, evidence, signature, graph, and budget violations."
+    },
+    {
+      "id": "p1-rust-schema-parity",
+      "kind": "schema-parity",
+      "path": "src-tauri/src/p1_contracts.rs",
+      "requiredSymbol": "shared_vectors_round_trip_every_p1_contract",
+      "command": ["cargo", "test", "--manifest-path", "src-tauri/Cargo.toml", "--lib", "p1_contracts::tests"],
+      "postcondition": "Rust round-trips all nine shared P1 vectors and rejects version, project, evidence, signature, graph, and budget violations."
+    },
+    {
+      "id": "command-parity",
+      "kind": "command-parity",
+      "path": "src-tauri/tests/capability_parity.rs",
+      "requiredSymbol": "every_handler_command_is_registered_in_build_manifest",
+      "command": ["cargo", "test", "--manifest-path", "src-tauri/Cargo.toml", "--test", "capability_parity"],
+      "postcondition": "Runtime, build, generated permission, and capability command sets remain aligned."
+    },
+    {
+      "id": "import-cycles",
+      "kind": "import-cycle",
+      "path": "scripts/check-module-cycles.mjs",
+      "requiredSymbol": "module-cycle-ratchet: PASS",
+      "command": ["npm", "run", "check:module-cycles"],
+      "postcondition": "No unreviewed Rust or TypeScript import cycle is introduced."
+    },
+    {
+      "id": "module-size",
+      "kind": "module-size",
+      "path": "scripts/check-source-quality.mjs",
+      "requiredSymbol": "source-line-ratchet: PASS",
+      "command": ["npm", "run", "check:source-size"],
+      "postcondition": "Reviewed files do not grow and new source files remain below the line ceiling."
+    },
+    {
+      "id": "migration-integrity",
+      "kind": "migration",
+      "path": "src-tauri/src/db/tests/migration.rs",
+      "requiredSymbol": "migration_ledger_records_exact_authoritative_source_checksums",
+      "command": ["cargo", "test", "--manifest-path", "src-tauri/Cargo.toml", "--lib", "migration"],
+      "postcondition": "Migration ordering, checksums, recovery, and existing persisted data fail closed on drift."
+    },
+    {
+      "id": "p0-architecture",
+      "kind": "domain-ownership",
+      "path": "scripts/check-p0-architecture.mjs",
+      "requiredSymbol": "inspectP0Architecture",
+      "command": ["npm", "run", "check:p0-architecture"],
+      "postcondition": "All seven P0 ownership reservations and thin integration baselines remain intact."
+    },
+    {
+      "id": "repository-hygiene",
+      "kind": "repository-hygiene",
+      "path": "scripts/check-repository-hygiene.mjs",
+      "requiredSymbol": "repository-hygiene: PASS",
+      "command": ["npm", "run", "check:repository-hygiene"],
+      "postcondition": "Tracked files contain no prohibited caches, logs, placeholders, or duplicate assets."
+    },
+    {
+      "id": "p0-golden-discovery",
+      "kind": "golden-task-contract",
+      "path": "scripts/p0-golden-tasks.mjs",
+      "requiredSymbol": "discoverGoldenTasks",
+      "command": ["npm", "run", "eval:p0-golden:discovery"],
+      "postcondition": "Exactly ten P0 tasks map to registered production commands and observable evidence classes."
+    },
+    {
+      "id": "p0-external-acceptance",
+      "kind": "external-acceptance",
+      "path": "scripts/p0-release-acceptance.mjs",
+      "requiredSymbol": "validateAcceptanceDirectory",
+      "command": ["node", "scripts/p0-release-acceptance.mjs", "--evidence-dir=<external>", "--build-id=<build>", "--source-revision=<revision>", "--artifact-digest=<sha256>"],
+      "postcondition": "External golden, recovery, fresh-install hero, and privacy records bind to one exact signed build."
+    },
+    {
+      "id": "novice-first-ui",
+      "kind": "product-contract",
+      "path": "scripts/check-novice-first-ui.mjs",
+      "requiredSymbol": "runNoviceFirstUiCheck",
+      "command": ["npm", "run", "check:novice-ui"],
+      "postcondition": "Governed surfaces show purpose, readiness, and one next action while technical evidence remains progressively disclosed."
+    },
+    {
+      "id": "p1-microsoft365-ui",
+      "kind": "product-contract",
+      "path": "src/app/components/integrations/microsoft365/Microsoft365ControlPanel.test.tsx",
+      "requiredSymbol": "exact outgoing scope union",
+      "command": ["npx", "vitest", "run", "src/app/components/integrations/IntegrationsScreen.test.tsx", "src/app/components/integrations/microsoft365/Microsoft365ControlPanel.test.tsx", "src/app/components/__tests__/SetupJourney.test.tsx"],
+      "postcondition": "Microsoft account readiness, Project controls, and exact just-in-time consent are observable without raw backend prose."
+    },
+    {
+      "id": "p1-documents-ui",
+      "kind": "product-contract",
+      "path": "src/app/components/artifacts/ArtifactStudio.test.tsx",
+      "requiredSymbol": "normalizes a spreadsheet",
+      "command": ["npx", "vitest", "run", "src/app/components/artifacts/ArtifactStudio.test.tsx", "src/app/components/artifacts/review/CreateDocumentAction.test.tsx", "src/app/components/chat/ShieldApprovalDialog.test.tsx", "src/lib/artifacts/workbooks/schema.test.ts"],
+      "postcondition": "Word/PDF and Excel records share one preview-first Documents library with contextual creation and localized review controls."
+    },
+    {
+      "id": "p1-presentations-ui",
+      "kind": "product-contract",
+      "path": "src/app/components/artifacts/presentations/PresentationDocumentReview.test.tsx",
+      "requiredSymbol": "keeps export unavailable until every slide passes",
+      "command": ["npx", "vitest", "run", "src/app/components/artifacts/ArtifactStudio.test.tsx", "src/app/components/artifacts/presentations/PresentationDocumentReview.test.tsx", "src/lib/artifacts/presentations/schema.test.ts"],
+      "postcondition": "Presentations join the preview-first Documents library with filmstrip navigation, scoped revisions, source inspection, version recovery, and verified-only export."
+    },
+    {
+      "id": "p1-app-control-ui",
+      "kind": "product-contract",
+      "path": "src/app/components/computer_use/AppControlMonitor.test.tsx",
+      "requiredSymbol": "keeps Take control one click away",
+      "command": ["npx", "vitest", "run", "src/app/components/computer_use/AppControlMonitor.test.tsx"],
+      "postcondition": "The persistent app-control monitor names the app and current step plainly, keeps takeover one click away, and never renders engine identifiers or stale action details."
+    },
+    {
+      "id": "p1-release-readiness",
+      "kind": "external-acceptance",
+      "path": "scripts/p1-release-readiness.mjs",
+      "requiredSymbol": "validateP1ReleaseEvidence",
+      "command": ["node", "scripts/p1-release-readiness.mjs", "--evidence-dir=<external>", "--build-id=<build>", "--source-revision=<revision>", "--artifact-digest=<sha256>"],
+      "postcondition": "All three hero workflows carry real evidence bound to one exact signed build; fixtures and placeholders fail closed."
+    }
+  ]
+}

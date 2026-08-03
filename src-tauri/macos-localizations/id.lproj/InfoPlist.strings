@@ -1,0 +1,12 @@
+"NSCalendarsUsageDescription" = "OOMU memeriksa konflik pada jadwal Anda dan hanya membuat acara Kalender yang Anda setujui.";
+"NSCalendarsFullAccessUsageDescription" = "OOMU memeriksa konflik pada jadwal Anda dan hanya membuat acara Kalender yang Anda setujui.";
+"NSAppleEventsUsageDescription" = "OOMU bekerja dengan Mail, Catatan, Pengingat, Pesan, dan app Apple lainnya hanya saat Anda memintanya.";
+"NSRemindersUsageDescription" = "OOMU membaca atau mengubah pengingat hanya saat Anda memintanya.";
+"NSRemindersFullAccessUsageDescription" = "OOMU membaca atau mengubah pengingat hanya saat Anda memintanya.";
+"NSCameraUsageDescription" = "OOMU menggunakan kamera hanya saat Anda memintanya melihat sesuatu.";
+"NSLocalNetworkUsageDescription" = "OOMU hanya terhubung ke layanan lokal yang Anda pilih.";
+"NSMicrophoneUsageDescription" = "OOMU hanya mendengarkan mikrofon saat Anda menggunakan input suara.";
+"NSSpeechRecognitionUsageDescription" = "OOMU mengubah ucapan Anda menjadi teks hanya saat Anda memintanya.";
+"NSPhotoLibraryUsageDescription" = "OOMU hanya menggunakan foto yang Anda minta.";
+"NSContactsUsageDescription" = "OOMU menggunakan kontak hanya saat Anda memintanya mencari seseorang.";
+"NSAppleMusicUsageDescription" = "OOMU membaca perpustakaan Musik Anda hanya saat Anda memintanya.";

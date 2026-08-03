@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-choose-browser-upload"
+description = "Enables the choose_browser_upload command without any pre-configured scope."
+commands.allow = ["choose_browser_upload"]
+
+[[permission]]
+identifier = "deny-choose-browser-upload"
+description = "Denies the choose_browser_upload command without any pre-configured scope."
+commands.deny = ["choose_browser_upload"]

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "policyId": "oomu-macos-release-2026-07",
+  "target": "aarch64-apple-darwin",
+  "deploymentTarget": "14.0",
+  "node": {
+    "version": "22.17.0",
+    "npmVersion": "10.9.2"
+  },
+  "rust": {
+    "channel": "1.95.0",
+    "cargoAuditVersion": "0.22.2",
+    "profile": "minimal",
+    "target": "aarch64-apple-darwin",
+    "components": ["clippy", "rustfmt"]
+  },
+  "protectedRunner": {
+    "label": "macos-15",
+    "architecture": "arm64",
+    "imageOs": "macos15",
+    "imageVersion": "20260715.0234.1",
+    "xcode": {
+      "developerDirectory": "/Applications/Xcode_16.2.app/Contents/Developer",
+      "version": "Xcode 16.2",
+      "buildVersion": "16C5032a",
+      "sdkVersion": "15.2"
+    }
+  },
+  "localRunner": {
+    "architecture": "arm64",
+    "xcode": {
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer",
+      "version": "Xcode 26.6",
+      "buildVersion": "17F113",
+      "sdkVersion": "26.5"
+    }
+  },
+  "actions": {
+    "checkout": "11bd71901bbe5b1630ceea73d27597364c9af683",
+    "setupNode": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+    "uploadArtifact": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+    "downloadArtifact": "d3f86a106a0bac45b974a628896c90dbdf5c8093"
+  }
+}

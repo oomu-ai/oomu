@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-reviewed-approval-scopes"
+description = "Enables the get_reviewed_approval_scopes command without any pre-configured scope."
+commands.allow = ["get_reviewed_approval_scopes"]
+
+[[permission]]
+identifier = "deny-get-reviewed-approval-scopes"
+description = "Denies the get_reviewed_approval_scopes command without any pre-configured scope."
+commands.deny = ["get_reviewed_approval_scopes"]

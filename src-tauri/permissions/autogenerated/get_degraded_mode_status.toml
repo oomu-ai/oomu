@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-degraded-mode-status"
+description = "Enables the get_degraded_mode_status command without any pre-configured scope."
+commands.allow = ["get_degraded_mode_status"]
+
+[[permission]]
+identifier = "deny-get-degraded-mode-status"
+description = "Denies the get_degraded_mode_status command without any pre-configured scope."
+commands.deny = ["get_degraded_mode_status"]

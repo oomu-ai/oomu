@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-media-transcript"
+description = "Enables the save_media_transcript command without any pre-configured scope."
+commands.allow = ["save_media_transcript"]
+
+[[permission]]
+identifier = "deny-save-media-transcript"
+description = "Denies the save_media_transcript command without any pre-configured scope."
+commands.deny = ["save_media_transcript"]

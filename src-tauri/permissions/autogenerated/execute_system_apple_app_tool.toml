@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-execute-system-apple-app-tool"
+description = "Enables the execute_system_apple_app_tool command without any pre-configured scope."
+commands.allow = ["execute_system_apple_app_tool"]
+
+[[permission]]
+identifier = "deny-execute-system-apple-app-tool"
+description = "Denies the execute_system_apple_app_tool command without any pre-configured scope."
+commands.deny = ["execute_system_apple_app_tool"]

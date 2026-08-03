@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-unbind-mod-to-agent"
+description = "Enables the unbind_mod_to_agent command without any pre-configured scope."
+commands.allow = ["unbind_mod_to_agent"]
+
+[[permission]]
+identifier = "deny-unbind-mod-to-agent"
+description = "Denies the unbind_mod_to_agent command without any pre-configured scope."
+commands.deny = ["unbind_mod_to_agent"]

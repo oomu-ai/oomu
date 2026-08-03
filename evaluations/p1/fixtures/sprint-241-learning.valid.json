@@ -1,0 +1,1 @@
+{"schemaVersion":1,"sprint":241,"qualificationStatus":"contract_tested_not_longitudinal_qualified","contracts":["LearningCandidate"],"checks":{"verifiedTaskRequired":true,"secretMarkersRejected":true,"explicitReviewRequired":true,"everywhereNeedsConfirmation":true,"historyReversible":true}}

@@ -1,0 +1,39 @@
+{
+  "valid": {
+    "schemaVersion": 1,
+    "title": "Shared contract vector",
+    "locale": "en-US",
+    "dateSystem": "1900",
+    "revision": 1,
+    "formats": [],
+    "worksheets": [{
+      "sheetId": "summary",
+      "name": "Summary",
+      "bounds": { "rowCount": 6, "columnCount": 4 },
+      "visibility": "visible",
+      "critical": true,
+      "cells": [
+        { "address": "A1", "value": { "kind": "text", "value": "Item" }, "formatId": null, "comment": null, "provenance": [] },
+        { "address": "A2", "value": { "kind": "text", "value": "Value" }, "formatId": null, "comment": null, "provenance": [] }
+      ],
+      "mergedRanges": [],
+      "columnWidths": [{ "column": "A", "width": 18 }],
+      "tables": [],
+      "validations": [],
+      "charts": []
+    }],
+    "namedRanges": [],
+    "recalculation": { "status": "not_required", "engine": null, "engineVersion": null, "qualified": false, "recalculatedAtMs": null, "inputDigest": null },
+    "policy": { "macros": "forbid", "externalLinks": "forbid", "externalDataConnections": "forbid", "hiddenExecutableContent": "forbid", "hiddenCriticalSheets": "forbid" }
+  },
+  "invalid": [
+    { "case": "critical_hidden", "mutations": [{ "path": ["worksheets", 0, "visibility"], "value": "hidden" }] },
+    { "case": "duplicate_column_width", "mutations": [{ "path": ["worksheets", 0, "columnWidths"], "value": [{ "column": "A", "width": 18 }, { "column": "a", "width": 20 }] }] },
+    { "case": "table_header_mismatch", "mutations": [{ "path": ["worksheets", 0, "tables"], "value": [{ "tableId": "summary_table", "name": "SummaryTable", "range": "A1:A2", "columns": ["Wrong"], "style": "TableStyleMedium2" }] }] },
+    { "case": "active_formula", "mutations": [
+      { "path": ["worksheets", 0, "cells", 1, "value"], "value": { "kind": "formula", "expression": "WEBSERVICE(A1)", "cachedValue": null } },
+      { "path": ["recalculation", "status"], "value": "stale" }
+    ] },
+    { "case": "oversized_inline_validation", "mutations": [{ "path": ["worksheets", 0, "validations"], "value": [{ "validationId": "choice", "range": "A3", "rule": { "kind": "list", "values": ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"] }, "allowBlank": false, "prompt": null, "error": null }] }] }
+  ]
+}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-claim-latest-dropped-local-context"
+description = "Enables the claim_latest_dropped_local_context command without any pre-configured scope."
+commands.allow = ["claim_latest_dropped_local_context"]
+
+[[permission]]
+identifier = "deny-claim-latest-dropped-local-context"
+description = "Denies the claim_latest_dropped_local_context command without any pre-configured scope."
+commands.deny = ["claim_latest_dropped_local_context"]

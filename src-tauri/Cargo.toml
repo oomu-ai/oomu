@@ -1,0 +1,119 @@
+[package]
+name = "oomu"
+version = "0.1.1"
+description = "OOMU sovereign fleet command and tactical intelligence workstation"
+authors = ["Eldris"]
+edition = "2021"
+license = "UNLICENSED"
+default-run = "oomu"
+autobins = false
+
+[[bin]]
+name = "oomu"
+path = "src/main.rs"
+
+[[bin]]
+name = "local_infer"
+path = "src/bin/local_infer.rs"
+
+[[bin]]
+name = "pdf_extract_helper"
+path = "src/bin/pdf_extract_helper.rs"
+
+[[bin]]
+name = "artifact_build_helper"
+path = "src/bin/artifact_build_helper.rs"
+
+[lib]
+name = "oomu_lib"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+base64 = "0.22"
+ed25519-dalek = "2"
+hex = "0.4"
+sha2 = "0.10"
+serde_json = "1"
+
+[features]
+default = []
+insecure-fallback-danger-do-not-use = []
+sovereign-only = []
+
+[dependencies]
+argon2 = "0.5"
+base64 = "0.22"
+chacha20poly1305 = "0.10.1"
+chrono = { version = "0.4", features = ["clock", "serde"] }
+chrono-tz = "0.10"
+cfb = "0.7.3"
+crc32fast = "1.5.0"
+dirs = "6"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+hex = "0.4"
+keyring = { version = "3", features = ["apple-native"] }
+libc = "0.2"
+llama-cpp-2 = { version = "=0.1.151", default-features = false, features = ["common", "mtmd"] }
+encoding_rs = "0.8"
+lopdf = "=0.42.0"
+image = { version = "=0.25.10", default-features = false, features = ["png"] }
+notify = "8"
+pqcrypto-mlkem = "0.1.1"
+pqcrypto-traits = "0.3.5"
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls", "stream"] }
+url = "2"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
+futures-util = "0.3"
+fs2 = "0.4"
+flate2 = "1.1.9"
+regex = "1"
+rfd = "0.15"
+ring = "0.17"
+rusqlite = { version = "0.32", features = ["backup", "bundled-sqlcipher"] }
+scraper = "0.27"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = ["image-png", "macos-proxy", "tray-icon", "unstable"] }
+tauri-plugin-http = { version = "2" }
+tauri-plugin-notification = { version = "2" }
+tauri-plugin-opener = { version = "2" }
+tauri-plugin-shell = { version = "2" }
+sha2 = "0.10"
+thiserror = "2"
+tokio = { version = "1", features = ["fs", "io-util", "macros", "net", "process", "rt-multi-thread", "sync", "time"] }
+tokio-tungstenite = { version = "0.28", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
+sysinfo = "0.31"
+subtle = "2"
+zeroize = "1"
+
+[dev-dependencies]
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+mac-notification-sys = "0.6.15"
+security-framework = "3.7.0"
+llama-cpp-2 = { version = "=0.1.151", default-features = false, features = ["common", "metal", "mtmd"] }
+block2 = "=0.6.2"
+objc2 = "=0.6.4"
+objc2-app-kit = { version = "=0.3.2", features = ["block2", "objc2-core-graphics", "NSAlert", "NSApplication", "NSBitmapImageRep", "NSButton", "NSControl", "NSImage", "NSImageRep", "NSResponder", "NSRunningApplication", "NSView", "NSWindow"] }
+objc2-core-graphics = { version = "=0.3.2", default-features = false, features = ["CGGeometry", "CGImage", "CGWindow"] }
+objc2-contacts = { version = "=0.3.2", default-features = false, features = ["block2", "CNContact", "CNContactFetchRequest", "CNContactFormatter", "CNContact_Predicates", "CNContactStore", "CNFetchRequest", "CNLabeledValue", "CNPhoneNumber", "ContactsDefines"] }
+objc2-event-kit = { version = "=0.3.2", default-features = false, features = ["block2", "EKCalendar", "EKCalendarItem", "EKError", "EKEvent", "EKEventStore", "EKObject", "EKParticipant", "EKSource", "EKTypes"] }
+objc2-foundation = { version = "=0.3.2", features = ["NSArray", "NSDate", "NSDictionary", "NSError", "NSData", "NSLocale", "NSObject", "NSSortDescriptor", "NSPredicate", "NSString", "NSTimeZone"] }
+objc2-media-player = { version = "=0.3.2", default-features = false, features = ["block2", "MPMediaEntity", "MPMediaItem", "MPMediaLibrary", "MPMediaQuery"] }
+objc2-photos = { version = "=0.3.2", default-features = false, features = ["block2", "PHAsset", "PHAssetResource", "PHFetchOptions", "PHFetchResult", "PHObject", "PHPhotoLibrary", "PhotosTypes"] }
+objc2-web-kit = { version = "=0.3.2", features = ["WKSnapshotConfiguration", "WKWebView", "block2"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev.package.rusqlite]
+opt-level = 3

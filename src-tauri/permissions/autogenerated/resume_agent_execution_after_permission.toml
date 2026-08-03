@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-resume-agent-execution-after-permission"
+description = "Enables the resume_agent_execution_after_permission command without any pre-configured scope."
+commands.allow = ["resume_agent_execution_after_permission"]
+
+[[permission]]
+identifier = "deny-resume-agent-execution-after-permission"
+description = "Denies the resume_agent_execution_after_permission command without any pre-configured scope."
+commands.deny = ["resume_agent_execution_after_permission"]

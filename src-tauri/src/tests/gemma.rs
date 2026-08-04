@@ -199,7 +199,7 @@ fn installed_models_report_verified_compatibility() {
     }
 
     let per_layer_gguf_dir =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models/gemma-4-2b-it-gguf");
+        PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models/gemma-4-2b-it-gguf");
     if per_layer_gguf_dir.is_dir() {
         let manifest = inspect_local_model_directory(&per_layer_gguf_dir, "gguf-e2b")
             .expect("inspect per-layer GGUF");
@@ -222,7 +222,7 @@ fn installed_models_report_verified_compatibility() {
 
 #[test]
 fn missing_model_resolves_to_preferred_ready_gguf() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+    let root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
     if !root.join(PREFERRED_LOCAL_MODEL_ID).is_dir() {
         return;
     }
@@ -237,7 +237,7 @@ fn missing_model_resolves_to_preferred_ready_gguf() {
 
 #[test]
 fn exact_ready_model_resolution_never_falls_back() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+    let root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
     if !root.join(PREFERRED_LOCAL_MODEL_ID).is_dir() {
         return;
     }
@@ -273,7 +273,7 @@ fn exact_ready_model_resolution_rejects_unready_selection() {
 
 #[test]
 fn safetensors_model_is_routed_to_stateful_gguf() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+    let root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
     if !root.join(PREFERRED_LOCAL_MODEL_ID).is_dir() || !root.join("gemma-4-E2B-it").is_dir() {
         return;
     }
@@ -1447,7 +1447,7 @@ fn workflow_decision_completion_normalizes_runtime_output_hash() {
 #[test]
 #[ignore = "requires an installed multi-gigabyte GGUF model"]
 fn installed_model_generates_stateful_workflow_decision_and_certificate() {
-    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
         .join("../assets/models/gemma-4-E2B-it-qat-q4_0-gguf");
     if !directory.is_dir() {
         return;

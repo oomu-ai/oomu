@@ -320,7 +320,7 @@ mod tests {
 
     #[test]
     fn quantization_alias_preserves_the_configured_12b_model_family() {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+        let root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
         let installed_12b = "gemma-4-12B-it-qat-q4_0-gguf";
         if !root.join(installed_12b).is_dir() {
             return;
@@ -344,7 +344,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn strict_configured_resolution_rejects_cross_family_fallback() {
-        let assets = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+        let assets = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
         let installed_preferred = assets.join(PREFERRED_LOCAL_MODEL_ID);
         if !installed_preferred.is_dir() {
             return;
@@ -373,7 +373,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn unavailable_e2b_never_falls_back_to_e4b_or_cloud() {
-        let assets = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+        let assets = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
         let e4b_id = "gemma-4-E4B-it-qat-q4_0-gguf";
         if !assets.join(e4b_id).is_dir() {
             return;
@@ -401,7 +401,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn canonical_root_model_identity_is_not_directory_basename() {
-        let assets = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+        let assets = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
         let installed = assets.join(PREFERRED_LOCAL_MODEL_ID);
         if !installed.is_dir() {
             return;

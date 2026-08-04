@@ -253,7 +253,7 @@ fn redact_assignment_secret_values(input: Cow<'_, str>) -> Cow<'_, str> {
 fn home_partition_path_regex() -> Option<&'static Regex> {
     static REGEX: OnceLock<Option<Regex>> = OnceLock::new();
     REGEX
-        .get_or_init(|| Regex::new(r"/Users/[A-Za-z0-9._-]+/").ok())
+        .get_or_init(|| Regex::new(r"[/]Users/[A-Za-z0-9._-]+/").ok())
         .as_ref()
 }
 

@@ -460,7 +460,7 @@ fn resolve_bundled_python_root(app: &tauri::AppHandle) -> Result<PathBuf, String
         }
     }
 
-    let dev_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(BUNDLED_PYTHON_RESOURCE_DIR);
+    let dev_path = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(BUNDLED_PYTHON_RESOURCE_DIR);
     if bundled_python_executable_path(&dev_path).is_file() {
         return Ok(dev_path);
     }
@@ -472,7 +472,7 @@ fn resolve_bundled_python_root(app: &tauri::AppHandle) -> Result<PathBuf, String
 }
 
 fn resolve_bundled_python_root_headless() -> Result<PathBuf, String> {
-    let manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(BUNDLED_PYTHON_RESOURCE_DIR);
+    let manifest_path = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(BUNDLED_PYTHON_RESOURCE_DIR);
     if bundled_python_executable_path(&manifest_path).is_file() {
         return Ok(manifest_path);
     }
@@ -512,7 +512,7 @@ fn resolve_mcp_resource_root(app: &tauri::AppHandle) -> Result<PathBuf, String> 
         }
     }
 
-    let dev_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(BUNDLED_MCP_RESOURCE_DIR);
+    let dev_path = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(BUNDLED_MCP_RESOURCE_DIR);
     if dev_path.is_dir() {
         return Ok(dev_path);
     }
@@ -524,7 +524,7 @@ fn resolve_mcp_resource_root(app: &tauri::AppHandle) -> Result<PathBuf, String> 
 }
 
 fn resolve_mcp_resource_root_headless() -> Result<PathBuf, String> {
-    let manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(BUNDLED_MCP_RESOURCE_DIR);
+    let manifest_path = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(BUNDLED_MCP_RESOURCE_DIR);
     if manifest_path.is_dir() {
         return Ok(manifest_path);
     }
@@ -694,7 +694,7 @@ mod tests {
 
     #[test]
     fn bundled_configs_use_native_filesystem_and_optional_python_scripts() {
-        let manifest_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let manifest_root = PathBuf::from(crate::OOMU_MANIFEST_DIR);
         let resource_root = manifest_root.join(BUNDLED_MCP_RESOURCE_DIR);
         let python_path = PathBuf::from("/tmp/oomu-test-venv/bin/python3");
         let sandbox_root = PathBuf::from("/tmp/oomu-test-sandbox");
@@ -864,8 +864,7 @@ mod tests {
             &runtime.python_path
         ));
 
-        let resource_root =
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(BUNDLED_MCP_RESOURCE_DIR);
+        let resource_root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(BUNDLED_MCP_RESOURCE_DIR);
         let search_profile_root = root.join(MCP_SEARCH_PROFILE_DIR);
         ensure_mcp_search_profile_dir(&search_profile_root)
             .expect("isolated search profile is created");

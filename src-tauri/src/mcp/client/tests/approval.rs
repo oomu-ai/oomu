@@ -286,7 +286,7 @@ async fn delete_tool_requires_permission_gateway_approval_and_executes_after_app
 async fn trusted_builtin_applescript_connects_without_renderer_spawn_authority() {
     let python = python3().expect("python3 is required for the AppleScript MCP test");
     let server_path =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/mcp/mcp_applescript.py");
+        PathBuf::from(crate::OOMU_MANIFEST_DIR).join("resources/mcp/mcp_applescript.py");
     assert!(
         server_path.is_file(),
         "AppleScript MCP server must exist at {}",

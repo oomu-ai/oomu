@@ -2003,7 +2003,7 @@ fn candidate_git_workspace_roots() -> Vec<PathBuf> {
     if let Ok(current_dir) = std::env::current_dir() {
         push_nearest_git_root(&mut roots, &mut seen, current_dir);
     }
-    if let Some(manifest_dir) = option_env!("CARGO_MANIFEST_DIR") {
+    if let Some(manifest_dir) = crate::development_manifest_dir() {
         let manifest_dir = PathBuf::from(manifest_dir);
         push_nearest_git_root(&mut roots, &mut seen, manifest_dir.clone());
         if let Some(parent) = manifest_dir.parent() {

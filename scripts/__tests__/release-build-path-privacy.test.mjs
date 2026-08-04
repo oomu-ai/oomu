@@ -1,4 +1,11 @@
-import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -12,7 +19,10 @@ import {
   canonicalNativePathRemapEnvironment,
   releaseToolchainHomeDirectory,
 } from "../release-environment.mjs";
-import { inspectNativePathRemapArtifact } from "../preflight-native-path-remap.mjs";
+import {
+  inspectLlamaCppReleaseCaches,
+  inspectNativePathRemapArtifact,
+} from "../preflight-native-path-remap.mjs";
 
 const root = resolve(import.meta.dirname, "..", "..");
 
@@ -33,6 +43,14 @@ function fakeMachO(content) {
     Buffer.from(content, "utf8"),
     Buffer.from([0]),
   ]);
+}
+
+function rustSourceFiles(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return rustSourceFiles(path);
+    return entry.isFile() && entry.name.endsWith(".rs") ? [path] : [];
+  });
 }
 
 describe("release build-path privacy", () => {
@@ -90,10 +108,14 @@ describe("release build-path privacy", () => {
     expect(canonicalRelease).toContain("releaseToolchainHomeDirectory(immutableReleaseToolchain)");
     expect(unsignedRelease).toContain("releaseToolchainHomeDirectory(toolchain)");
     expect(canonicalRelease).toContain('runStep("automated_native_path_remap"');
+    expect(canonicalRelease).toContain('runStep("unsigned_build_path_privacy"');
     expect(canonicalRelease).toContain("nativePathRemap.checked_languages");
     expect(canonicalEvidence).toContain("native_path_remap: context.nativePathRemap");
     expect(canonicalRelease.indexOf('runStep("automated_native_path_remap"')).toBeLessThan(
       canonicalRelease.indexOf("...runRustQualification(node, releaseEnvironment)"),
+    );
+    expect(canonicalRelease.indexOf('runStep("unsigned_build_path_privacy"')).toBeLessThan(
+      canonicalRelease.indexOf("signNestedCode(appPath, signingIdentity, codesign)"),
     );
     expect(packageJson).not.toContain("CARGO_ENCODED_RUSTFLAGS");
     expect(releaseToolchainHomeDirectory({
@@ -129,6 +151,47 @@ describe("release build-path privacy", () => {
       Buffer.from("/oomu/toolchains/cargo/registry/native.cpp"),
       configuration,
     ).findings).toEqual([]);
+  });
+
+  it("detects stale llama.cpp CMake state before the production compile", () => {
+    const targetRoot = mkdtempSync(join(tmpdir(), "oomu-native-cache-"));
+    const cacheDirectory = join(
+      targetRoot, "release", "build", "llama-cpp-sys-2-fixture", "out", "build",
+    );
+    mkdirSync(cacheDirectory, { recursive: true });
+    const configuration = canonicalNativePathRemapConfiguration(
+      "/Users/release-builder/work/OOMU",
+      { HOME: "/Users/release-builder" },
+    );
+    const cachePath = join(cacheDirectory, "CMakeCache.txt");
+    writeFileSync(cachePath, "CMAKE_C_FLAGS:STRING=-fPIC\nCMAKE_CXX_FLAGS:STRING=-fPIC\n");
+    expect(inspectLlamaCppReleaseCaches(targetRoot, configuration)).toEqual([
+      { path: cachePath, canonical: false },
+    ]);
+    const flags = configuration.compilerFlags.join(" ");
+    writeFileSync(
+      cachePath,
+      `CMAKE_C_FLAGS:STRING=-fPIC ${flags}\nCMAKE_CXX_FLAGS:STRING=-fPIC ${flags}\n`,
+    );
+    expect(inspectLlamaCppReleaseCaches(targetRoot, configuration)).toEqual([
+      { path: cachePath, canonical: true },
+    ]);
+  });
+
+  it("centralizes Cargo manifest paths behind the release-safe crate boundary", () => {
+    const sourceRoot = join(root, "src-tauri", "src");
+    for (const path of rustSourceFiles(sourceRoot)) {
+      const source = readFileSync(path, "utf8");
+      const literals = source.match(/(?:option_)?env!\("CARGO_MANIFEST_DIR"\)/gu) ?? [];
+      if (path === join(sourceRoot, "lib.rs")) {
+        expect(literals).toEqual(['env!("CARGO_MANIFEST_DIR")']);
+        expect(source).toContain(
+          "#[cfg(any(debug_assertions, test))]\npub(crate) const OOMU_MANIFEST_DIR",
+        );
+      } else {
+        expect(literals, path).toEqual([]);
+      }
+    }
   });
 });
 

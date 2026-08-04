@@ -853,9 +853,11 @@ function runAutomatedReleaseGates(context) {
   );
   const dependencyResult = JSON.parse(dependencyAudit.stdout);
   const nativeCompiler = immutableReleaseToolchain.tools.clang;
+  const nativeCargo = immutableReleaseToolchain.tools.cargo;
   const nativePathRemapPath = join(rawEvidenceDir, "native-path-remap-preflight.json");
   runStep("automated_native_path_remap", node, [
     "scripts/preflight-native-path-remap.mjs",
+    "--cargo", nativeCargo.executable,
     "--clang", nativeCompiler.executable,
     "--output", nativePathRemapPath,
   ], { env: releaseEnvironment });
@@ -864,6 +866,9 @@ function runAutomatedReleaseGates(context) {
     || nativePathRemap.kind !== "oomu.native-path-remap-preflight"
     || nativePathRemap.status !== "passed" || nativePathRemap.synthetic !== false
     || nativePathRemap.compiler_sha256 !== nativeCompiler.sha256
+    || nativePathRemap.cargo_sha256 !== nativeCargo.sha256
+    || nativePathRemap.release_cache?.status !== "passed"
+    || nativePathRemap.release_cache?.remaining_stale_cache_count !== 0
     || !Array.isArray(nativePathRemap.checked_languages)
     || JSON.stringify(nativePathRemap.checked_languages.map((entry) => entry.language))
       !== JSON.stringify(["c", "c++"])
@@ -921,6 +926,14 @@ function buildAndSignApplication(context, toolchain) {
     "--build-id", buildId, "--evidence", databaseInitialPath,
   ], { env: releaseEnvironment });
   const assetResult = prepareGeneratedApplicationForSigning(appPath, toolchain);
+  const unsignedBuildPathPrivacyPath = join(
+    rawEvidenceDir, "unsigned-build-path-privacy.json",
+  );
+  runStep("unsigned_build_path_privacy", node, [
+    "scripts/check-build-path-privacy.mjs",
+    "--app", appPath,
+    "--output", unsignedBuildPathPrivacyPath,
+  ]);
   const codesign = toolchain.tools.codesign.executable;
   const nestedSigningLabels = signNestedCode(appPath, signingIdentity, codesign);
   writeArtifactHelperIntegrityManifest(appPath);

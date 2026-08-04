@@ -208,7 +208,7 @@ fn token_piece_sanitizer_does_not_insert_boundary_before_punctuation() {
 #[test]
 #[ignore = "requires an installed multi-gigabyte GGUF model"]
 fn installed_e2b_streams_native_token_events_and_honors_cancellation() {
-    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
         .join("../assets/models/gemma-4-E2B-it-qat-q4_0-gguf");
     if !directory.is_dir() {
         return;
@@ -325,7 +325,7 @@ fn diagnose_prompt_endings_across_models() {
                 continue;
             }
         }
-        let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(dir);
+        let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(dir);
         let Some(model_path) = find_text_gguf(&directory) else {
             eprintln!(
                 "DIAG SKIP {label}: no text gguf under {}",

@@ -545,6 +545,27 @@ describe("deterministic native release qualification", () => {
   });
 });
 
+describe("canonical release orchestration", () => {
+  it("uses one Tauri preparation hook and the immutable executable toolchain", () => {
+    const release = readFileSync(join(root, "scripts", "release.mjs"), "utf8");
+    const tauri = JSON.parse(
+      readFileSync(join(root, "src-tauri", "tauri.conf.json"), "utf8"),
+    );
+
+    expect(release).not.toContain('runStep("native_release_preparation"');
+    expect(tauri.build.beforeBuildCommand).toBe("npm run tauri:prepare");
+    expect(release).toContain(
+      "const built = buildAndSignApplication(context, immutableReleaseToolchain)",
+    );
+    expect(release).toContain(
+      "const notarized = notarizeAndCreateDmg(context, immutableReleaseToolchain, built)",
+    );
+    expect(release).toContain(
+      "context, immutableReleaseToolchain, built, notarized",
+    );
+  });
+});
+
 describe("production release credential boundaries", () => {
   it("does not expose release credentials or capabilities to child processes and harnesses", () => {
     const previous = { ...process.env };

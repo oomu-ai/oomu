@@ -872,9 +872,6 @@ function buildAndSignApplication(context, toolchain) {
     context;
   const bundleRoot = join(root, "src-tauri", "target", "release", "bundle");
   rmSync(bundleRoot, { recursive: true, force: true });
-  runStep("native_release_preparation", npm, ["run", "tauri:prepare"], {
-    env: releaseEnvironment,
-  });
   runStep("compile", npm, [
     "run", "tauri:build:internal", "--", "--config",
     "src-tauri/tauri.release.conf.json", "--no-bundle",
@@ -1297,10 +1294,10 @@ function qualifyAndMaterializeRelease(
 function main() {
   const context = initializeReleaseContext();
   const gates = runAutomatedReleaseGates(context);
-  const built = buildAndSignApplication(context, gates.toolchain);
-  const notarized = notarizeAndCreateDmg(context, gates.toolchain, built);
+  const built = buildAndSignApplication(context, immutableReleaseToolchain);
+  const notarized = notarizeAndCreateDmg(context, immutableReleaseToolchain, built);
   const candidate = stageAndVerifyCandidate(
-    context, gates.toolchain, built, notarized,
+    context, immutableReleaseToolchain, built, notarized,
   );
   const releaseEvidence = writeReleaseProvenanceAndManifest(
     context, built, notarized, candidate,

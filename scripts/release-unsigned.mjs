@@ -132,6 +132,7 @@ function runSourceQualification(toolchain, environment) {
     ["cargo-test", [
       "test", "--locked", "--target", toolchain.policy.target,
       "--manifest-path", "src-tauri/Cargo.toml",
+      "--", "--test-threads=1",
     ]],
   ];
   results.push(...cargoSteps.map(([label, args]) =>

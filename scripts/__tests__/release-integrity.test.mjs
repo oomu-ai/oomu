@@ -365,13 +365,26 @@ describe("production release build controls", () => {
 
   it("runs the complete native release suite deterministically", () => {
     const release = readFileSync(join(root, "scripts", "release.mjs"), "utf8");
+    const unsignedRelease = readFileSync(
+      join(root, "scripts", "release-unsigned.mjs"),
+      "utf8",
+    );
     const cargoTestStart = release.indexOf('runStep("automated_cargo_test"');
     const cargoTestEnd = release.indexOf("], { env: releaseEnvironment });", cargoTestStart);
     const cargoTest = release.slice(cargoTestStart, cargoTestEnd);
+    const unsignedCargoTestStart = unsignedRelease.indexOf('["cargo-test", [');
+    const unsignedCargoTestEnd = unsignedRelease.indexOf("]]", unsignedCargoTestStart);
+    const unsignedCargoTest = unsignedRelease.slice(
+      unsignedCargoTestStart,
+      unsignedCargoTestEnd,
+    );
 
     expect(cargoTestStart).toBeGreaterThanOrEqual(0);
     expect(cargoTest).toContain('"test", "--locked", "--target", EXPECTED_RELEASE_TARGET');
     expect(cargoTest).toContain('"--", "--test-threads=1"');
+    expect(unsignedCargoTestStart).toBeGreaterThanOrEqual(0);
+    expect(unsignedCargoTest).toContain('"test", "--locked", "--target", toolchain.policy.target');
+    expect(unsignedCargoTest).toContain('"--", "--test-threads=1"');
   });
 
   it("rejects ignored dotenv inputs and ambient release-affecting overrides", () => {

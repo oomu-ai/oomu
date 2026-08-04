@@ -40,12 +40,13 @@ import {
   attributeLabel,
   buildTemplatePreview,
   configToAgent,
-  createAgentId,
   createAgentTemplateId,
   createAgentTimestamp,
   cropAgentImage,
   defaultLocalAgentEndpoint,
+  ensureAgentDraftId,
   normalizeAgentCards,
+  persistedAgentMatches,
   personalityTemplateOptions,
   sortAgentCards,
   type AgentCardData,
@@ -146,6 +147,7 @@ export default function Home() {
   const [newAgentImage, setNewAgentImage] = useState<string | null>(null);
   const [newAgentPromptOverride, setNewAgentPromptOverride] = useState<string | null>(null);
   const [isNewAgentSheetOpen, setIsNewAgentSheetOpen] = useState(false);
+  const pendingNewAgentIdRef = useRef<string | null>(null);
   const verifiedStartupModelId = useVerifiedStartupModel(privacySettings?.licenseAccepted, isNewAgentSheetOpen);
   const [showNewAgentOptions, setShowNewAgentOptions] = useState(false);
   const [recentlyDeletedAgent, setRecentlyDeletedAgent] = useState<AgentCardData | null>(null);
@@ -213,19 +215,10 @@ export default function Home() {
 
   async function persistAgentAndReload(agent: AgentCardData) {
     const request = agentToConfigRequest(agent);
-    await invoke<AgentConfigRecord>("save_agent_config", { request });
+    const saved = await invoke<AgentConfigRecord>("save_agent_config", { request });
     const configs = await invoke<AgentConfigRecord[]>("list_agent_configs");
-    const persisted = configs.find((entry) => entry.id === request.id);
-    if (
-      !persisted ||
-      persisted.name !== request.name ||
-      persisted.system_prompt !== request.system_prompt ||
-      persisted.model_id !== request.model_id ||
-      persisted.provider_id !== request.provider_id ||
-      persisted.description !== request.description ||
-      persisted.status !== request.status ||
-      persisted.favorited !== request.favorited
-    ) {
+    const persisted = configs.find((entry) => entry.id === saved.id);
+    if (!persistedAgentMatches(persisted, saved)) {
       throw new Error(t("agents.save_unconfirmed"));
     }
     applyPersistedAgentConfigs(configs);
@@ -452,6 +445,7 @@ export default function Home() {
     setNewAgentImage(null);
     setNewAgentPromptOverride(null);
     setShowNewAgentOptions(false);
+    pendingNewAgentIdRef.current = null;
     if (newAgentFileInputRef.current) {
       newAgentFileInputRef.current.value = "";
     }
@@ -670,8 +664,10 @@ Draft the instructions in a highly actionable, clear format. Do not write any pr
         ? effectiveNewAgentProvider
         : defaultLocalAgentEndpoint.provider,
     });
+    const agentId = ensureAgentDraftId(pendingNewAgentIdRef.current);
+    pendingNewAgentIdRef.current = agentId;
     const newAgent: AgentCardData = {
-      id: createAgentId(),
+      id: agentId,
       name,
       description,
       systemPrompt,

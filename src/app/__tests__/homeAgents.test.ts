@@ -3,7 +3,9 @@ import {
   agentToStartupConfigRequest,
   configToAgent,
   defaultLocalAgentEndpoint,
+  ensureAgentDraftId,
   normalizeAgentCards,
+  persistedAgentMatches,
   shouldShowDegradedLanding,
   startupAgentConfigRequests,
   type AgentConfigRecord,
@@ -97,6 +99,29 @@ describe("configToAgent", () => {
     );
 
     expect(agent.personalityProfile?.modelBehavior.maxOutputTokens).toBe(7168);
+  });
+});
+
+describe("agent persistence confirmation", () => {
+  it("accepts native model canonicalization as the authoritative saved record", () => {
+    const saved = agentConfigWithProfile("{}");
+    saved.model_id = "gemma-4-E2B-it-qat-q4_0-gguf";
+
+    expect(persistedAgentMatches({ ...saved }, saved)).toBe(true);
+  });
+
+  it("rejects a reload that does not match the native save result", () => {
+    const saved = agentConfigWithProfile("{}");
+
+    expect(persistedAgentMatches({ ...saved, name: "Different" }, saved)).toBe(false);
+    expect(persistedAgentMatches(undefined, saved)).toBe(false);
+  });
+
+  it("reuses one draft id across ambiguous save retries", () => {
+    const draftId = ensureAgentDraftId(null);
+
+    expect(draftId).toMatch(/^agent-/);
+    expect(ensureAgentDraftId(draftId)).toBe(draftId);
   });
 });
 

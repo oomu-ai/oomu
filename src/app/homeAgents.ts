@@ -315,6 +315,31 @@ export function createAgentId() {
   return `agent-${createAgentTimestamp().toString(36)}`;
 }
 
+export function ensureAgentDraftId(agentId: string | null) {
+  return agentId ?? createAgentId();
+}
+
+const AGENT_SAVE_CONFIRMATION_FIELDS = [
+  "name",
+  "system_prompt",
+  "model_id",
+  "provider_id",
+  "description",
+  "favorited",
+  "status",
+] as const;
+
+export function persistedAgentMatches(
+  persisted: AgentConfigRecord | undefined,
+  saved: AgentConfigRecord,
+): persisted is AgentConfigRecord {
+  return Boolean(
+    persisted && persisted.id === saved.id && AGENT_SAVE_CONFIRMATION_FIELDS.every(
+      (field) => persisted[field] === saved[field],
+    ),
+  );
+}
+
 export function createAgentTemplateId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `template-${crypto.randomUUID()}`;

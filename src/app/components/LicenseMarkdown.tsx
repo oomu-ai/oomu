@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ExternalBrowserLink } from "@/components/ExternalBrowserLink";
 
 export function LicenseMarkdown({ text }: { text: string }) {
   return (
@@ -38,14 +39,12 @@ export function LicenseMarkdown({ text }: { text: string }) {
           </blockquote>
         ),
         a: ({ children, ...props }) => (
-          <a
+          <ExternalBrowserLink
             {...props}
             className="font-medium text-[var(--accent)] underline underline-offset-4"
-            rel="noreferrer"
-            target="_blank"
           >
             {children}
-          </a>
+          </ExternalBrowserLink>
         ),
         hr: () => <hr className="my-6 border-[var(--border-soft)]" />,
         table: ({ children }) => (

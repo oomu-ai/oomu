@@ -199,6 +199,7 @@ macro_rules! oomu_command_handler {
             artifacts::presentations::choose_presentation_export_destination,
             artifacts::presentations::export_presentation_revision,
             local_inference_recovery_commands::recover_local_inference,
+            app_shell::links::open_external_http_url,
             app_shell::links::open_oomu_marketplace,
             app_shell::links::open_oomu_privacy_policy,
             gemma::infer,

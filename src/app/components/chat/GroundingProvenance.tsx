@@ -1,4 +1,5 @@
 import { useI18n } from "@/context/I18nContext";
+import { ExternalBrowserLink } from "@/components/ExternalBrowserLink";
 import type { PublicGroundingProvenance } from "./messageMetadata";
 
 function formatAccessed(iso: string, locale: string) {
@@ -29,14 +30,12 @@ export function GroundingProvenance({
       <ul className="mt-2 space-y-2">
         {sources.map((source) => (
           <li className="min-w-0 text-xs leading-relaxed" key={`${source.url}:${source.accessedAtUtc}`}>
-            <a
+            <ExternalBrowserLink
               className="block break-all font-medium text-[var(--accent)] underline decoration-transparent underline-offset-2 transition-colors hover:decoration-current"
               href={source.url}
-              rel="noreferrer"
-              target="_blank"
             >
               {source.url}
-            </a>
+            </ExternalBrowserLink>
             <time
               className="block text-[var(--foreground-muted)]"
               dateTime={source.accessedAtUtc}

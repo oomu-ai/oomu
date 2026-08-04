@@ -304,6 +304,7 @@
     "allow-open-macos-permission-settings",
     "allow-open-mail-automation-settings",
     "allow-request-macos-permission",
+    "allow-open-external-http-url",
     "allow-open-oomu-marketplace",
     "allow-open-oomu-privacy-policy",
     "allow-prepare-agent-execution-replan",

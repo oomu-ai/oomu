@@ -3,6 +3,7 @@
 import { memo, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ExternalBrowserLink } from "@/components/ExternalBrowserLink";
 import { useI18n } from "@/context/I18nContext";
 import { stripOomuSplitViewDirectives } from "./browserRouting";
 import {
@@ -253,9 +254,9 @@ export const ChatMessageContent = memo(function ChatMessageContent({
               remarkPlugins={[remarkGfm]}
               components={{
                 a: ({ children, ...props }) => (
-                  <a {...props} className="underline underline-offset-4" rel="noreferrer" target="_blank">
+                  <ExternalBrowserLink {...props} className="underline underline-offset-4">
                     {children}
-                  </a>
+                  </ExternalBrowserLink>
                 ),
                 code: ({ children, className, ...props }) => (
                   <code {...props} className={className}>{children}</code>

@@ -116,7 +116,8 @@ function isHandledOperationalError(code: string | undefined): boolean {
     code &&
       (HANDLED_OPERATIONAL_ERROR_CODES.has(code) ||
         code.startsWith("model_install_") ||
-        code.startsWith("application_update_")),
+        code.startsWith("application_update_") ||
+        code.startsWith("external_url_")),
   );
 }
 

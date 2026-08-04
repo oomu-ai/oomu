@@ -362,3 +362,27 @@ describe("invoke setup recovery and native runtime boundary", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
+
+describe("invoke external browser diagnostics", () => {
+  it("keeps a handled browser-open failure out of the dev error overlay", async () => {
+    vi.doMock("@tauri-apps/api/core", () => ({
+      invoke: vi.fn().mockRejectedValue("external_url_open_failed"),
+    }));
+    Object.defineProperty(window, "__TAURI_IPC__", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const { invoke } = await import("../invoke");
+
+    await expect(invoke("open_external_http_url")).rejects.toMatchObject({
+      code: "external_url_open_failed",
+    });
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Tauri invoke warning for command "open_external_http_url"'),
+    );
+  });
+});

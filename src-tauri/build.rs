@@ -293,6 +293,7 @@ fn main() {
             "parse_intent",
             "open_authorized_native_browser",
             "open_calendar_privacy_settings",
+            "open_external_http_url",
             "open_macos_permission_settings",
             "open_mail_automation_settings",
             "open_oomu_marketplace",

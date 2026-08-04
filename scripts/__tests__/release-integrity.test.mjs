@@ -363,6 +363,17 @@ describe("production release build controls", () => {
     expect(canonicalEvidence).toContain("source_size_violations: 0");
   });
 
+  it("runs the complete native release suite deterministically", () => {
+    const release = readFileSync(join(root, "scripts", "release.mjs"), "utf8");
+    const cargoTestStart = release.indexOf('runStep("automated_cargo_test"');
+    const cargoTestEnd = release.indexOf("], { env: releaseEnvironment });", cargoTestStart);
+    const cargoTest = release.slice(cargoTestStart, cargoTestEnd);
+
+    expect(cargoTestStart).toBeGreaterThanOrEqual(0);
+    expect(cargoTest).toContain('"test", "--locked", "--target", EXPECTED_RELEASE_TARGET');
+    expect(cargoTest).toContain('"--", "--test-threads=1"');
+  });
+
   it("rejects ignored dotenv inputs and ambient release-affecting overrides", () => {
     const cleanCheckout = temporaryRoot("release-inputs");
     expect(() => assertNoRepositoryDotenvFiles(cleanCheckout)).not.toThrow();

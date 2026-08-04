@@ -545,6 +545,7 @@ function runRustQualification(node, releaseEnvironment) {
   runStep("automated_cargo_test", cargo, [
     "test", "--locked", "--target", EXPECTED_RELEASE_TARGET,
     "--manifest-path", "src-tauri/Cargo.toml",
+    "--", "--test-threads=1",
   ], { env: releaseEnvironment });
   return { pdfContainmentResult, rustDependencyAuditResult };
 }

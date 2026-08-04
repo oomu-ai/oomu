@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU 正在后台运行",
     "open_oomu": "打开 OOMU",
-    "quit_oomu": "退出 OOMU"
+    "quit_oomu": "退出 OOMU",
+    "settings": "设置…",
+    "help": "帮助",
+    "documentation": "OOMU 文档",
+    "check_for_updates": "检查更新…"
+  },
+  "application_updates": {
+    "checking_title": "正在检查更新",
+    "checking_body": "OOMU 正在检查是否有新版本。",
+    "checking": "正在检查…",
+    "up_to_date_title": "OOMU 已是最新版本",
+    "up_to_date_body": "你正在使用 OOMU {version}。",
+    "available_title": "有可用更新",
+    "available_body": "OOMU {availableVersion} 已准备好。你正在使用 {currentVersion}。",
+    "whats_new": "新增内容",
+    "downloading": "正在下载",
+    "downloading_body": "OOMU 正在安全下载更新。你可以在这里查看进度。",
+    "progress": "{downloaded} / {total}",
+    "progress_label": "应用更新下载进度",
+    "verifying": "正在验证更新…",
+    "verifying_body": "OOMU 正在确认此更新真实且可安全安装。",
+    "restart_title": "更新已准备好",
+    "restart_body": "准备好后，重新启动 OOMU 即可完成更新。",
+    "failed_title": "OOMU 无法更新",
+    "failed_body": "无法完成更新。你当前的版本未发生更改。",
+    "check_failed_title": "无法检查更新",
+    "check_failed_body": "OOMU 无法连接更新服务。请检查网络连接，然后再试一次。",
+    "signature_failed_body": "OOMU 无法验证此更新，因此未安装。你当前的版本未发生更改。",
+    "install_failed_body": "OOMU 无法安装更新。你当前的版本未发生更改。",
+    "actions": {
+      "install": "安装",
+      "remind": "24 小时后提醒我",
+      "skip": "跳过此版本",
+      "try_again": "再试一次",
+      "restart": "重新启动 OOMU",
+      "later": "稍后",
+      "done": "完成",
+      "full_notes": "阅读完整发布说明"
+    }
   },
   "workflow_scheduler": {
     "notification": {

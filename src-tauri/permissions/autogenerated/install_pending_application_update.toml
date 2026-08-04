@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-install-pending-application-update"
+description = "Enables the install_pending_application_update command without any pre-configured scope."
+commands.allow = ["install_pending_application_update"]
+
+[[permission]]
+identifier = "deny-install-pending-application-update"
+description = "Denies the install_pending_application_update command without any pre-configured scope."
+commands.deny = ["install_pending_application_update"]

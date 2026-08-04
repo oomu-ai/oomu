@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU đang chạy trong nền",
     "open_oomu": "Mở OOMU",
-    "quit_oomu": "Thoát OOMU"
+    "quit_oomu": "Thoát OOMU",
+    "settings": "Cài đặt…",
+    "help": "Trợ giúp",
+    "documentation": "Tài liệu OOMU",
+    "check_for_updates": "Kiểm tra bản cập nhật…"
+  },
+  "application_updates": {
+    "checking_title": "Đang kiểm tra bản cập nhật",
+    "checking_body": "OOMU đang kiểm tra phiên bản mới hơn.",
+    "checking": "Đang kiểm tra…",
+    "up_to_date_title": "OOMU đã được cập nhật",
+    "up_to_date_body": "Bạn đang dùng OOMU {version}.",
+    "available_title": "Có bản cập nhật mới",
+    "available_body": "OOMU {availableVersion} đã sẵn sàng. Bạn đang dùng phiên bản {currentVersion}.",
+    "whats_new": "Điểm mới",
+    "downloading": "Đang tải xuống",
+    "downloading_body": "OOMU đang tải bản cập nhật một cách an toàn. Bạn có thể theo dõi tiến trình tại đây.",
+    "progress": "{downloaded} trên {total}",
+    "progress_label": "Tiến trình tải bản cập nhật ứng dụng",
+    "verifying": "Đang xác minh bản cập nhật…",
+    "verifying_body": "OOMU đang xác nhận bản cập nhật này là chính hãng và an toàn để cài đặt.",
+    "restart_title": "Bản cập nhật đã sẵn sàng",
+    "restart_body": "Khởi động lại OOMU khi bạn sẵn sàng hoàn tất cập nhật.",
+    "failed_title": "Không thể cập nhật OOMU",
+    "failed_body": "Không thể hoàn tất bản cập nhật. Phiên bản hiện tại của bạn không thay đổi.",
+    "check_failed_title": "Không thể kiểm tra bản cập nhật",
+    "check_failed_body": "OOMU không thể kết nối với dịch vụ cập nhật. Hãy kiểm tra kết nối rồi thử lại.",
+    "signature_failed_body": "OOMU không thể xác minh bản cập nhật này nên đã không cài đặt. Phiên bản hiện tại của bạn không thay đổi.",
+    "install_failed_body": "OOMU không thể cài đặt bản cập nhật. Phiên bản hiện tại của bạn không thay đổi.",
+    "actions": {
+      "install": "Cài đặt",
+      "remind": "Nhắc tôi sau 24 giờ",
+      "skip": "Bỏ qua phiên bản này",
+      "try_again": "Thử lại",
+      "restart": "Khởi động lại OOMU",
+      "later": "Để sau",
+      "done": "Xong",
+      "full_notes": "Đọc toàn bộ ghi chú phát hành"
+    }
   },
   "workflow_scheduler": {
     "notification": {

@@ -59,6 +59,8 @@ fn main() {
     println!("cargo:rerun-if-env-changed=OOMU_SLACK_OAUTH_BROKER_CERT_SHA256");
     println!("cargo:rerun-if-env-changed=OOMU_SLACK_OAUTH_REDIRECT_PORT");
     println!("cargo:rerun-if-env-changed=OOMU_MICROSOFT_OAUTH_CLIENT_ID");
+    println!("cargo:rerun-if-env-changed=OOMU_UPDATER_PUBLIC_KEY");
+    publish_updater_public_key();
     publish_frontend_export_fingerprint();
     publish_source_identity();
     publish_oauth_client_identities();
@@ -107,6 +109,7 @@ fn main() {
             "choose_volatile_persistence_export",
             "choose_workflow_source_folder",
             "check_calendar_full_access",
+            "check_for_application_update",
             "check_mail_automation_access",
             "classify_chat_intent_route",
             "cleanup_reconciled_volatile_persistence",
@@ -384,6 +387,7 @@ fn main() {
             "scan_agent_import_directory",
             "scrape_active_page_content",
             "set_active_locale",
+            "set_application_update_ui_ready",
             "set_automated_web_grounding_enabled",
             "set_default_prewarmed_model",
             "set_mod_active_state",
@@ -392,6 +396,10 @@ fn main() {
             "set_project_policy",
             "set_connector_project_scope",
             "set_background_service_enabled",
+            "record_application_update_decision",
+            "install_pending_application_update",
+            "restart_after_application_update",
+            "open_application_update_release_notes",
             "open_background_login_items_settings",
             "cancel_sovereign_search",
             "continue_browser_research_headlessly",
@@ -443,6 +451,32 @@ fn main() {
         ]),
     ))
     .expect("failed to build Tauri app manifest")
+}
+
+fn publish_updater_public_key() {
+    const DEVELOPMENT_PUBLIC_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDNTdGQzNFMUNGRkUxQzQKUldURTRmOGNQdnhYN055YjlpWEVscnNSdWhKN3B5cS9WdVRsN1RLOVNSNm16QUhGQzRmN0RsVXIK";
+    let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
+    let configured = env::var("OOMU_UPDATER_PUBLIC_KEY").ok();
+    let public_key = if profile == "release" {
+        configured
+            .as_deref()
+            .filter(|value| {
+                let value = value.trim();
+                !value.is_empty() && value != DEVELOPMENT_PUBLIC_KEY && value.len() <= 4096
+            })
+            .unwrap_or_else(|| {
+                panic!("Release builds require a dedicated OOMU_UPDATER_PUBLIC_KEY that is not the development key")
+            })
+    } else {
+        configured
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or(DEVELOPMENT_PUBLIC_KEY)
+    };
+    println!(
+        "cargo:rustc-env=OOMU_UPDATER_PUBLIC_KEY={}",
+        public_key.trim()
+    );
 }
 
 fn publish_release_version() {

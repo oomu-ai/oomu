@@ -472,8 +472,8 @@
     },
     "src-tauri/src/lib.rs": {
       "owner": "app-shell/command-handler-wiring",
-      "functionLines": 346,
-      "complexity": 61
+      "functionLines": 342,
+      "complexity": 57
     },
     "src-tauri/src/local_context.rs": {
       "owner": "native/local_context",
@@ -1142,7 +1142,7 @@
     },
     "src/components/AppShell.tsx": {
       "owner": "renderer/shell",
-      "functionLines": 282,
+      "functionLines": 281,
       "complexity": 17
     },
     "src/components/Sidebar.tsx": {

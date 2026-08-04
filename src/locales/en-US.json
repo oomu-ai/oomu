@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU is running in the background",
     "open_oomu": "Open OOMU",
-    "quit_oomu": "Quit OOMU"
+    "quit_oomu": "Quit OOMU",
+    "settings": "Settings…",
+    "help": "Help",
+    "documentation": "OOMU Documentation",
+    "check_for_updates": "Check for Updates…"
+  },
+  "application_updates": {
+    "checking_title": "Checking for updates",
+    "checking_body": "OOMU is checking for a newer version.",
+    "checking": "Checking…",
+    "up_to_date_title": "OOMU is up to date",
+    "up_to_date_body": "You’re running the latest version of OOMU ({version}).",
+    "available_title": "An OOMU Update Is Available",
+    "available_body": "OOMU {availableVersion} is ready. You’re using {currentVersion}.",
+    "whats_new": "What’s new",
+    "downloading": "Downloading",
+    "downloading_body": "OOMU is securely downloading the update. You can follow its progress here.",
+    "progress": "{downloaded} of {total}",
+    "progress_label": "Application update download progress",
+    "verifying": "Verifying update…",
+    "verifying_body": "OOMU is confirming that this update is authentic and safe to install.",
+    "restart_title": "The update is ready",
+    "restart_body": "Restart OOMU when you’re ready to finish the update.",
+    "failed_title": "OOMU couldn’t update",
+    "failed_body": "The update couldn’t be completed. Your current version is unchanged.",
+    "check_failed_title": "Couldn’t Check for Updates",
+    "check_failed_body": "OOMU couldn’t reach the update service. Check your connection and try again.",
+    "signature_failed_body": "OOMU couldn’t verify this update, so it was not installed. Your current version is unchanged.",
+    "install_failed_body": "OOMU couldn’t install the update. Your current version is unchanged.",
+    "actions": {
+      "install": "Install Update",
+      "remind": "Remind Me Later",
+      "skip": "Skip This Update",
+      "try_again": "Try again",
+      "restart": "Restart OOMU",
+      "later": "Later",
+      "done": "Done",
+      "full_notes": "Read full release notes"
+    }
   },
   "workflow_scheduler": {
     "notification": {

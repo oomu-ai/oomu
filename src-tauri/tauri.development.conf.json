@@ -10,5 +10,10 @@
       "capabilities": ["development"],
       "csp": "default-src 'self' asset: http://asset.localhost; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data: blob:; connect-src ipc: http://ipc.localhost ws://localhost:* http://localhost:* tauri:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     }
+  },
+  "plugins": {
+    "updater": {
+      "dangerousInsecureTransportProtocol": true
+    }
   }
 }

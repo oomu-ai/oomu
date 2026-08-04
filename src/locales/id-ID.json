@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU berjalan di latar belakang",
     "open_oomu": "Buka OOMU",
-    "quit_oomu": "Keluar dari OOMU"
+    "quit_oomu": "Keluar dari OOMU",
+    "settings": "Pengaturan…",
+    "help": "Bantuan",
+    "documentation": "Dokumentasi OOMU",
+    "check_for_updates": "Periksa Pembaruan…"
+  },
+  "application_updates": {
+    "checking_title": "Memeriksa pembaruan",
+    "checking_body": "OOMU sedang memeriksa versi yang lebih baru.",
+    "checking": "Memeriksa…",
+    "up_to_date_title": "OOMU sudah terbaru",
+    "up_to_date_body": "Anda menggunakan OOMU {version}.",
+    "available_title": "Pembaruan tersedia",
+    "available_body": "OOMU {availableVersion} siap. Anda menggunakan {currentVersion}.",
+    "whats_new": "Yang baru",
+    "downloading": "Mengunduh",
+    "downloading_body": "OOMU sedang mengunduh pembaruan dengan aman. Anda dapat melihat kemajuannya di sini.",
+    "progress": "{downloaded} dari {total}",
+    "progress_label": "Kemajuan unduhan pembaruan aplikasi",
+    "verifying": "Memverifikasi pembaruan…",
+    "verifying_body": "OOMU sedang memastikan pembaruan ini asli dan aman untuk dipasang.",
+    "restart_title": "Pembaruan siap",
+    "restart_body": "Mulai ulang OOMU saat Anda siap menyelesaikan pembaruan.",
+    "failed_title": "OOMU tidak dapat diperbarui",
+    "failed_body": "Pembaruan tidak dapat diselesaikan. Versi Anda saat ini tidak berubah.",
+    "check_failed_title": "Tidak dapat memeriksa pembaruan",
+    "check_failed_body": "OOMU tidak dapat menjangkau layanan pembaruan. Periksa koneksi Anda lalu coba lagi.",
+    "signature_failed_body": "OOMU tidak dapat memverifikasi pembaruan ini, sehingga pembaruan tidak dipasang. Versi Anda saat ini tidak berubah.",
+    "install_failed_body": "OOMU tidak dapat memasang pembaruan. Versi Anda saat ini tidak berubah.",
+    "actions": {
+      "install": "Pasang",
+      "remind": "Ingatkan saya dalam 24 jam",
+      "skip": "Lewati versi ini",
+      "try_again": "Coba lagi",
+      "restart": "Mulai ulang OOMU",
+      "later": "Nanti",
+      "done": "Selesai",
+      "full_notes": "Baca catatan rilis lengkap"
+    }
   },
   "workflow_scheduler": {
     "notification": {

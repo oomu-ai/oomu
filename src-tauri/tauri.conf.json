@@ -90,5 +90,11 @@
       "infoPlist": "Info.plist",
       "minimumSystemVersion": "14.0"
     }
+  },
+  "plugins": {
+    "updater": {
+      "dangerousInsecureTransportProtocol": false,
+      "pubkey": ""
+    }
   }
 }

@@ -20,13 +20,9 @@ The release pipeline binds both the product version and the separate build
 number into immutable internal evidence. The public DMG name contains only the
 product version so users receive a calm, conventional installer name.
 
-## One-time transition from internal builds
+## Supported public update line
 
-The former `1.257.x` number was an internal placeholder. Version comparison
-treats it as newer than `0.1.0`, so an installed internal build cannot
-automatically update to the first public beta.
-
-For this transition only, quit OOMU and manually replace the installed
-application with OOMU 0.1. Existing user data stays in place because the bundle
-identifier and user-data locations do not change. Future public updates resume
-from the `0.x.y` contract above.
+The former `1.257.x` number was an undistributed internal placeholder and is not
+part of OOMU's customer update graph. Public update comparison begins with the
+first distributed `0.x.y` beta and follows normal semantic-version precedence
+through `1.0.0`, later `1.x.y` releases, and future major versions.

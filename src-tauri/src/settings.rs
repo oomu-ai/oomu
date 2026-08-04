@@ -373,11 +373,15 @@ fn rollback_default_prewarmed_model(
 #[tauri::command]
 pub async fn get_locale_state(
     persistence: tauri::State<'_, PersistenceEngine>,
+    app: tauri::AppHandle,
 ) -> Result<LocaleState, String> {
     let persistence = persistence.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || locale_state_for_engine(&persistence, None))
-        .await
-        .map_err(|error| error.to_string())?
+    let state =
+        tauri::async_runtime::spawn_blocking(move || locale_state_for_engine(&persistence, None))
+            .await
+            .map_err(|error| error.to_string())??;
+    crate::refresh_oomu_menu(&app, Some(&state.translations)).map_err(|error| error.to_string())?;
+    Ok(state)
 }
 
 #[tauri::command]
@@ -403,6 +407,7 @@ pub async fn set_active_locale(
     .await
     .map_err(|error| error.to_string())??;
     crate::refresh_background_tray_menu(&app, &state.translations)?;
+    crate::refresh_oomu_menu(&app, Some(&state.translations)).map_err(|error| error.to_string())?;
     Ok(state)
 }
 
@@ -675,6 +680,12 @@ fn read_settings_from_disk() -> Result<AppSettings, String> {
 
 pub fn automated_web_grounding_enabled(app: &tauri::AppHandle) -> Result<bool, String> {
     Ok(read_settings(app)?.privacy.automated_web_grounding_enabled)
+}
+
+pub(crate) fn license_is_currently_accepted(app: &tauri::AppHandle) -> bool {
+    read_settings(app)
+        .map(|settings| license_is_accepted(&settings))
+        .unwrap_or(false)
 }
 
 pub fn automated_web_grounding_enabled_from_disk() -> bool {

@@ -24,6 +24,7 @@ import { isDeveloperBuild } from "@/lib/buildFlags";
 import { invoke } from "@/lib/invoke";
 import { AppControlMonitor } from "@/app/components/computer_use/AppControlMonitor";
 import { RecommendedModelInstallIndicator } from "@/app/components/integrations/RecommendedModelInstallIndicator";
+import { ApplicationUpdateCoordinator } from "./ApplicationUpdateCoordinator";
 import type { RoutineDraft } from "@/app/components/routines/routineDraft";
 import type { ResolvedAppSection } from "./appNavigation";
 export type {
@@ -255,9 +256,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }));
   const [agentsView, setAgentsView] = useState<AgentsView>("my_agents");
   const [selectedConnectionsSection, setConnectionsSection] = useState<ConnectionsSection>(initialDestination.connectionsSection ?? "work_apps");
-  const [tasksSection, setTasksSection] = useState<TasksSection>(
-    initialDestination.tasksSection ?? "now",
-  );
+  const [tasksSection, setTasksSection] = useState<TasksSection>(initialDestination.tasksSection ?? "now");
   const [workflowsView, setWorkflowsView] = useState<WorkflowsView>("composer");
   const [workflowProjectScope, setWorkflowProjectScope] =
     useState<WorkflowProjectScope | null>(null);
@@ -518,6 +517,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <BrowserEnvironmentGuard />
       </div>
+      <ApplicationUpdateCoordinator navigationGuard={navGuardRef} presentationBlocked={Boolean(approvals?.pendingApprovalCount)} />
     </AppShellContext.Provider>
   );
 }

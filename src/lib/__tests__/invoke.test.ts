@@ -121,6 +121,31 @@ describe("invoke provider and cancellation diagnostics", () => {
       ),
     );
   });
+
+});
+
+describe("invoke application update diagnostics", () => {
+  it("keeps typed application-update failures out of the dev error overlay", async () => {
+    vi.doMock("@tauri-apps/api/core", () => ({
+      invoke: vi.fn().mockRejectedValue("application_update_offer_expired"),
+    }));
+    Object.defineProperty(window, "__TAURI_IPC__", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const { invoke } = await import("../invoke");
+
+    await expect(invoke("install_pending_application_update")).rejects.toMatchObject({
+      code: "application_update_offer_expired",
+    });
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Tauri invoke warning for command "install_pending_application_update"'),
+    );
+  });
 });
 
 describe("invoke recoverable execution diagnostics", () => {

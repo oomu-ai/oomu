@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { integrationApi, type SetupState } from "./components/integrations/integrationClient";
-import type { DegradedModeStatus } from "./homeAgents";
-import { invoke } from "@/lib/invoke";
+import { shouldShowDegradedLanding, type DegradedModeStatus } from "./homeAgents";
+import { invoke, isTauriRuntime } from "@/lib/invoke";
 import type { PrivacySettingsState } from "@/lib/privacySettings";
 
 const NATIVE_HEALTH_POLL_MS = 5_000;
@@ -84,6 +84,25 @@ export function useHomeStartupState() {
       cancelled = true;
     };
   }, [privacySettings?.licenseAccepted]);
+
+  const applicationUpdateReady = Boolean(
+    privacySettings?.licenseAccepted &&
+      setupState?.currentStep === "finished" &&
+      degradedModeStatus &&
+      !shouldShowDegradedLanding(degradedModeStatus, "chat") &&
+      !degradedModeProbeFailed &&
+      !privacySettingsProbeFailed &&
+      !setupProbeFailed,
+  );
+
+  useEffect(() => {
+    if (!isTauriRuntime) return;
+    void invoke<boolean>("set_application_update_ui_ready", {
+      ready: applicationUpdateReady,
+    }).catch(() => {
+      // The native shell remains safely disabled if readiness cannot be confirmed.
+    });
+  }, [applicationUpdateReady]);
 
   return {
     degradedModeProbeFailed,

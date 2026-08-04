@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU 正在背景執行",
     "open_oomu": "開啟 OOMU",
-    "quit_oomu": "結束 OOMU"
+    "quit_oomu": "結束 OOMU",
+    "settings": "設定…",
+    "help": "輔助說明",
+    "documentation": "OOMU 說明文件",
+    "check_for_updates": "檢查更新…"
+  },
+  "application_updates": {
+    "checking_title": "正在檢查更新",
+    "checking_body": "OOMU 正在檢查是否有較新的版本。",
+    "checking": "正在檢查…",
+    "up_to_date_title": "OOMU 已是最新版本",
+    "up_to_date_body": "你正在使用 OOMU {version}。",
+    "available_title": "有可用的更新",
+    "available_body": "OOMU {availableVersion} 已準備好。你正在使用 {currentVersion}。",
+    "whats_new": "新增功能",
+    "downloading": "正在下載",
+    "downloading_body": "OOMU 正在安全下載更新。你可以在這裡查看進度。",
+    "progress": "{downloaded} / {total}",
+    "progress_label": "應用程式更新下載進度",
+    "verifying": "正在驗證更新…",
+    "verifying_body": "OOMU 正在確認此更新為正版且可安全安裝。",
+    "restart_title": "更新已準備好",
+    "restart_body": "準備好後，重新啟動 OOMU 即可完成更新。",
+    "failed_title": "OOMU 無法更新",
+    "failed_body": "無法完成更新。你目前的版本並未變更。",
+    "check_failed_title": "無法檢查更新",
+    "check_failed_body": "OOMU 無法連線至更新服務。請檢查網路連線，然後再試一次。",
+    "signature_failed_body": "OOMU 無法驗證此更新，因此未安裝。你目前的版本並未變更。",
+    "install_failed_body": "OOMU 無法安裝更新。你目前的版本並未變更。",
+    "actions": {
+      "install": "安裝",
+      "remind": "24 小時後提醒我",
+      "skip": "略過此版本",
+      "try_again": "再試一次",
+      "restart": "重新啟動 OOMU",
+      "later": "稍後",
+      "done": "完成",
+      "full_notes": "閱讀完整版本說明"
+    }
   },
   "workflow_scheduler": {
     "notification": {

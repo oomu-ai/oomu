@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU läuft im Hintergrund",
     "open_oomu": "OOMU öffnen",
-    "quit_oomu": "OOMU beenden"
+    "quit_oomu": "OOMU beenden",
+    "settings": "Einstellungen…",
+    "help": "Hilfe",
+    "documentation": "OOMU-Dokumentation",
+    "check_for_updates": "Nach Updates suchen…"
+  },
+  "application_updates": {
+    "checking_title": "Nach Updates suchen",
+    "checking_body": "OOMU sucht nach einer neueren Version.",
+    "checking": "Wird geprüft…",
+    "up_to_date_title": "OOMU ist auf dem neuesten Stand",
+    "up_to_date_body": "Du verwendest OOMU {version}.",
+    "available_title": "Ein Update ist verfügbar",
+    "available_body": "OOMU {availableVersion} ist bereit. Du verwendest {currentVersion}.",
+    "whats_new": "Neuigkeiten",
+    "downloading": "Wird geladen",
+    "downloading_body": "OOMU lädt das Update sicher. Du kannst den Fortschritt hier verfolgen.",
+    "progress": "{downloaded} von {total}",
+    "progress_label": "Downloadfortschritt des Programmupdates",
+    "verifying": "Update wird überprüft…",
+    "verifying_body": "OOMU bestätigt, dass dieses Update echt und sicher zu installieren ist.",
+    "restart_title": "Das Update ist bereit",
+    "restart_body": "Starte OOMU neu, wenn du das Update abschließen möchtest.",
+    "failed_title": "OOMU konnte nicht aktualisiert werden",
+    "failed_body": "Das Update konnte nicht abgeschlossen werden. Deine aktuelle Version bleibt unverändert.",
+    "check_failed_title": "Updates konnten nicht gesucht werden",
+    "check_failed_body": "OOMU konnte den Update-Dienst nicht erreichen. Prüfe deine Verbindung und versuche es erneut.",
+    "signature_failed_body": "OOMU konnte dieses Update nicht bestätigen. Es wurde nicht installiert und deine aktuelle Version bleibt unverändert.",
+    "install_failed_body": "OOMU konnte das Update nicht installieren. Deine aktuelle Version bleibt unverändert.",
+    "actions": {
+      "install": "Installieren",
+      "remind": "In 24 Stunden erinnern",
+      "skip": "Diese Version überspringen",
+      "try_again": "Erneut versuchen",
+      "restart": "OOMU neu starten",
+      "later": "Später",
+      "done": "Fertig",
+      "full_notes": "Vollständige Versionshinweise lesen"
+    }
   },
   "workflow_scheduler": {
     "notification": {

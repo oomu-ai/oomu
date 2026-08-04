@@ -8,6 +8,7 @@ mod agentic_loop;
 mod airlock;
 mod analysis;
 mod app_shell;
+mod app_updates;
 mod approval_scopes;
 mod artifact_auditor;
 mod artifact_builder;
@@ -66,6 +67,7 @@ mod metal_backend;
 mod native_app_ports;
 mod native_browser;
 mod native_capability_adapters;
+mod native_menu;
 mod native_runtime;
 pub mod network_policy;
 pub mod p0_contracts;
@@ -119,18 +121,7 @@ use persistence_health::{
     VolatileStoreSession, VolatileStoreSessionManager,
 };
 use std::time::Duration;
-use tauri::{
-    menu::{
-        AboutMetadata, Menu, MenuItem, PredefinedMenuItem, Submenu, HELP_SUBMENU_ID,
-        WINDOW_SUBMENU_ID,
-    },
-    Emitter, Manager,
-};
-use tauri_plugin_opener::OpenerExt;
-const OOMU_DOCUMENTATION_MENU_ID: &str = "oomu-documentation";
-const OOMU_SETTINGS_MENU_ID: &str = "oomu-settings";
-const OOMU_DOCUMENTATION_URL: &str = "https://oomu.ai/docs.html";
-const OOMU_OPEN_SETTINGS_EVENT: &str = "oomu://open-settings";
+use tauri::Manager;
 fn update_window_icon(window: &tauri::WebviewWindow, theme: &tauri::Theme) {
     let icon_filename = match theme {
         tauri::Theme::Dark => "OOMU-macOS-Dark-1024x1024@1x.png",
@@ -371,128 +362,11 @@ async fn stream_execution_steps(
     Ok(())
 }
 
-fn build_oomu_menu<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) -> tauri::Result<Menu<R>> {
-    let pkg_info = app_handle.package_info();
-    let config = app_handle.config();
-    let about_metadata = AboutMetadata {
-        name: Some(pkg_info.name.clone()),
-        version: Some(pkg_info.version.to_string()),
-        copyright: config.bundle.copyright.clone(),
-        authors: config
-            .bundle
-            .publisher
-            .clone()
-            .map(|publisher| vec![publisher]),
-        ..Default::default()
-    };
-    let window_menu = Submenu::with_id_and_items(
-        app_handle,
-        WINDOW_SUBMENU_ID,
-        "Window",
-        true,
-        &[
-            &PredefinedMenuItem::minimize(app_handle, None)?,
-            &PredefinedMenuItem::maximize(app_handle, None)?,
-            #[cfg(target_os = "macos")]
-            &PredefinedMenuItem::separator(app_handle)?,
-            &PredefinedMenuItem::close_window(app_handle, None)?,
-        ],
-    )?;
-
-    let help_menu = Submenu::with_id_and_items(
-        app_handle,
-        HELP_SUBMENU_ID,
-        "Help",
-        true,
-        &[
-            &MenuItem::with_id(
-                app_handle,
-                OOMU_DOCUMENTATION_MENU_ID,
-                "OOMU Documentation",
-                true,
-                None::<&str>,
-            )?,
-            #[cfg(not(target_os = "macos"))]
-            &PredefinedMenuItem::separator(app_handle)?,
-            #[cfg(not(target_os = "macos"))]
-            &PredefinedMenuItem::about(app_handle, None, Some(about_metadata.clone()))?,
-        ],
-    )?;
-
-    Menu::with_items(
-        app_handle,
-        &[
-            #[cfg(target_os = "macos")]
-            &Submenu::with_items(
-                app_handle,
-                pkg_info.name.clone(),
-                true,
-                &[
-                    &PredefinedMenuItem::about(app_handle, None, Some(about_metadata))?,
-                    &PredefinedMenuItem::separator(app_handle)?,
-                    &MenuItem::with_id(
-                        app_handle,
-                        OOMU_SETTINGS_MENU_ID,
-                        "Settings...",
-                        true,
-                        Some("CmdOrCtrl+,"),
-                    )?,
-                    &PredefinedMenuItem::separator(app_handle)?,
-                    &PredefinedMenuItem::services(app_handle, None)?,
-                    &PredefinedMenuItem::separator(app_handle)?,
-                    &PredefinedMenuItem::hide(app_handle, None)?,
-                    &PredefinedMenuItem::hide_others(app_handle, None)?,
-                    &PredefinedMenuItem::separator(app_handle)?,
-                    &PredefinedMenuItem::quit(app_handle, None)?,
-                ],
-            )?,
-            #[cfg(not(any(
-                target_os = "linux",
-                target_os = "dragonfly",
-                target_os = "freebsd",
-                target_os = "netbsd",
-                target_os = "openbsd"
-            )))]
-            &Submenu::with_items(
-                app_handle,
-                "File",
-                true,
-                &[
-                    &PredefinedMenuItem::close_window(app_handle, None)?,
-                    #[cfg(not(target_os = "macos"))]
-                    &PredefinedMenuItem::quit(app_handle, None)?,
-                ],
-            )?,
-            &Submenu::with_items(
-                app_handle,
-                "Edit",
-                true,
-                &[
-                    &PredefinedMenuItem::undo(app_handle, None)?,
-                    &PredefinedMenuItem::redo(app_handle, None)?,
-                    &PredefinedMenuItem::separator(app_handle)?,
-                    &PredefinedMenuItem::cut(app_handle, None)?,
-                    &PredefinedMenuItem::copy(app_handle, None)?,
-                    &PredefinedMenuItem::paste(app_handle, None)?,
-                    &PredefinedMenuItem::select_all(app_handle, None)?,
-                ],
-            )?,
-            #[cfg(target_os = "macos")]
-            &Submenu::with_items(
-                app_handle,
-                "View",
-                true,
-                &[&PredefinedMenuItem::fullscreen(app_handle, None)?],
-            )?,
-            &window_menu,
-            &help_menu,
-        ],
-    )
-}
-fn open_oomu_documentation<R: tauri::Runtime>(
-    app: &tauri::AppHandle<R>,
-) -> Result<(), tauri_plugin_opener::Error> {
-    app.opener().open_url(OOMU_DOCUMENTATION_URL, None::<&str>)
+pub(crate) fn refresh_oomu_menu(
+    app: &tauri::AppHandle,
+    translations: Option<&serde_json::Value>,
+) -> tauri::Result<()> {
+    native_menu::refresh(app, translations)
 }
 fn resolve_gateway_routine_approval(
     persistence: &db::PersistenceEngine,
@@ -742,11 +616,16 @@ fn try_run(launch_opts: OomuLaunchOptions) -> Result<(), OomuError> {
     );
     let page_load_splash = startup_splash.clone();
     let app = tauri::Builder::default()
+        .plugin(
+            tauri_plugin_updater::Builder::new()
+                .pubkey(app_updates::updater_public_key())
+                .build(),
+        )
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(launch_startup::opener_plugin())
         .plugin(tauri_plugin_shell::init())
-        .menu(build_oomu_menu)
+        .menu(native_menu::build)
         .on_page_load(move |webview, payload| {
             app_shell::scenario_one_ui_driver::on_page_load(webview, payload);
             if webview.label() == "main"
@@ -757,17 +636,7 @@ fn try_run(launch_opts: OomuLaunchOptions) -> Result<(), OomuError> {
                 }
             }
         })
-        .on_menu_event(|app, event| {
-            if event.id() == OOMU_SETTINGS_MENU_ID {
-                if let Err(error) = app.emit(OOMU_OPEN_SETTINGS_EVENT, ()) {
-                    eprintln!("OOMU_MENU_OPEN_SETTINGS_FAILED error={error}");
-                }
-            } else if event.id() == OOMU_DOCUMENTATION_MENU_ID {
-                if let Err(error) = open_oomu_documentation(app) {
-                    eprintln!("OOMU_MENU_OPEN_DOCUMENTATION_FAILED error={error}");
-                }
-            }
-        })
+        .on_menu_event(native_menu::handle_event)
         .manage(launch_opts.clone())
         .manage(degraded_mode_status)
         .manage(volatile_store_sessions)
@@ -797,6 +666,7 @@ fn try_run(launch_opts: OomuLaunchOptions) -> Result<(), OomuError> {
         .manage(shield_gate::ScopeTrustManager::default())
         .manage(shield_gate::ActuationLeaseManager::default())
         .manage(authority::NativeAuthorityManager::default())
+        .manage(app_updates::ApplicationUpdateService::default())
         .manage(mcp::client::McpClientRegistry::default())
         .manage(mac_speech::VoiceCaptureManager::default())
         .manage(routines::BackgroundRuntimeSupervisor::default())

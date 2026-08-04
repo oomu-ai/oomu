@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU fonctionne en arrière-plan",
     "open_oomu": "Ouvrir OOMU",
-    "quit_oomu": "Quitter OOMU"
+    "quit_oomu": "Quitter OOMU",
+    "settings": "Réglages…",
+    "help": "Aide",
+    "documentation": "Documentation OOMU",
+    "check_for_updates": "Rechercher les mises à jour…"
+  },
+  "application_updates": {
+    "checking_title": "Recherche de mises à jour",
+    "checking_body": "OOMU recherche une version plus récente.",
+    "checking": "Recherche…",
+    "up_to_date_title": "OOMU est à jour",
+    "up_to_date_body": "Vous utilisez OOMU {version}.",
+    "available_title": "Une mise à jour est disponible",
+    "available_body": "OOMU {availableVersion} est prêt. Vous utilisez {currentVersion}.",
+    "whats_new": "Nouveautés",
+    "downloading": "Téléchargement",
+    "downloading_body": "OOMU télécharge la mise à jour de façon sécurisée. Vous pouvez suivre sa progression ici.",
+    "progress": "{downloaded} sur {total}",
+    "progress_label": "Progression du téléchargement de la mise à jour",
+    "verifying": "Vérification de la mise à jour…",
+    "verifying_body": "OOMU confirme que cette mise à jour est authentique et peut être installée en toute sécurité.",
+    "restart_title": "La mise à jour est prête",
+    "restart_body": "Redémarrez OOMU lorsque vous êtes prêt à terminer la mise à jour.",
+    "failed_title": "OOMU n’a pas pu se mettre à jour",
+    "failed_body": "La mise à jour n’a pas pu être terminée. Votre version actuelle reste inchangée.",
+    "check_failed_title": "Impossible de rechercher les mises à jour",
+    "check_failed_body": "OOMU n’a pas pu joindre le service de mise à jour. Vérifiez votre connexion et réessayez.",
+    "signature_failed_body": "OOMU n’a pas pu vérifier cette mise à jour. Elle n’a pas été installée et votre version actuelle reste inchangée.",
+    "install_failed_body": "OOMU n’a pas pu installer la mise à jour. Votre version actuelle reste inchangée.",
+    "actions": {
+      "install": "Installer",
+      "remind": "Me le rappeler dans 24 heures",
+      "skip": "Ignorer cette version",
+      "try_again": "Réessayer",
+      "restart": "Redémarrer OOMU",
+      "later": "Plus tard",
+      "done": "Terminé",
+      "full_notes": "Lire toutes les notes de version"
+    }
   },
   "workflow_scheduler": {
     "notification": {

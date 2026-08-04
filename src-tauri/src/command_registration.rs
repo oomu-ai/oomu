@@ -2,6 +2,12 @@ macro_rules! oomu_command_handler {
     () => {
         tauri::generate_handler![
             launch_options_commands::get_launch_options,
+            app_updates::set_application_update_ui_ready,
+            app_updates::check_for_application_update,
+            app_updates::record_application_update_decision,
+            app_updates::install_pending_application_update,
+            app_updates::open_application_update_release_notes,
+            app_updates::restart_after_application_update,
             degraded_mode_commands::get_degraded_mode_status,
             degraded_mode_commands::retry_sovereign_identity_health,
             persistence_recovery_commands::get_persistence_recovery_status,

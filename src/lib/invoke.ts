@@ -91,7 +91,8 @@ function extractInvokeErrorCode(error: unknown, message: string): string | undef
     try {
       return extractInvokeErrorCode(JSON.parse(error), message);
     } catch {
-      // Plain string; fall through to parsing the normalized message.
+      const value = error.trim();
+      if (/^[a-z][a-z0-9_]*$/iu.test(value)) return value;
     }
   }
 
@@ -113,7 +114,9 @@ function isExpectedCancellation(code: string | undefined, message: string): bool
 function isHandledOperationalError(code: string | undefined): boolean {
   return Boolean(
     code &&
-      (HANDLED_OPERATIONAL_ERROR_CODES.has(code) || code.startsWith("model_install_")),
+      (HANDLED_OPERATIONAL_ERROR_CODES.has(code) ||
+        code.startsWith("model_install_") ||
+        code.startsWith("application_update_")),
   );
 }
 

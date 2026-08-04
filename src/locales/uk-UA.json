@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMU працює у фоновому режимі",
     "open_oomu": "Відкрити OOMU",
-    "quit_oomu": "Завершити OOMU"
+    "quit_oomu": "Завершити OOMU",
+    "settings": "Параметри…",
+    "help": "Довідка",
+    "documentation": "Документація OOMU",
+    "check_for_updates": "Перевірити оновлення…"
+  },
+  "application_updates": {
+    "checking_title": "Перевірка оновлень",
+    "checking_body": "OOMU перевіряє наявність новішої версії.",
+    "checking": "Перевірка…",
+    "up_to_date_title": "OOMU оновлено",
+    "up_to_date_body": "Ви використовуєте OOMU {version}.",
+    "available_title": "Доступне оновлення",
+    "available_body": "OOMU {availableVersion} готова до встановлення. Ви використовуєте версію {currentVersion}.",
+    "whats_new": "Що нового",
+    "downloading": "Завантаження",
+    "downloading_body": "OOMU безпечно завантажує оновлення. Тут можна стежити за перебігом завантаження.",
+    "progress": "{downloaded} із {total}",
+    "progress_label": "Перебіг завантаження оновлення програми",
+    "verifying": "Перевірка оновлення…",
+    "verifying_body": "OOMU підтверджує справжність і безпечність цього оновлення.",
+    "restart_title": "Оновлення готове",
+    "restart_body": "Перезапустіть OOMU, коли будете готові завершити оновлення.",
+    "failed_title": "Не вдалося оновити OOMU",
+    "failed_body": "Не вдалося завершити оновлення. Поточна версія не змінилася.",
+    "check_failed_title": "Не вдалося перевірити оновлення",
+    "check_failed_body": "OOMU не змогла підключитися до служби оновлень. Перевірте з’єднання та повторіть спробу.",
+    "signature_failed_body": "OOMU не змогла перевірити це оновлення, тому його не встановлено. Поточна версія не змінилася.",
+    "install_failed_body": "OOMU не змогла встановити оновлення. Поточна версія не змінилася.",
+    "actions": {
+      "install": "Установити",
+      "remind": "Нагадати через 24 години",
+      "skip": "Пропустити цю версію",
+      "try_again": "Спробувати ще раз",
+      "restart": "Перезапустити OOMU",
+      "later": "Пізніше",
+      "done": "Готово",
+      "full_notes": "Прочитати всі примітки до випуску"
+    }
   },
   "workflow_scheduler": {
     "notification": {

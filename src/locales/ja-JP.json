@@ -73,7 +73,45 @@
   "menu_bar": {
     "background_running": "OOMUはバックグラウンドで実行中です",
     "open_oomu": "OOMUを開く",
-    "quit_oomu": "OOMUを終了"
+    "quit_oomu": "OOMUを終了",
+    "settings": "設定…",
+    "help": "ヘルプ",
+    "documentation": "OOMUドキュメント",
+    "check_for_updates": "アップデートを確認…"
+  },
+  "application_updates": {
+    "checking_title": "アップデートを確認中",
+    "checking_body": "OOMUの新しいバージョンを確認しています。",
+    "checking": "確認中…",
+    "up_to_date_title": "OOMUは最新です",
+    "up_to_date_body": "OOMU {version}を使用しています。",
+    "available_title": "アップデートがあります",
+    "available_body": "OOMU {availableVersion}を利用できます。現在のバージョンは{currentVersion}です。",
+    "whats_new": "新機能",
+    "downloading": "ダウンロード中",
+    "downloading_body": "OOMUはアップデートを安全にダウンロードしています。進行状況をここで確認できます。",
+    "progress": "{downloaded} / {total}",
+    "progress_label": "アプリのアップデートのダウンロード状況",
+    "verifying": "アップデートを検証中…",
+    "verifying_body": "このアップデートが正規のもので、安全にインストールできることを確認しています。",
+    "restart_title": "アップデートの準備ができました",
+    "restart_body": "準備ができたらOOMUを再起動してアップデートを完了してください。",
+    "failed_title": "OOMUをアップデートできませんでした",
+    "failed_body": "アップデートを完了できませんでした。現在のバージョンは変更されていません。",
+    "check_failed_title": "アップデートを確認できませんでした",
+    "check_failed_body": "アップデートサービスに接続できませんでした。接続を確認して、もう一度お試しください。",
+    "signature_failed_body": "このアップデートを検証できなかったため、インストールしませんでした。現在のバージョンは変更されていません。",
+    "install_failed_body": "アップデートをインストールできませんでした。現在のバージョンは変更されていません。",
+    "actions": {
+      "install": "インストール",
+      "remind": "24時間後に通知",
+      "skip": "このバージョンをスキップ",
+      "try_again": "もう一度試す",
+      "restart": "OOMUを再起動",
+      "later": "後で",
+      "done": "完了",
+      "full_notes": "リリースノートをすべて読む"
+    }
   },
   "workflow_scheduler": {
     "notification": {

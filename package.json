@@ -15,6 +15,8 @@
     "build:prod": "node scripts/release.mjs",
     "release:unsigned": "node scripts/release-unsigned.mjs",
     "release:protected-sign": "node scripts/release-protected-sign.mjs",
+    "release:updater-assets": "node scripts/application-update-assets.mjs",
+    "release:publish-update": "node scripts/publish-application-update-release.mjs",
     "tauri:dev": "npm run dev",
     "tauri:dev:first-run": "npm run dev -- -- -- --first-run-setup",
     "tauri:build:internal": "node scripts/assert-release-entrypoint.mjs && tauri build",

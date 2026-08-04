@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-application-update-ui-ready"
+description = "Enables the set_application_update_ui_ready command without any pre-configured scope."
+commands.allow = ["set_application_update_ui_ready"]
+
+[[permission]]
+identifier = "deny-set-application-update-ui-ready"
+description = "Denies the set_application_update_ui_ready command without any pre-configured scope."
+commands.deny = ["set_application_update_ui_ready"]

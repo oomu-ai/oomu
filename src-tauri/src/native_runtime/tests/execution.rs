@@ -79,7 +79,8 @@ fn prompt_opens_reasoning_channel_matches_non_thinking_chat_prompt() {
 
 #[test]
 fn installed_gemma4_embedding_variants_validate_dynamically() {
-    let model_root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
+    let model_root =
+        PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../assets/models");
     let runtime = NativeRuntime::initialize().expect("initialize llama.cpp runtime");
     let variants = [
         "gemma-4-E2B-it-qat-q4_0-gguf",
@@ -130,7 +131,7 @@ fn installed_gemma4_embedding_variants_validate_dynamically() {
 #[test]
 #[ignore = "requires an installed multi-gigabyte GGUF model"]
 fn installed_e2b_allocates_a_stateful_context_within_cold_start_budget() {
-    let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+    let directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
         .join("../assets/models/gemma-4-E2B-it-qat-q4_0-gguf");
     if !directory.is_dir() {
         return;
@@ -178,7 +179,7 @@ fn installed_e2b_allocates_a_stateful_context_within_cold_start_budget() {
 #[test]
 #[ignore = "requires an installed multi-gigabyte GGUF model"]
 fn installed_e2b_reuses_session_prefix_and_restores_after_memory_flush() {
-    let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+    let directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
         .join("../assets/models/gemma-4-E2B-it-qat-q4_0-gguf");
     if !directory.is_dir() {
         return;
@@ -306,7 +307,7 @@ fn verify_production_prompt_clean_and_nonempty() {
                 continue;
             }
         }
-        let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR).join(dir);
+        let directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join(dir);
         let Some(model_path) = find_text_gguf(&directory) else {
             eprintln!(
                 "VERIFY SKIP {label}: no text gguf under {}",

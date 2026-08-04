@@ -862,7 +862,8 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn root_level_store_is_valid_for_readiness_repair_and_recommendation() {
-        let assets = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
+        let assets =
+            PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../assets/models");
         let installed = assets.join(GEMMA_E2B_CANONICAL_ID);
         if !installed.is_dir() {
             return;

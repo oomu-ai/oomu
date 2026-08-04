@@ -230,7 +230,8 @@ fn configured_provider_debug_output_never_contains_secret_or_raw_origin() {
 
 #[test]
 fn startup_alignment_repairs_missing_local_agent_model() {
-    let model_root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
+    let model_root =
+        PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../assets/models");
     if !model_root
         .join(crate::gemma::PREFERRED_LOCAL_MODEL_ID)
         .is_dir()

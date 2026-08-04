@@ -165,7 +165,7 @@ fn sandboxed_python_blocks_host_file_read_and_write() {
     let root = std::env::temp_dir().join(format!("oomu_exploit_{}", unix_time_ms()));
     let workspace = root.join("workspace");
     fs::create_dir_all(&workspace).expect("workspace creates");
-    let sentinel_root = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+    let sentinel_root = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
         .join("target")
         .join(format!("oomu_sandbox_sentinel_{}", unix_time_ms()));
     fs::create_dir_all(&sentinel_root).expect("sentinel directory creates");
@@ -280,7 +280,7 @@ fn sandboxed_npm_typecheck_runs_in_workspace() {
         return;
     }
 
-    let repo_root = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+    let repo_root = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
         .parent()
         .expect("src-tauri has a repository parent")
         .to_path_buf();

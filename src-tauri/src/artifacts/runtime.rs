@@ -376,7 +376,7 @@ fn resolve_helper() -> Option<PathBuf> {
             .and_then(|value| String::from_utf8(value.stdout).ok())
             .map(|value| value.trim().to_string());
         if let Some(triple) = triple {
-            let prepared = Path::new(crate::OOMU_MANIFEST_DIR)
+            let prepared = Path::new(crate::runtime_profile::OOMU_MANIFEST_DIR)
                 .join("binaries")
                 .join(format!(
                     "artifact_build_helper-{triple}{}",
@@ -386,7 +386,7 @@ fn resolve_helper() -> Option<PathBuf> {
                 return Some(prepared);
             }
         }
-        let debug = Path::new(crate::OOMU_MANIFEST_DIR)
+        let debug = Path::new(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("target/debug")
             .join(filename);
         if debug.is_file() {
@@ -413,7 +413,7 @@ fn resolve_renderer_helper() -> Option<PathBuf> {
             .ok()
             .and_then(|value| String::from_utf8(value.stdout).ok())
             .map(|value| value.trim().to_string())?;
-        let candidate = Path::new(crate::OOMU_MANIFEST_DIR)
+        let candidate = Path::new(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("binaries")
             .join(format!("oomu-artifact-pdf-helper-{triple}"));
         if candidate.is_file() {

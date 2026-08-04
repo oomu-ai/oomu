@@ -1146,7 +1146,7 @@ mod tests {
     #[tokio::test]
     #[ignore = "requires an installed multi-gigabyte E4B GGUF model"]
     async fn installed_e4b_semantic_classifier_routes_audited_prompts_within_contract() {
-        let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+        let directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("../assets/models/gemma-4-E4B-it-qat-q4_0-gguf");
         if !directory.is_dir() {
             return;
@@ -1206,7 +1206,7 @@ mod tests {
     #[ignore = "requires the installed multi-gigabyte OOMU E4B model"]
     async fn installed_e4b_real_auto_route_corpus() {
         const OBJECTIVE: &str = "prepare a board-ready supplier decision pack. Read /Users/example/Library/Mobile Documents/com~apple~CloudDocs/OOMU Test Data/mocked_data/supplier_proposals.json and q3_strategic_vendor_proposals.txt from my testing folder. Reconcile every quoted amount and margin, identify all exceptions, and independently research current primary or official web sources for fuel or freight conditions that could materially affect the recommendation. Cite every web claim with its URL and access time. Create a new ship_test_01 folder in the testing folder and deliver four real files: supplier_decision.xlsx, supplier_decision.pptx, supplier_decision.pdf, and sources.md. The workbook must contain source data, formulas, exception flags, and a recommendation sheet. The presentation and PDF must be executive-ready and mutually consistent. Then create a tentative 30-minute event in my OOMU Test calendar on the next weekday between 1:00 PM and 4:00 PM titled Supplier Decision Review, avoiding conflicts, and create a Mail draft to recipient@example.com summarizing the recommendation and listing the four output files. Do not send the email. Ask for any required approvals and continue from the exact stopped step after I approve. Do not claim completion until you have verified that all four files, the calendar event, and the unsent Mail draft actually exist.";
-        let directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+        let directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("../assets/models/gemma-4-E4B-it-qat-q4_0-gguf");
         assert!(directory.is_dir(), "installed OOMU E4B model is present");
         let service = GemmaService::new_loading();

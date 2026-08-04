@@ -9,6 +9,21 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(any(debug_assertions, test))]
+pub(crate) const OOMU_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+#[cfg(not(any(debug_assertions, test)))]
+pub(crate) const OOMU_MANIFEST_DIR: &str = "/oomu/source/src-tauri";
+
+#[cfg(any(debug_assertions, test))]
+pub(crate) fn dev_dir() -> Option<&'static str> {
+    Some(OOMU_MANIFEST_DIR)
+}
+
+#[cfg(not(any(debug_assertions, test)))]
+pub(crate) fn dev_dir() -> Option<&'static str> {
+    None
+}
+
 const RECEIPT_KIND: &str = "runtime_identity";
 const RECEIPT_SCHEMA_VERSION: u8 = 2;
 const RECEIPT_RELATIVE_PATH: &str = ".oomu/runtime-profile-receipt.json";

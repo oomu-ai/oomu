@@ -146,7 +146,7 @@ fn scenario_one_uses_a_stable_e4b_structured_workflow_decision() {
     // No filesystem, Calendar, or Mail mutation occurs here.
     let action = step_to_request(&plan.steps[0]);
     let action_json = serde_json::to_string(&action).expect("serialize the approved first action");
-    let model_directory = PathBuf::from(crate::OOMU_MANIFEST_DIR)
+    let model_directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
         .join("../assets/models/gemma-4-E4B-it-qat-q4_0-gguf");
     let service = GemmaService::new_loading();
     service

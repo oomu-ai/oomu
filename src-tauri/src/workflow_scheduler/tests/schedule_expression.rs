@@ -255,7 +255,8 @@ fn every_supported_locale_has_complete_scheduler_copy() {
         ("/workflow_scheduler/delivery/repair", &[]),
         ("/workflow_scheduler/retry/waiting", &[]),
     ];
-    let locale_dir = std::path::Path::new(crate::OOMU_MANIFEST_DIR).join("../src/locales");
+    let locale_dir =
+        std::path::Path::new(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../src/locales");
 
     for locale in LOCALES {
         let raw = std::fs::read_to_string(locale_dir.join(format!("{locale}.json"))).unwrap();

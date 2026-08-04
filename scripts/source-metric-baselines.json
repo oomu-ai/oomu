@@ -68,7 +68,7 @@
     },
     "src-tauri/src/agentic_loop.rs": {
       "owner": "agents/planning-execution",
-      "bytes": 199138,
+      "bytes": 199132,
       "functionLines": 789,
       "complexity": 91
     },

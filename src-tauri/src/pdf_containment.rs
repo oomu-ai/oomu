@@ -361,7 +361,7 @@ fn resolve_pdf_helper_path() -> Option<PathBuf> {
     }
     #[cfg(debug_assertions)]
     {
-        let debug_helper = Path::new(crate::OOMU_MANIFEST_DIR)
+        let debug_helper = Path::new(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("target")
             .join("debug")
             .join(filename);

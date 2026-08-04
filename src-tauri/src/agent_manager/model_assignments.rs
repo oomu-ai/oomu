@@ -277,7 +277,8 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn native_agent_save_accepts_a_verified_root_level_e2b_store() {
-        let assets = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
+        let assets =
+            PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../assets/models");
         let installed = assets.join(GEMMA_E2B_CANONICAL_ID);
         if !installed.is_dir() {
             return;

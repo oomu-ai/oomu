@@ -774,7 +774,8 @@ fn locale_directory_candidates() -> Vec<PathBuf> {
         candidates.push(PathBuf::from(path));
     }
 
-    let manifest_locales = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../src/locales");
+    let manifest_locales =
+        PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../src/locales");
     candidates.push(manifest_locales);
 
     if let Ok(current_directory) = std::env::current_dir() {

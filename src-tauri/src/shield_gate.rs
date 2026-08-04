@@ -4216,7 +4216,7 @@ fn project_root() -> PathBuf {
 }
 
 pub(crate) fn development_repo_root() -> PathBuf {
-    if let Some(manifest_dir) = crate::development_manifest_dir() {
+    if let Some(manifest_dir) = crate::runtime_profile::dev_dir() {
         let manifest_dir = PathBuf::from(manifest_dir);
         if manifest_dir.ends_with("src-tauri") {
             if let Some(root) = manifest_dir.parent() {

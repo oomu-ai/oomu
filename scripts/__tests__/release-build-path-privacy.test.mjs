@@ -137,7 +137,9 @@ describe("release build-path privacy", () => {
       "/Users/release builder",
     )).toThrow(/bounded absolute paths/i);
   });
+});
 
+describe("release native path enforcement", () => {
   it("rejects local C and C++ canary paths before the production compile", () => {
     const configuration = canonicalNativePathRemapConfiguration(
       "/Users/release-builder/work/OOMU",
@@ -183,7 +185,7 @@ describe("release build-path privacy", () => {
     for (const path of rustSourceFiles(sourceRoot)) {
       const source = readFileSync(path, "utf8");
       const literals = source.match(/(?:option_)?env!\("CARGO_MANIFEST_DIR"\)/gu) ?? [];
-      if (path === join(sourceRoot, "lib.rs")) {
+      if (path === join(sourceRoot, "runtime_profile.rs")) {
         expect(literals).toEqual(['env!("CARGO_MANIFEST_DIR")']);
         expect(source).toContain(
           "#[cfg(any(debug_assertions, test))]\npub(crate) const OOMU_MANIFEST_DIR",

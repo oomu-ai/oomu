@@ -373,7 +373,8 @@ mod tests {
 
     #[test]
     fn legacy_default_reference_repairs_to_installed_e2b_without_using_a_directory_name() {
-        let root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
+        let root =
+            PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../assets/models");
         if !root.join(GEMMA_E2B_CANONICAL_ID).is_dir() {
             return;
         }
@@ -421,7 +422,8 @@ mod tests {
 
     #[test]
     fn full_primary_gguf_path_resolves_to_canonical_identity() {
-        let root = PathBuf::from(crate::OOMU_MANIFEST_DIR).join("../assets/models");
+        let root =
+            PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR).join("../assets/models");
         let weight = root
             .join(GEMMA_E2B_CANONICAL_ID)
             .join("gemma-4-E2B_q4_0-it.gguf");

@@ -479,7 +479,7 @@ fn resolve_pdf_helper() -> Result<PathBuf, String> {
             ("x86_64", "linux") => "x86_64-unknown-linux-gnu",
             _ => return Err("No packaged PDF renderer exists for this target.".to_string()),
         };
-        let candidate = Path::new(crate::OOMU_MANIFEST_DIR)
+        let candidate = Path::new(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("binaries")
             .join(format!("oomu-artifact-pdf-helper-{target}"));
         if candidate.is_file() {

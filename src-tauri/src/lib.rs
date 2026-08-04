@@ -115,28 +115,12 @@ pub mod workflow_runtime;
 mod workflow_scheduler;
 pub use app_shell::{parse_launch_options, OomuLaunchOptions};
 pub(crate) use background_runtime_tray::{refresh_background_tray_menu, sync_background_tray};
-use errors::OomuError;
-use local_context_drag::emit_local_context_drag;
 use persistence_health::{
     BackingStoreClass, DegradedModeState, DegradedModeStatus, VolatileRecoveryStatus,
     VolatileStoreSession, VolatileStoreSessionManager,
 };
+use {errors::OomuError, local_context_drag::emit_local_context_drag};
 use {std::time::Duration, tauri::Manager};
-
-#[cfg(any(debug_assertions, test))]
-pub(crate) const OOMU_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
-#[cfg(not(any(debug_assertions, test)))]
-pub(crate) const OOMU_MANIFEST_DIR: &str = "/oomu/source/src-tauri";
-
-#[cfg(any(debug_assertions, test))]
-pub(crate) fn development_manifest_dir() -> Option<&'static str> {
-    Some(OOMU_MANIFEST_DIR)
-}
-
-#[cfg(not(any(debug_assertions, test)))]
-pub(crate) fn development_manifest_dir() -> Option<&'static str> {
-    None
-}
 
 fn update_window_icon(window: &tauri::WebviewWindow, theme: &tauri::Theme) {
     let icon_filename = match theme {
@@ -151,7 +135,7 @@ fn update_window_icon(window: &tauri::WebviewWindow, theme: &tauri::Theme) {
         .map(|directory| directory.join("icons").join(icon_filename));
     #[cfg(debug_assertions)]
     let candidate_paths = packaged_icon.into_iter().chain([
-        std::path::PathBuf::from(crate::OOMU_MANIFEST_DIR)
+        std::path::PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
             .join("icons")
             .join(icon_filename),
         std::path::PathBuf::from("src-tauri/icons").join(icon_filename),

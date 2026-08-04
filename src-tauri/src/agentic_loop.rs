@@ -1589,8 +1589,8 @@ fn standard_user_folder_regex() -> Option<&'static Regex> {
         .ok()
 }
 fn local_path_regex() -> Option<&'static Regex> {
-    static REGEX: OnceLock<Result<Regex, regex::Error>> = OnceLock::new();
-    REGEX.get_or_init(|| {
+    static R: OnceLock<Result<Regex, regex::Error>> = OnceLock::new();
+    R.get_or_init(|| {
         Regex::new(r#"(?x)(file://)?(?:"[^"]*")?(~|[/]Users/[A-Za-z0-9._-]+|/tmp|/private/tmp|/var/folders|/Volumes|/[A-Za-z0-9._-]+)(/[^\s"'<>]*)+"#)
     })
     .as_ref()

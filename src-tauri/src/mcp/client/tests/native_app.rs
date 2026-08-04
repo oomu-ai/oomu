@@ -488,8 +488,8 @@ async fn native_builtin_session_is_recognized_only_after_trusted_activation() {
 #[tokio::test]
 async fn applescript_helper_never_bypasses_native_notification_verification() {
     let python = python3().expect("python3 is required for the AppleScript MCP smoke test");
-    let server_path =
-        PathBuf::from(crate::OOMU_MANIFEST_DIR).join("resources/mcp/mcp_applescript.py");
+    let server_path = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
+        .join("resources/mcp/mcp_applescript.py");
     assert!(
         server_path.is_file(),
         "AppleScript MCP server must exist at {}",

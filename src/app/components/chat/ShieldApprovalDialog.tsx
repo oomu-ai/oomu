@@ -27,6 +27,22 @@ type ShieldApprovalDialogProps = {
   resolutionErrorKey?: string | null;
 };
 
+function availableApprovalScopeKinds(request: ShieldApprovalRequest) {
+  if (request.mandatoryReconfirm || !request.scopeTrustAvailable) {
+    return ["once"];
+  }
+  return request.approvalScopeKinds?.length
+    ? request.approvalScopeKinds
+    : ["once"];
+}
+
+function scopeMenuIsOpen(
+  state: { approvalToken: string; open: boolean },
+  approvalToken: string,
+) {
+  return state.approvalToken === approvalToken && state.open;
+}
+
 export function ShieldApprovalStatusDialog({
   request,
   onDismiss,
@@ -80,6 +96,15 @@ type ShieldTranslate = (
   key: string,
   variables?: Record<string, string | number>,
 ) => string;
+
+function genericApprovalCopy(actionType: string, t: ShieldTranslate) {
+  const publicSearch = actionType === "public_web_search";
+  return {
+    detail: t(publicSearch ? "chat.shield.public_search_detail" : "permissions.action_detail"),
+    reason: t(publicSearch ? "chat.shield.public_search_reason" : "permissions.action_reason"),
+    title: t(publicSearch ? "chat.shield.public_search_title" : "permissions.action_title"),
+  };
+}
 
 function exactCanonicalTargetPath(value: string | null | undefined) {
   if (
@@ -151,6 +176,7 @@ export function ShieldApprovalDialog({
   const appControlAction = t(appControlContext?.actionKind === "apple_event" ? "app_control_actions.activate_approval" : `chat.shield.app_control_actions.${appControlContext?.actionKind ?? "unknown"}`);
   const knownExport = documentExport || spreadsheetExport || presentationExport;
   const normalizedActionType = request.actionType.replaceAll("-", "_").toLowerCase();
+  const genericCopy = genericApprovalCopy(normalizedActionType, t);
   const nativeSystemAction = [
     "create_system_calendar",
     "create_system_calendar_event",
@@ -246,7 +272,7 @@ export function ShieldApprovalDialog({
             ? t("chat.shield.app_control_title", { app: appControlApp })
           : channelConfiguration && channelConfigurationContext
             ? channelConfigurationTitle
-        : t("permissions.action_title");
+        : genericCopy.title;
   const approvalDetail = fileAccess
     ? t(fileWrite ? "permissions.file_write_detail" : "permissions.file_read_detail")
     : connectorWrite
@@ -263,7 +289,7 @@ export function ShieldApprovalDialog({
             ? t("chat.shield.app_control_detail", { action: appControlAction, app: appControlApp })
           : channelConfiguration
             ? t("chat.shield.configure_channel_detail")
-        : t("permissions.action_detail");
+        : genericCopy.detail;
   const approvalReason = fileAccess
     ? t("permissions.file_reason")
     : connectorWrite
@@ -276,7 +302,7 @@ export function ShieldApprovalDialog({
         ? t("chat.shield.app_control_reason")
       : channelConfiguration
         ? t("chat.shield.configure_channel_reason")
-      : t("permissions.action_reason");
+      : genericCopy.reason;
   const connectorPreviewRows = connectorWrite
     ? safeConnectorPreview(rawPreview, request.actionLabel, actionLabel, t)
     : { rows: [], verified: false };
@@ -296,14 +322,8 @@ export function ShieldApprovalDialog({
     trustScopeState.approvalToken === request.approvalToken
       ? trustScopeState.kind
       : "once";
-  const scopeKinds = request.mandatoryReconfirm || !request.scopeTrustAvailable
-    ? ["once"]
-    : request.approvalScopeKinds?.length
-      ? request.approvalScopeKinds
-      : ["once"];
-  const scopeMenuOpen =
-    scopeMenuState.approvalToken === request.approvalToken &&
-    scopeMenuState.open;
+  const scopeKinds = availableApprovalScopeKinds(request);
+  const scopeMenuOpen = scopeMenuIsOpen(scopeMenuState, request.approvalToken);
   const primaryLabel = fileAccess
     ? t("permissions.scope_once")
     : t("chat.shield.approve");
@@ -480,6 +500,7 @@ function approvalScopeLabel(
   if (kind === "once") {
     return t(fileAccess ? "permissions.scope_once" : "chat.shield.scope_once");
   }
+  if (kind === "chat_session") return t("chat.shield.scope_chat_session");
   if (kind === "app_session") return t("permissions.scope_app_session");
   if (kind === "persistent") {
     return t(fileAccess ? "permissions.scope_persistent" : "chat.shield.scope_persistent");
@@ -798,6 +819,7 @@ const GENERIC_ACTION_LABEL_KEYS: Record<string, string> = {
   prepare_background_agent_comparison: "trust.tool_kind.file_write",
   prepare_milestone_constraint_recovery_plan: "trust.tool_kind.file_write",
   routine_preauthorization: "settings.privacy.trust.action_save_approval",
+  public_web_search: "chat.shield.public_search_action",
 };
 
 const BROWSER_ACTIONS = new Set([

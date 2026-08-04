@@ -6,6 +6,7 @@ import {
   useOptionalMcp,
 } from "../useMcp";
 import { ApprovalProvider } from "@/context/ApprovalContext";
+import type { ApprovalResult } from "@/lib/approvalContracts";
 
 const invokeMock = vi.hoisted(() => vi.fn());
 
@@ -34,15 +35,31 @@ function ServerStatusProbe() {
 function ToolExecutionProbe({
   onError,
   requestApproval,
+  serverName = "remote",
+  toolName = "summarize",
+  turnContext,
 }: {
   onError?: (error: unknown) => void;
-  requestApproval: () => Promise<boolean>;
+  requestApproval: () => Promise<ApprovalResult>;
+  serverName?: string;
+  toolName?: string;
+  turnContext?: {
+    turnId: string;
+    generationToken: string;
+    sessionId: string;
+    agentId: string;
+    providerId: string;
+    modelId: string;
+    parentTurnId: string | null;
+    rootTurnId: string;
+    turnKind: string;
+  };
 }) {
   const mcp = useOptionalMcp();
   return (
     <button
       onClick={() => void mcp
-        ?.executeTool("remote", "summarize", {}, { requestApproval })
+        ?.executeTool(serverName, toolName, {}, { requestApproval, turnContext })
         .catch((error) => onError?.(error))}
       type="button"
     >
@@ -139,7 +156,10 @@ describe("McpProvider catalog hydration and error normalization", () => {
 
 describe("McpProvider Shield approval continuity", () => {
   it("does not ask twice after the native Shield sheet approved the exact remote call", async () => {
-    const requestApproval = vi.fn().mockResolvedValue(true);
+    const requestApproval = vi.fn().mockResolvedValue({
+      decision: "approve",
+      scopeKind: "once",
+    });
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "mcp_builtin_server_configs") return [];
       if (command === "mcp_prepare_tool_approval") {
@@ -199,7 +219,10 @@ describe("McpProvider Shield approval continuity", () => {
         <McpProvider>
           <ToolExecutionProbe
             onError={onError}
-            requestApproval={vi.fn().mockResolvedValue(false)}
+            requestApproval={vi.fn().mockResolvedValue({
+              decision: "deny",
+              scopeKind: "once",
+            })}
           />
         </McpProvider>
       </ApprovalProvider>,
@@ -209,6 +232,148 @@ describe("McpProvider Shield approval continuity", () => {
     await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
     expect(onError.mock.calls[0][0]).toMatchObject({
       code: "shield_approval_denied",
+    });
+  });
+});
+
+describe("McpProvider one-use approval enforcement", () => {
+  it("never forwards chat-wide approval to a non-search tool", async () => {
+    invokeMock.mockClear();
+    const requestApproval = vi.fn().mockResolvedValue({
+      decision: "approve",
+      scopeKind: "chat_session",
+    });
+    invokeMock.mockImplementation(async (command: string) => {
+      if (command === "mcp_builtin_server_configs") return [];
+      if (command === "mcp_prepare_tool_approval") {
+        return {
+          approvalToken: "non-search-token",
+          serverName: "remote",
+          toolName: "summarize",
+          arguments: {},
+          message: "Review access",
+          expiresAtMs: Date.now() + 60_000,
+          approvalScopeKinds: ["once"],
+        };
+      }
+      if (command === "mcp_execute_tool") {
+        return { content: [{ type: "text", text: "done" }], isError: false };
+      }
+      throw new Error(`Unexpected invoke: ${command}`);
+    });
+
+    render(
+      <ApprovalProvider>
+        <McpProvider>
+          <ToolExecutionProbe requestApproval={requestApproval} />
+        </McpProvider>
+      </ApprovalProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+
+    await waitFor(() => expect(
+      invokeMock.mock.calls.filter(([command]) => command === "mcp_execute_tool"),
+    ).toHaveLength(1));
+    expect(invokeMock.mock.calls.find(
+      ([command]) => command === "mcp_execute_tool",
+    )?.[1]).toMatchObject({ approvalScopeKind: "once" });
+  });
+});
+
+describe("McpProvider public-search chat approval", () => {
+  it("reuses chat approval without reusing a search execution token", async () => {
+    invokeMock.mockClear();
+    const turnContext = {
+      turnId: "turn-search-1",
+      generationToken: "generation-search-1",
+      sessionId: "chat-search-1",
+      agentId: "agent-search-1",
+      providerId: "local-model",
+      modelId: "model-search-1",
+      parentTurnId: null,
+      rootTurnId: "turn-search-1",
+      turnKind: "user",
+    };
+    const requestApproval = vi.fn().mockResolvedValue({
+      decision: "approve",
+      scopeKind: "chat_session",
+    });
+    let prepared = 0;
+    invokeMock.mockImplementation(async (command: string) => {
+      if (command === "mcp_builtin_server_configs") return [];
+      if (command === "mcp_prepare_tool_approval") {
+        prepared += 1;
+        return {
+          approvalToken: `search-token-${prepared}`,
+          serverName: "local_search",
+          toolName: "search_web",
+          arguments: {},
+          message: "Search the public web",
+          expiresAtMs: Date.now() + 60_000,
+          approvalScopeKinds: ["once", "chat_session"],
+          chatSessionApproved: prepared > 1,
+        };
+      }
+      if (command === "mcp_execute_tool") {
+        return { content: [{ type: "text", text: "done" }], isError: false };
+      }
+      throw new Error(`Unexpected invoke: ${command}`);
+    });
+
+    render(
+      <ApprovalProvider>
+        <McpProvider>
+          <ToolExecutionProbe
+            requestApproval={requestApproval}
+            serverName="local_search"
+            toolName="search_web"
+            turnContext={turnContext}
+          />
+        </McpProvider>
+      </ApprovalProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(requestApproval).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(
+      invokeMock.mock.calls.filter(([command]) => command === "mcp_execute_tool"),
+    ).toHaveLength(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(
+      invokeMock.mock.calls.filter(([command]) => command === "mcp_execute_tool"),
+    ).toHaveLength(2));
+    expect(requestApproval).toHaveBeenCalledTimes(1);
+
+    const prepareCalls = invokeMock.mock.calls.filter(
+      ([command]) => command === "mcp_prepare_tool_approval",
+    );
+    expect(prepareCalls).toEqual([
+      ["mcp_prepare_tool_approval", {
+        arguments: {},
+        serverName: "local_search",
+        toolName: "search_web",
+        turnContext,
+      }],
+      ["mcp_prepare_tool_approval", {
+        arguments: {},
+        serverName: "local_search",
+        toolName: "search_web",
+        turnContext,
+      }],
+    ]);
+    const executeCalls = invokeMock.mock.calls.filter(
+      ([command]) => command === "mcp_execute_tool",
+    );
+    expect(executeCalls[0]?.[1]).toMatchObject({
+      approval: { approvalToken: "search-token-1" },
+      approvalScopeKind: "chat_session",
+      turnContext,
+    });
+    expect(executeCalls[1]?.[1]).toMatchObject({
+      approval: { approvalToken: "search-token-2" },
+      approvalScopeKind: "once",
+      turnContext,
     });
   });
 });

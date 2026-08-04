@@ -1,7 +1,13 @@
 "use client";
 
 import { useApproval } from "@/context/ApprovalContext";
+import type { ApprovalResult } from "@/lib/approvalContracts";
 import { invoke, isTauriRuntime } from "@/lib/invoke";
+import {
+  mcpApprovalScopeFields,
+  normalizedMcpScopeKind,
+  preapprovedMcpResult,
+} from "@/lib/publicSearchApproval";
 import {
   redactSensitiveText,
   redactSensitiveValue,
@@ -86,6 +92,8 @@ export interface McpToolApprovalRequest {
   auditId?: string;
   responseByteLimit?: number;
   nativeShieldApproved?: boolean;
+  chatSessionApproved?: boolean;
+  approvalScopeKinds?: string[];
 }
 
 type McpToolApproval = {
@@ -94,7 +102,7 @@ type McpToolApproval = {
 
 type McpToolApprovalHandler = (
   request: McpToolApprovalRequest,
-) => Promise<boolean>;
+) => Promise<ApprovalResult>;
 
 type McpExecutionTurnContext = {
   turnId: string;
@@ -375,21 +383,8 @@ export function McpProvider({ children }: { children: ReactNode }) {
   );
 
   const requestToolApproval = useCallback(
-    async (request: McpToolApprovalRequest) => {
-      const result = await approvals.requestApproval({
-        approvalToken: request.approvalToken,
-        actionType: "mcp_tool_call",
-        actionLabel: `${request.serverName}/${request.toolName}`,
-        targetPath: approvalTargetPath(request.arguments),
-        principal: request.serverName,
-        riskTier: request.capabilityRiskTier ?? "unknown",
-        reason: request.capabilityReason ?? request.message,
-        requestedAtMs: Date.now(),
-        preview: "",
-        approvalScopeKinds: ["once"],
-      });
-      return result.decision === "approve";
-    },
+    (request: McpToolApprovalRequest, sessionId?: string) =>
+      approvals.requestApproval(mcpShieldApprovalRequest(request, sessionId)),
     [approvals],
   );
 
@@ -407,19 +402,22 @@ export function McpProvider({ children }: { children: ReactNode }) {
             arguments: argumentsValue,
             serverName,
             toolName,
+            turnContext: options?.turnContext,
           },
         );
         let approval: McpToolApproval | undefined;
+        let approvalScopeKind: string | undefined;
         if (approvalRequest) {
-          // Remote calls have already passed the app-level native permission
-          // sheet. Reusing that exact one-use token avoids asking twice for the
-          // same operation; local tools still receive this confirmation.
-          const approved = approvalRequest.nativeShieldApproved
-            ? true
-            : await (options?.requestApproval ?? requestToolApproval)(
-                approvalRequest,
-              );
-          if (!approved) {
+          // Remote calls and matching chat-session searches have already
+          // passed review. Every execution still consumes this exact token.
+          const approvalResult = preapprovedMcpResult(approvalRequest) ??
+            await (options?.requestApproval
+              ? options.requestApproval(approvalRequest)
+              : requestToolApproval(
+                  approvalRequest,
+                  options?.turnContext?.sessionId,
+                ));
+          if (approvalResult.decision !== "approve") {
             await rejectToolApproval(approvalRequest.approvalToken);
             throw mcpError(
               "shield_approval_denied",
@@ -427,6 +425,10 @@ export function McpProvider({ children }: { children: ReactNode }) {
             );
           }
           approval = { approvalToken: approvalRequest.approvalToken };
+          approvalScopeKind = normalizedMcpScopeKind(
+            approvalRequest,
+            approvalResult.scopeKind,
+          );
         }
 
         if (options?.isExecutionContextCurrent?.() === false) {
@@ -448,6 +450,7 @@ export function McpProvider({ children }: { children: ReactNode }) {
         }
         if (approval) {
           executeArgs.approval = approval;
+          executeArgs.approvalScopeKind = approvalScopeKind ?? "once";
         }
         const result = await invoke<McpToolCallResult>("mcp_execute_tool", executeArgs);
         if (result.isError) {
@@ -540,6 +543,23 @@ function approvalTargetPath(value: unknown) {
     }
   }
   return null;
+}
+
+function mcpShieldApprovalRequest(
+  request: McpToolApprovalRequest,
+  sessionId?: string,
+) {
+  return {
+    ...mcpApprovalScopeFields(request, sessionId),
+    approvalToken: request.approvalToken,
+    actionLabel: `${request.serverName}/${request.toolName}`,
+    targetPath: approvalTargetPath(request.arguments),
+    principal: request.serverName,
+    riskTier: request.capabilityRiskTier ?? "unknown",
+    reason: request.capabilityReason ?? request.message,
+    requestedAtMs: Date.now(),
+    preview: "",
+  };
 }
 
 function mcpError(code: string, message: string) {

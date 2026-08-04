@@ -482,7 +482,7 @@
     },
     "src-tauri/src/mcp/client.rs": {
       "owner": "integrations/mcp-client",
-      "bytes": 154621,
+      "bytes": 152865,
       "functionLines": 153,
       "complexity": 31
     },
@@ -757,8 +757,8 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 321766,
-      "functionLines": 5454,
+      "bytes": 321399,
+      "functionLines": 5435,
       "complexity": 136
     },
     "src/app/components/HomeChrome.tsx": {
@@ -926,8 +926,8 @@
     "src/app/components/chat/ShieldApprovalDialog.tsx": {
       "owner": "renderer/components",
       "maxLineBytes": 902,
-      "functionLines": 334,
-      "complexity": 76
+      "functionLines": 329,
+      "complexity": 74
     },
     "src/app/components/chat/agentExecutionRecovery.test.ts": {
       "owner": "renderer/components",
@@ -1175,7 +1175,7 @@
     },
     "src/hooks/useMcp.ts": {
       "owner": "renderer/application",
-      "functionLines": 287
+      "functionLines": 282
     },
     "src/lib/__tests__/p1Contracts.test.ts": {
       "owner": "renderer/application",

@@ -331,6 +331,7 @@ import type { ChatSession, StoredChatMessage } from "@/lib/chatSessions";
 import type { PrivacySettingsState } from "@/lib/privacySettings";
 import { useI18n } from "@/context/I18nContext";
 import { useHumanTrust } from "@/lib/utils/trustUtils";
+import { chatMcpShieldApprovalRequest, DENIED_ONCE_APPROVAL } from "@/lib/publicSearchApproval";
 import { processAttachmentsBounded } from "@/lib/attachmentProcessing";
 import { safeErrorMessage } from "@/lib/redaction";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -3776,32 +3777,13 @@ export function ChatScreen({
     setQueuedMessagesForSession(targetSessionId, queued);
     return queued;
   }
-  async function requestMcpShieldApproval(
-    request: McpToolApprovalRequest,
-    turnContext: ChatTurnContext,
-    exactArguments?: unknown,
-  ) {
-    if (!turnIsCurrent(turnContext) || !approvals) {
-      return false;
-    }
+  async function requestMcpShieldApproval(request: McpToolApprovalRequest, turnContext: ChatTurnContext, exactArguments?: unknown) {
+    if (!turnIsCurrent(turnContext) || !approvals) return DENIED_ONCE_APPROVAL;
     setChatStatusForSession(turnContext.sessionId, t("chat.status.waiting_approval"));
     const nativeApproval = nativeAppleAppApprovalPresentation(request.toolName, exactArguments);
-    const result = await approvals.requestApproval({
-      approvalToken: request.approvalToken,
-      sessionId: turnContext.sessionId,
-      turnId: turnContext.turnId,
-      generationToken: turnContext.generationToken,
-      actionType: nativeApproval?.actionType ?? "mcp_tool_call",
-      actionLabel: nativeApproval?.actionLabel ?? `${request.serverName}/${request.toolName}`,
-      targetPath: mcpTargetPath(request.arguments),
-      principal: "Conversational agent",
-      riskTier: request.capabilityRiskTier ?? "UNKNOWN",
-      reason: request.capabilityReason ?? request.message,
-      estimatedTokenCosts: null,
-      requestedAtMs: Date.now(),
-      preview: nativeApproval?.preview ?? "",
-      approvalScopeKinds: ["once"],
-    });
+    const result = await approvals.requestApproval(chatMcpShieldApprovalRequest(
+      request, turnContext, nativeApproval, mcpTargetPath(request.arguments),
+    ));
     const current = turnIsCurrent(turnContext);
     if (current) {
       setChatStatusForSession(
@@ -3809,7 +3791,7 @@ export function ChatScreen({
         result.decision === "approve" ? t("chat.status.approved") : t("chat.status.denied"),
       );
     }
-    return current && result.decision === "approve";
+    return current ? result : DENIED_ONCE_APPROVAL;
   }
   async function executeSystemAppleAppTool(
     toolName: string,
@@ -3825,12 +3807,12 @@ export function ChatScreen({
     );
     let approval: { approvalToken: string } | undefined;
     if (approvalRequest) {
-      const approved = await requestMcpShieldApproval(
+      const approvalResult = await requestMcpShieldApproval(
         approvalRequest,
         turnContext,
         argumentsValue,
       );
-      if (!approved) {
+      if (approvalResult.decision !== "approve") {
         await invoke<void>("mcp_reject_tool_approval", {
           approvalToken: approvalRequest.approvalToken,
         }).catch(() => undefined);

@@ -5,11 +5,13 @@ pub async fn mcp_execute_tool(
     tool_name: String,
     arguments: Value,
     approval: Option<McpToolApproval>,
+    approval_scope_kind: Option<String>,
     turn_context: Option<McpChatTurnContext>,
     registry: tauri::State<'_, McpClientRegistry>,
     persistence: tauri::State<'_, PersistenceEngine>,
     app: tauri::AppHandle,
 ) -> Result<McpToolCallResult, String> {
+    validate_reusable_approval_scope(&server_name, &tool_name, approval_scope_kind.as_deref())?;
     let turn_context = turn_context.map(ChatTurnPersistenceContext::from);
     let persistence = persistence.inner().clone();
     let guard = || validate_mcp_chat_turn(&persistence, turn_context.as_ref());
@@ -18,6 +20,7 @@ pub async fn mcp_execute_tool(
         &tool_name,
         &arguments,
         approval.clone(),
+        approval_scope_kind.as_deref(),
         turn_context.as_ref(),
         &persistence,
         registry.inner(),
@@ -143,6 +146,47 @@ pub async fn mcp_execute_tool(
                 .await
                 .map_err(|error| error.message)
         },
+    )
+    .await
+}
+
+fn validate_reusable_approval_scope(
+    server_name: &str,
+    tool_name: &str,
+    approval_scope_kind: Option<&str>,
+) -> Result<(), String> {
+    let requests_reusable_scope = approval_scope_kind
+        .map(str::trim)
+        .filter(|scope| !scope.is_empty())
+        .is_some_and(|scope| scope != "once");
+    if requests_reusable_scope
+        && !native_public_search_execution::is_supported_tool(server_name, tool_name)
+    {
+        return Err("Reusable approval is not available for this MCP tool.".to_string());
+    }
+    Ok(())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub async fn mcp_prepare_tool_approval(
+    server_name: String,
+    tool_name: String,
+    arguments: serde_json::Value,
+    turn_context: Option<McpChatTurnContext>,
+    registry: tauri::State<'_, McpClientRegistry>,
+    persistence: tauri::State<'_, PersistenceEngine>,
+    approvals: tauri::State<'_, ShieldApprovalManager>,
+    app: tauri::AppHandle,
+) -> Result<Option<McpToolApprovalRequest>, String> {
+    public_search_session_approval::prepare_tool_approval(
+        server_name,
+        tool_name,
+        arguments,
+        turn_context,
+        registry,
+        persistence,
+        approvals,
+        app,
     )
     .await
 }

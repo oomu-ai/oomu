@@ -1,5 +1,6 @@
-type ApprovalScopeKind =
+export type ApprovalScopeKind =
   | "once"
+  | "chat_session"
   | "app_session"
   | "task"
   | "project_path"

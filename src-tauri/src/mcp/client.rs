@@ -13,7 +13,7 @@ use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -22,6 +22,10 @@ use std::sync::{Arc, Mutex as StdMutex, OnceLock};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, Command};
 use tokio::sync::{mpsc, oneshot, Mutex};
+
+use public_search_session_approval::{
+    validate_mcp_chat_turn, PublicSearchApprovalTurnBinding, PublicSearchChatSessionGrant,
+};
 
 const MCP_REQUEST_QUEUE_DEPTH: usize = 64;
 const MCP_STDERR_LOG_DIR: &str = ".oomu/logs/mcp";
@@ -246,6 +250,7 @@ pub struct McpClientRegistry {
     trusted_builtin_configs: Arc<Mutex<HashMap<String, McpServerConfig>>>,
     spawn_authorizations: Arc<Mutex<HashMap<String, McpSpawnAuthorization>>>,
     pending_tool_approvals: Arc<Mutex<HashMap<String, PendingMcpToolApproval>>>,
+    public_search_chat_session_grants: Arc<Mutex<HashSet<PublicSearchChatSessionGrant>>>,
 }
 
 #[cfg(test)]
@@ -374,6 +379,7 @@ impl Default for McpClientRegistry {
             trusted_builtin_configs: Arc::new(Mutex::new(HashMap::new())),
             spawn_authorizations: Arc::new(Mutex::new(HashMap::new())),
             pending_tool_approvals: Arc::new(Mutex::new(HashMap::new())),
+            public_search_chat_session_grants: Arc::new(Mutex::new(HashSet::new())),
         }
     }
 }
@@ -448,6 +454,10 @@ pub struct McpToolApprovalRequest {
     pub audit_id: String,
     pub response_byte_limit: usize,
     pub native_shield_approved: bool,
+    #[serde(default)]
+    pub chat_session_approved: bool,
+    #[serde(default)]
+    pub approval_scope_kinds: Vec<String>,
 }
 
 /// The exact, non-secret authority that a person reviews before an MCP call.
@@ -475,6 +485,7 @@ struct PendingMcpToolApproval {
     request: McpToolApprovalRequest,
     arguments_binding: String,
     session: Option<Arc<McpClientSession>>,
+    public_search_turn_binding: Option<PublicSearchApprovalTurnBinding>,
 }
 
 #[derive(Clone)]
@@ -486,6 +497,7 @@ struct PreparedMcpToolApproval {
     workflow_tool_definition_binding: String,
     requires_native_shield: bool,
     session: Option<Arc<McpClientSession>>,
+    public_search_turn_binding: Option<PublicSearchApprovalTurnBinding>,
 }
 
 impl PreparedMcpToolApproval {
@@ -523,6 +535,9 @@ struct VerifiedMcpToolExecution {
     tool_definition_binding: String,
     remote_authority: Option<RemoteToolAuthority>,
     audit_id: Option<String>,
+    approval_scope_kinds: Vec<String>,
+    chat_session_approved: bool,
+    public_search_turn_binding: Option<PublicSearchApprovalTurnBinding>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -1558,6 +1573,8 @@ impl McpClientRegistry {
             audit_id,
             response_byte_limit: client_sse::REMOTE_RESPONSE_BYTE_LIMIT,
             native_shield_approved: false,
+            chat_session_approved: false,
+            approval_scope_kinds: vec!["once".to_string()],
         };
 
         Ok(Some(PreparedMcpToolApproval {
@@ -1568,6 +1585,7 @@ impl McpClientRegistry {
             workflow_tool_definition_binding,
             requires_native_shield: remote_authority.is_some(),
             session,
+            public_search_turn_binding: None,
         }))
     }
 
@@ -1627,6 +1645,7 @@ impl McpClientRegistry {
                 request: activated_request.clone(),
                 arguments_binding: prepared.arguments_binding,
                 session: prepared.session.clone(),
+                public_search_turn_binding: prepared.public_search_turn_binding.clone(),
             },
         );
         Ok(activated_request)
@@ -1971,6 +1990,9 @@ impl McpClientRegistry {
                 tool_definition_binding: current_tool_binding,
                 remote_authority,
                 audit_id: None,
+                approval_scope_kinds: vec!["once".to_string()],
+                chat_session_approved: false,
+                public_search_turn_binding: None,
             });
         }
 
@@ -2059,6 +2081,9 @@ impl McpClientRegistry {
             tool_definition_binding: current_tool_binding,
             remote_authority,
             audit_id: Some(pending.request.audit_id),
+            approval_scope_kinds: pending.request.approval_scope_kinds,
+            chat_session_approved: pending.request.chat_session_approved,
+            public_search_turn_binding: pending.public_search_turn_binding,
         })
     }
 
@@ -2736,61 +2761,6 @@ pub async fn mcp_get_tool_details(
 }
 
 #[tauri::command(rename_all = "camelCase")]
-pub async fn mcp_prepare_tool_approval(
-    server_name: String,
-    tool_name: String,
-    arguments: serde_json::Value,
-    registry: tauri::State<'_, McpClientRegistry>,
-    approvals: tauri::State<'_, ShieldApprovalManager>,
-    app: tauri::AppHandle,
-) -> Result<Option<McpToolApprovalRequest>, String> {
-    let prepared = registry
-        .prepare_tool_approval_candidate(&server_name, &tool_name, arguments)
-        .await
-        .map_err(|error| error.message)?;
-    let Some(prepared) = prepared else {
-        return Ok(None);
-    };
-    if !prepared.requires_native_shield {
-        return registry
-            .activate_prepared_tool_approval(prepared, false)
-            .await
-            .map(Some)
-            .map_err(|error| error.message);
-    }
-
-    let action = remote_mcp_tool_shield_action(&prepared).map_err(|error| error.message)?;
-    let shield_request = shield_gate::build_shield_approval_request(&action).ok_or_else(|| {
-        "Shield Gate did not classify the remote MCP tool call as consent-required.".to_string()
-    })?;
-    eprintln!(
-        "MCP_TOOL_SECURITY_EVENT audit_id={} server={} tool={} phase=native_shield_requested",
-        prepared.request.audit_id,
-        crate::redaction::redacted_log_text(&prepared.request.server_name),
-        crate::redaction::redacted_log_text(&prepared.request.tool_name),
-    );
-    if let Err(error) =
-        shield_gate::request_user_approval(&app, approvals.inner(), shield_request).await
-    {
-        eprintln!(
-            "MCP_TOOL_SECURITY_EVENT audit_id={} server={} tool={} phase=native_shield_denied code={}",
-            prepared.request.audit_id,
-            crate::redaction::redacted_log_text(&prepared.request.server_name),
-            crate::redaction::redacted_log_text(&prepared.request.tool_name),
-            error.code,
-        );
-        return Err(
-            "Remote MCP tool call was not approved by the native Shield boundary.".to_string(),
-        );
-    }
-    registry
-        .activate_prepared_tool_approval(prepared, true)
-        .await
-        .map(Some)
-        .map_err(|error| error.message)
-}
-
-#[tauri::command(rename_all = "camelCase")]
 pub async fn mcp_reject_tool_approval(
     approval_token: String,
     registry: tauri::State<'_, McpClientRegistry>,
@@ -2825,44 +2795,13 @@ pub struct McpChatTurnContext {
     turn_kind: String,
 }
 
-impl From<McpChatTurnContext> for ChatTurnPersistenceContext {
-    fn from(context: McpChatTurnContext) -> Self {
-        Self {
-            turn_id: context.turn_id,
-            generation_token: context.generation_token,
-            session_id: context.session_id,
-            agent_id: context.agent_id,
-            provider_id: context.provider_id,
-            model_id: context.model_id,
-            parent_turn_id: context.parent_turn_id,
-            root_turn_id: context.root_turn_id,
-            turn_kind: context.turn_kind,
-        }
-    }
-}
-
-fn validate_mcp_chat_turn(
-    persistence: &PersistenceEngine,
-    turn_context: Option<&ChatTurnPersistenceContext>,
-) -> Result<(), McpClientError> {
-    let Some(turn_context) = turn_context else {
-        return Ok(());
-    };
-    persistence
-        .ensure_chat_turn_for_native_action(turn_context)
-        .map_err(|error| {
-            McpClientError::permission(format!(
-                "MCP execution blocked because its originating chat turn is stale: {error}"
-            ))
-        })
-}
-
 #[tauri::command(rename_all = "camelCase")]
 pub async fn mcp_execute_tool(
     server_name: String,
     tool_name: String,
     arguments: Value,
     approval: Option<McpToolApproval>,
+    approval_scope_kind: Option<String>,
     turn_context: Option<McpChatTurnContext>,
     registry: tauri::State<'_, McpClientRegistry>,
     persistence: tauri::State<'_, PersistenceEngine>,
@@ -2873,6 +2812,7 @@ pub async fn mcp_execute_tool(
         tool_name,
         arguments,
         approval,
+        approval_scope_kind,
         turn_context,
         registry,
         persistence,
@@ -4277,6 +4217,7 @@ pub(crate) mod native_apple_receipts;
 mod native_capability_execution;
 mod native_public_search_execution;
 mod protocol_validation;
+mod public_search_session_approval;
 mod shutdown;
 pub(crate) mod system_mail;
 pub(crate) use catalog_port::install_connected_tool_catalog_port;

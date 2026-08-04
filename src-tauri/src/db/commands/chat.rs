@@ -236,26 +236,44 @@ pub async fn rename_chat_session(
 pub async fn delete_chat_session(
     session_id: String,
     persistence: tauri::State<'_, PersistenceEngine>,
+    mcp_registry: tauri::State<'_, crate::mcp::client::McpClientRegistry>,
 ) -> Result<bool, AgenticLoopError> {
     let engine = persistence.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || engine.delete_chat_session_by_id(&session_id))
-        .await
-        .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?
-        .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))
+    let deletion_session_id = session_id.clone();
+    let deleted = tauri::async_runtime::spawn_blocking(move || {
+        engine.delete_chat_session_by_id(&deletion_session_id)
+    })
+    .await
+    .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?
+    .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?;
+    if deleted {
+        mcp_registry
+            .revoke_public_search_chat_session_authority(&session_id)
+            .await;
+    }
+    Ok(deleted)
 }
 
 #[tauri::command]
 pub async fn stage_chat_session_deletion(
     session_id: String,
     persistence: tauri::State<'_, PersistenceEngine>,
+    mcp_registry: tauri::State<'_, crate::mcp::client::McpClientRegistry>,
 ) -> Result<bool, AgenticLoopError> {
     let engine = persistence.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || {
-        engine.stage_chat_session_deletion_by_id(&session_id)
+    let deletion_session_id = session_id.clone();
+    let staged = tauri::async_runtime::spawn_blocking(move || {
+        engine.stage_chat_session_deletion_by_id(&deletion_session_id)
     })
     .await
     .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?
-    .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))
+    .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?;
+    if staged {
+        mcp_registry
+            .revoke_public_search_chat_session_authority(&session_id)
+            .await;
+    }
+    Ok(staged)
 }
 
 #[tauri::command]
@@ -276,14 +294,22 @@ pub async fn undo_chat_session_deletion(
 pub async fn commit_chat_session_deletion(
     session_id: String,
     persistence: tauri::State<'_, PersistenceEngine>,
+    mcp_registry: tauri::State<'_, crate::mcp::client::McpClientRegistry>,
 ) -> Result<bool, AgenticLoopError> {
     let engine = persistence.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || {
-        engine.commit_chat_session_deletion_by_id(&session_id)
+    let deletion_session_id = session_id.clone();
+    let committed = tauri::async_runtime::spawn_blocking(move || {
+        engine.commit_chat_session_deletion_by_id(&deletion_session_id)
     })
     .await
     .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?
-    .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))
+    .map_err(|error| AgenticLoopError::from_persistence(error.to_string()))?;
+    if committed {
+        mcp_registry
+            .revoke_public_search_chat_session_authority(&session_id)
+            .await;
+    }
+    Ok(committed)
 }
 
 #[tauri::command]

@@ -237,6 +237,9 @@ impl McpClientRegistry {
             tool_definition_binding: tool_definition_binding(&tool),
             remote_authority: None,
             audit_id: None,
+            approval_scope_kinds: vec!["once".to_string()],
+            chat_session_approved: false,
+            public_search_turn_binding: None,
         };
         self.execute_tool_on_verified_session(server_name, tool_name, arguments, &verified, &|| {
             Ok(())

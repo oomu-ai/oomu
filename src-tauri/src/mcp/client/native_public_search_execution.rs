@@ -20,6 +20,7 @@ pub(super) async fn execute_if_supported(
     tool_name: &str,
     arguments: &Value,
     approval: Option<McpToolApproval>,
+    approval_scope_kind: Option<&str>,
     turn_context: Option<&ChatTurnPersistenceContext>,
     persistence: &PersistenceEngine,
     registry: &McpClientRegistry,
@@ -33,6 +34,7 @@ pub(super) async fn execute_if_supported(
         execute(
             arguments,
             approval,
+            approval_scope_kind,
             turn_context,
             persistence,
             registry,
@@ -43,13 +45,14 @@ pub(super) async fn execute_if_supported(
     )
 }
 
-fn is_supported_tool(server_name: &str, tool_name: &str) -> bool {
+pub(super) fn is_supported_tool(server_name: &str, tool_name: &str) -> bool {
     server_name == LOCAL_SEARCH_SERVER_NAME && tool_name == SEARCH_WEB_TOOL_NAME
 }
 
 async fn execute(
     arguments: &Value,
     approval: Option<McpToolApproval>,
+    approval_scope_kind: Option<&str>,
     turn_context: Option<&ChatTurnPersistenceContext>,
     persistence: &PersistenceEngine,
     registry: &McpClientRegistry,
@@ -65,7 +68,13 @@ async fn execute(
     let objective =
         accepted_user_objective(persistence, turn_context).map_err(|error| error.message)?;
     let audit_id = registry
-        .consume_approved_search_authority(arguments, approval, guard)
+        .consume_approved_search_authority(
+            arguments,
+            approval,
+            approval_scope_kind,
+            turn_context,
+            guard,
+        )
         .await
         .map_err(|error| error.message)?;
 
@@ -182,6 +191,8 @@ impl McpClientRegistry {
         &self,
         arguments: &Value,
         approval: Option<McpToolApproval>,
+        approval_scope_kind: Option<&str>,
+        turn_context: &ChatTurnPersistenceContext,
         guard: &(dyn Fn() -> Result<(), McpClientError> + Send + Sync),
     ) -> Result<String, McpClientError> {
         if !self
@@ -193,6 +204,19 @@ impl McpClientRegistry {
                     .to_string(),
             ));
         }
+        let approval_scope_kind = match approval_scope_kind
+            .map(str::trim)
+            .filter(|scope| !scope.is_empty())
+            .unwrap_or("once")
+        {
+            "once" => "once",
+            "chat_session" => "chat_session",
+            _ => {
+                return Err(McpClientError::permission(
+                    "That public search approval duration is not available.".to_string(),
+                ))
+            }
+        };
         let verified = self
             .ensure_tool_approval(
                 LOCAL_SEARCH_SERVER_NAME,
@@ -201,6 +225,30 @@ impl McpClientRegistry {
                 approval,
             )
             .await?;
+        let prepared_turn_binding =
+            verified
+                .public_search_turn_binding
+                .as_ref()
+                .ok_or_else(|| {
+                    McpClientError::permission(
+                        "Public search approval is missing its exact prepared chat turn binding."
+                            .to_string(),
+                    )
+                })?;
+        if !prepared_turn_binding.matches(turn_context) {
+            return Err(McpClientError::permission(
+                "Public search approval does not match this chat turn.".to_string(),
+            ));
+        }
+        if !verified
+            .approval_scope_kinds
+            .iter()
+            .any(|allowed| allowed == approval_scope_kind)
+        {
+            return Err(McpClientError::permission(
+                "That public search approval duration was not offered for this chat.".to_string(),
+            ));
+        }
         self.revalidate_verified_tool_execution(
             LOCAL_SEARCH_SERVER_NAME,
             SEARCH_WEB_TOOL_NAME,
@@ -208,6 +256,42 @@ impl McpClientRegistry {
         )
         .await?;
         guard()?;
+        let trusted_config_binding = verified
+            .session
+            .trusted_internal_config_binding
+            .as_deref()
+            .ok_or_else(|| {
+                McpClientError::permission(
+                    "Public search approval requires the trusted built-in search service."
+                        .to_string(),
+                )
+            })?;
+        if verified.chat_session_approved
+            && !self
+                .public_search_chat_session_grant_covers(
+                    turn_context,
+                    trusted_config_binding,
+                    &verified.tool_definition_binding,
+                )
+                .await
+        {
+            return Err(McpClientError::permission(
+                "Public search approval for this chat is no longer active.".to_string(),
+            ));
+        }
+        if approval_scope_kind == "chat_session" {
+            self.grant_public_search_for_chat_session(
+                turn_context,
+                trusted_config_binding,
+                &verified.tool_definition_binding,
+            )
+            .await?;
+            if let Err(error) = guard() {
+                self.revoke_public_search_chat_session_authority(&turn_context.session_id)
+                    .await;
+                return Err(error);
+            }
+        }
         verified.audit_id.ok_or_else(|| {
             McpClientError::permission(
                 "Public web search requires an exact one-use Shield approval.".to_string(),
@@ -293,6 +377,365 @@ fn receipt_backed_result(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn turn_context(session_id: &str, agent_id: &str) -> ChatTurnPersistenceContext {
+        ChatTurnPersistenceContext {
+            turn_id: format!("turn-{session_id}"),
+            generation_token: format!("generation-{session_id}"),
+            session_id: session_id.to_string(),
+            agent_id: agent_id.to_string(),
+            provider_id: "local-model".to_string(),
+            model_id: "test-model".to_string(),
+            parent_turn_id: None,
+            root_turn_id: format!("turn-{session_id}"),
+            turn_kind: "user".to_string(),
+        }
+    }
+
+    async fn prepare_bound_search_approval(
+        registry: &McpClientRegistry,
+        arguments: Value,
+        turn_context: &ChatTurnPersistenceContext,
+    ) -> McpToolApprovalRequest {
+        let mut prepared = registry
+            .prepare_tool_approval_candidate(
+                LOCAL_SEARCH_SERVER_NAME,
+                SEARCH_WEB_TOOL_NAME,
+                arguments,
+            )
+            .await
+            .expect("search approval prepares")
+            .expect("public network search requires approval");
+        registry
+            .configure_public_search_chat_session_approval(
+                LOCAL_SEARCH_SERVER_NAME,
+                SEARCH_WEB_TOOL_NAME,
+                Some(turn_context),
+                &mut prepared,
+            )
+            .await;
+        registry
+            .activate_prepared_tool_approval(prepared, false)
+            .await
+            .expect("bound search approval activates")
+    }
+
+    #[cfg(target_os = "macos")]
+    struct NativeSearchFixture {
+        registry: McpClientRegistry,
+        test_root: PathBuf,
+        raw_invocation: PathBuf,
+    }
+
+    #[cfg(target_os = "macos")]
+    impl NativeSearchFixture {
+        async fn connected() -> Self {
+            let python = crate::mcp::bootstrap::resolve_system_python3_headless()
+                .expect("a verified Python runtime is required for the MCP boundary test");
+            let test_root = std::env::temp_dir().join(format!(
+                "oomu-native-public-search-{}-{}",
+                std::process::id(),
+                unix_time_ms()
+            ));
+            std::fs::create_dir_all(&test_root).expect("test root creates");
+            let script = test_root.join("search_server.py");
+            let raw_invocation = test_root.join("raw-search-was-invoked");
+            std::fs::write(
+                &script,
+                r#"import json
+import pathlib
+import sys
+
+sentinel = pathlib.Path(sys.argv[1])
+for line in sys.stdin:
+    message = json.loads(line)
+    method = message.get("method")
+    identifier = message.get("id")
+    if method == "initialize":
+        result = {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {"tools": {}},
+            "serverInfo": {"name": "local_search", "version": "test"},
+        }
+    elif method == "tools/list":
+        result = {"tools": [{
+            "name": "search_web",
+            "description": "Search the public web",
+            "inputSchema": {"type": "object"},
+        }]}
+    elif method == "tools/call":
+        sentinel.write_text("raw MCP search executed", encoding="utf-8")
+        result = {"content": [{"type": "text", "text": "unexpected"}], "isError": False}
+    else:
+        result = None
+    if identifier is not None and result is not None:
+        print(json.dumps({"jsonrpc": "2.0", "id": identifier, "result": result}), flush=True)
+"#,
+            )
+            .expect("test MCP server writes");
+            let config = McpServerConfig {
+                name: LOCAL_SEARCH_SERVER_NAME.to_string(),
+                command: python,
+                args: vec![
+                    script.display().to_string(),
+                    raw_invocation.display().to_string(),
+                ],
+                env: std::collections::HashMap::new(),
+                transport: McpTransportConfig::Stdio,
+            };
+            let registry = McpClientRegistry::default();
+            assert_eq!(
+                registry
+                    .register_trusted_server_configs([config.clone()])
+                    .await,
+                1
+            );
+            registry
+                .connect_server_with_authorization(
+                    config.clone(),
+                    McpSpawnAuthorization::trusted_internal(&config),
+                )
+                .await
+                .expect("trusted test search server connects");
+            Self {
+                registry,
+                test_root,
+                raw_invocation,
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn assert_stale_search_approval_is_removed(
+        registry: &McpClientRegistry,
+        arguments: &Value,
+        chat_turn: &ChatTurnPersistenceContext,
+    ) {
+        let mut prepared = registry
+            .prepare_tool_approval_candidate(
+                LOCAL_SEARCH_SERVER_NAME,
+                SEARCH_WEB_TOOL_NAME,
+                arguments.clone(),
+            )
+            .await
+            .expect("stale approval prepares")
+            .expect("search requires approval");
+        registry
+            .configure_public_search_chat_session_approval(
+                LOCAL_SEARCH_SERVER_NAME,
+                SEARCH_WEB_TOOL_NAME,
+                Some(chat_turn),
+                &mut prepared,
+            )
+            .await;
+        let stale_token = prepared.request.approval_token.clone();
+        assert!(registry
+            .activate_prepared_tool_approval_with_postcondition(prepared, false, || {
+                Err(McpClientError::permission(
+                    "test chat was deleted during preparation".to_string(),
+                ))
+            })
+            .await
+            .is_err());
+        assert!(!registry
+            .pending_tool_approvals
+            .lock()
+            .await
+            .contains_key(&stale_token));
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn assert_once_search_approval_is_exact(
+        registry: &McpClientRegistry,
+        arguments: &Value,
+        chat_turn: &ChatTurnPersistenceContext,
+    ) {
+        let approval = prepare_bound_search_approval(registry, arguments.clone(), chat_turn).await;
+        let token = McpToolApproval {
+            approval_token: approval.approval_token,
+        };
+        let audit_id = registry
+            .consume_approved_search_authority(
+                arguments,
+                Some(token.clone()),
+                Some("once"),
+                chat_turn,
+                &|| Ok(()),
+            )
+            .await
+            .expect("exact approved authority is consumed");
+        assert_eq!(audit_id, approval.audit_id);
+        assert!(registry
+            .consume_approved_search_authority(
+                arguments,
+                Some(token),
+                Some("once"),
+                chat_turn,
+                &|| Ok(()),
+            )
+            .await
+            .is_err());
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn assert_session_search_approval_is_bound_and_race_safe(
+        registry: &McpClientRegistry,
+        arguments: &Value,
+        chat_turn: &ChatTurnPersistenceContext,
+    ) {
+        let transferred =
+            prepare_bound_search_approval(registry, arguments.clone(), chat_turn).await;
+        assert!(registry
+            .consume_approved_search_authority(
+                arguments,
+                Some(McpToolApproval {
+                    approval_token: transferred.approval_token,
+                }),
+                Some("chat_session"),
+                &turn_context("another-session", "agent-search"),
+                &|| Ok(()),
+            )
+            .await
+            .is_err());
+
+        let raced = prepare_bound_search_approval(registry, arguments.clone(), chat_turn).await;
+        let guard_checks = std::sync::atomic::AtomicUsize::new(0);
+        assert!(registry
+            .consume_approved_search_authority(
+                arguments,
+                Some(McpToolApproval {
+                    approval_token: raced.approval_token,
+                }),
+                Some("chat_session"),
+                chat_turn,
+                &|| {
+                    if guard_checks.fetch_add(1, Ordering::SeqCst) == 0 {
+                        Ok(())
+                    } else {
+                        Err(McpClientError::permission(
+                            "test chat was deleted during grant creation".to_string(),
+                        ))
+                    }
+                },
+            )
+            .await
+            .is_err());
+        let active_session = registry
+            .session(LOCAL_SEARCH_SERVER_NAME)
+            .await
+            .expect("trusted search session remains active");
+        let config_binding = active_session
+            .trusted_internal_config_binding
+            .as_deref()
+            .expect("trusted search config remains bound");
+        assert!(
+            !registry
+                .public_search_chat_session_grant_covers(
+                    chat_turn,
+                    config_binding,
+                    &raced.tool_definition_binding,
+                )
+                .await
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn grant_and_verify_chat_session_search(
+        registry: &McpClientRegistry,
+        arguments: &Value,
+        chat_turn: &ChatTurnPersistenceContext,
+    ) -> (String, String) {
+        let approval = prepare_bound_search_approval(registry, arguments.clone(), chat_turn).await;
+        registry
+            .consume_approved_search_authority(
+                arguments,
+                Some(McpToolApproval {
+                    approval_token: approval.approval_token,
+                }),
+                Some("chat_session"),
+                chat_turn,
+                &|| Ok(()),
+            )
+            .await
+            .expect("chat session approval is consumed exactly once");
+        let active_session = registry
+            .session(LOCAL_SEARCH_SERVER_NAME)
+            .await
+            .expect("trusted search session remains active");
+        let config_binding = active_session
+            .trusted_internal_config_binding
+            .as_deref()
+            .expect("trusted search config remains bound")
+            .to_string();
+        assert!(
+            registry
+                .public_search_chat_session_grant_covers(
+                    chat_turn,
+                    &config_binding,
+                    &approval.tool_definition_binding,
+                )
+                .await
+        );
+        assert!(
+            !registry
+                .public_search_chat_session_grant_covers(
+                    &turn_context("another-session", "agent-search"),
+                    &config_binding,
+                    &approval.tool_definition_binding,
+                )
+                .await
+        );
+        assert!(
+            !registry
+                .public_search_chat_session_grant_covers(
+                    &turn_context("session-search", "another-agent"),
+                    &config_binding,
+                    &approval.tool_definition_binding,
+                )
+                .await
+        );
+        (config_binding, approval.tool_definition_binding)
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn assert_granted_session_uses_fresh_exact_token(
+        registry: &McpClientRegistry,
+        chat_turn: &ChatTurnPersistenceContext,
+    ) {
+        let arguments = serde_json::json!({
+            "query": "Writing AI Prompts for Dummies publication date",
+            "max_results": 5
+        });
+        let transferred =
+            prepare_bound_search_approval(registry, arguments.clone(), chat_turn).await;
+        assert!(transferred.chat_session_approved);
+        assert!(registry
+            .consume_approved_search_authority(
+                &arguments,
+                Some(McpToolApproval {
+                    approval_token: transferred.approval_token,
+                }),
+                Some("once"),
+                &turn_context("session-search", "another-agent"),
+                &|| Ok(()),
+            )
+            .await
+            .is_err());
+        let approval = prepare_bound_search_approval(registry, arguments.clone(), chat_turn).await;
+        assert!(approval.chat_session_approved);
+        registry
+            .consume_approved_search_authority(
+                &arguments,
+                Some(McpToolApproval {
+                    approval_token: approval.approval_token,
+                }),
+                Some("once"),
+                chat_turn,
+                &|| Ok(()),
+            )
+            .await
+            .expect("next exact query consumes its own token");
+    }
 
     fn response() -> crate::sovereign_search::SovereignSearchResponse {
         crate::sovereign_search::SovereignSearchResponse {
@@ -429,108 +872,96 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[tokio::test]
     async fn consumes_exact_one_use_approval_without_invoking_raw_search_tool() {
-        let python = crate::mcp::bootstrap::resolve_system_python3_headless()
-            .expect("a verified Python runtime is required for the MCP boundary test");
-        let test_root = std::env::temp_dir().join(format!(
-            "oomu-native-public-search-{}-{}",
-            std::process::id(),
-            unix_time_ms()
-        ));
-        std::fs::create_dir_all(&test_root).expect("test root creates");
-        let script = test_root.join("search_server.py");
-        let raw_invocation = test_root.join("raw-search-was-invoked");
-        std::fs::write(
-            &script,
-            r#"import json
-import pathlib
-import sys
-
-sentinel = pathlib.Path(sys.argv[1])
-for line in sys.stdin:
-    message = json.loads(line)
-    method = message.get("method")
-    identifier = message.get("id")
-    if method == "initialize":
-        result = {
-            "protocolVersion": "2025-06-18",
-            "capabilities": {"tools": {}},
-            "serverInfo": {"name": "local_search", "version": "test"},
-        }
-    elif method == "tools/list":
-        result = {"tools": [{
-            "name": "search_web",
-            "description": "Search the public web",
-            "inputSchema": {"type": "object"},
-        }]}
-    elif method == "tools/call":
-        sentinel.write_text("raw MCP search executed", encoding="utf-8")
-        result = {"content": [{"type": "text", "text": "unexpected"}], "isError": False}
-    else:
-        result = None
-    if identifier is not None and result is not None:
-        print(json.dumps({"jsonrpc": "2.0", "id": identifier, "result": result}), flush=True)
-"#,
-        )
-        .expect("test MCP server writes");
-
-        let config = McpServerConfig {
-            name: LOCAL_SEARCH_SERVER_NAME.to_string(),
-            command: python,
-            args: vec![
-                script.display().to_string(),
-                raw_invocation.display().to_string(),
-            ],
-            env: std::collections::HashMap::new(),
-            transport: McpTransportConfig::Stdio,
-        };
-        let registry = McpClientRegistry::default();
-        assert_eq!(
-            registry
-                .register_trusted_server_configs([config.clone()])
-                .await,
-            1
-        );
-        registry
-            .connect_server_with_authorization(
-                config.clone(),
-                McpSpawnAuthorization::trusted_internal(&config),
-            )
-            .await
-            .expect("trusted test search server connects");
-
+        let fixture = NativeSearchFixture::connected().await;
         let arguments = serde_json::json!({
             "query": "Writing AI Prompts for Dummies latest edition",
             "max_results": 5
         });
-        let approval = registry
-            .prepare_tool_approval(
-                LOCAL_SEARCH_SERVER_NAME,
-                SEARCH_WEB_TOOL_NAME,
-                arguments.clone(),
-            )
-            .await
-            .expect("approval prepares")
-            .expect("public network search requires one-use approval");
-        let token = McpToolApproval {
-            approval_token: approval.approval_token,
-        };
-        let audit_id = registry
-            .consume_approved_search_authority(&arguments, Some(token.clone()), &|| Ok(()))
-            .await
-            .expect("exact approved authority is consumed");
-
-        assert_eq!(audit_id, approval.audit_id);
-        assert!(!raw_invocation.exists());
-        assert!(registry
-            .consume_approved_search_authority(&arguments, Some(token), &|| Ok(()))
-            .await
-            .is_err());
-        assert!(!raw_invocation.exists());
-
-        registry
+        let chat_turn = turn_context("session-search", "agent-search");
+        assert_stale_search_approval_is_removed(&fixture.registry, &arguments, &chat_turn).await;
+        assert_once_search_approval_is_exact(&fixture.registry, &arguments, &chat_turn).await;
+        assert_session_search_approval_is_bound_and_race_safe(
+            &fixture.registry,
+            &arguments,
+            &chat_turn,
+        )
+        .await;
+        let (trusted_config_binding, tool_definition_binding) =
+            grant_and_verify_chat_session_search(&fixture.registry, &arguments, &chat_turn).await;
+        assert_granted_session_uses_fresh_exact_token(&fixture.registry, &chat_turn).await;
+        assert!(!fixture.raw_invocation.exists());
+        fixture
+            .registry
             .shutdown_all()
             .await
             .expect("test server shuts down");
-        let _ = std::fs::remove_dir_all(test_root);
+        assert!(
+            !fixture
+                .registry
+                .public_search_chat_session_grant_covers(
+                    &chat_turn,
+                    &trusted_config_binding,
+                    &tool_definition_binding,
+                )
+                .await
+        );
+        let _ = std::fs::remove_dir_all(fixture.test_root);
+    }
+
+    #[tokio::test]
+    async fn revoked_chat_session_loses_grants_and_pending_search_tokens() {
+        let registry = McpClientRegistry::default();
+        let chat_turn = turn_context("session-revoked", "agent-search");
+        registry
+            .grant_public_search_for_chat_session(&chat_turn, "config", "tool")
+            .await
+            .expect("test grant creates");
+        registry.pending_tool_approvals.lock().await.insert(
+            "pending-search".to_string(),
+            PendingMcpToolApproval {
+                request: McpToolApprovalRequest {
+                    approval_token: "pending-search".to_string(),
+                    server_name: LOCAL_SEARCH_SERVER_NAME.to_string(),
+                    tool_name: SEARCH_WEB_TOOL_NAME.to_string(),
+                    arguments: serde_json::json!({}),
+                    message: String::new(),
+                    capability_risk_tier: String::new(),
+                    capability_reason: String::new(),
+                    expires_at_ms: u64::MAX,
+                    argument_summary: String::new(),
+                    sensitive_fields: vec![],
+                    canonical_origin: None,
+                    transport: "local".to_string(),
+                    resolved_destination_class: None,
+                    destination_binding: None,
+                    server_identity_binding: None,
+                    certificate_binding: None,
+                    tool_definition_binding: "tool".to_string(),
+                    audit_id: "audit".to_string(),
+                    response_byte_limit: 1,
+                    native_shield_approved: false,
+                    chat_session_approved: true,
+                    approval_scope_kinds: vec!["once".to_string(), "chat_session".to_string()],
+                },
+                arguments_binding: argument_binding(&serde_json::json!({})),
+                session: None,
+                public_search_turn_binding: Some(
+                    PublicSearchApprovalTurnBinding::from_turn_context(&chat_turn),
+                ),
+            },
+        );
+
+        assert_eq!(
+            registry
+                .revoke_public_search_chat_session_authority(&chat_turn.session_id)
+                .await,
+            2
+        );
+        assert!(
+            !registry
+                .public_search_chat_session_grant_covers(&chat_turn, "config", "tool")
+                .await
+        );
+        assert!(registry.pending_tool_approvals.lock().await.is_empty());
     }
 }

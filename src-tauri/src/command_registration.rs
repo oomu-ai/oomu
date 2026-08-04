@@ -294,7 +294,7 @@ macro_rules! oomu_command_handler {
             mcp::client::mcp_execute_tool,
             mcp::client::mcp_get_tool_details,
             mcp::client::mcp_list_tools,
-            mcp::client::mcp_prepare_tool_approval,
+            mcp::client::apple_command_execution::mcp_prepare_tool_approval,
             mcp::client::mcp_reject_tool_approval,
             mcp::client::mcp_search_tools,
             mcp::client::execute_system_apple_app_tool,

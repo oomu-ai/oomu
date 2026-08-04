@@ -49,6 +49,7 @@ impl McpClientRegistry {
             .collect::<Vec<_>>();
         self.tool_catalog.lock().await.clear();
         self.pending_tool_approvals.lock().await.clear();
+        self.public_search_chat_session_grants.lock().await.clear();
         self.spawn_authorizations.lock().await.clear();
         let mut first_failure = None;
         for session in sessions {

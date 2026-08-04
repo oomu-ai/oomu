@@ -166,6 +166,7 @@ describe("production release entrypoints", () => {
     );
     expect(verifyEntitlementSnapshot().entitlements).toMatchObject({
       "com.apple.security.automation.apple-events": true,
+      "com.apple.security.personal-information.addressbook": true,
       "com.apple.security.personal-information.calendars": true,
     });
   });
@@ -226,6 +227,9 @@ describe("production release privacy and native capabilities", () => {
     expect(infoPlist).toContain(
       "<string>OOMU reads only the contacts you ask it to find.</string>",
     );
+    expect(verifyEntitlementSnapshot().entitlements).toMatchObject({
+      "com.apple.security.personal-information.addressbook": true,
+    });
   });
 
   it("declares just-in-time Media & Apple Music access on the main OOMU bundle", () => {
@@ -600,6 +604,7 @@ describe("least-privilege entitlement review", () => {
     expect(verifyEntitlementSnapshot().entitlements).toEqual({
       "com.apple.security.automation.apple-events": true,
       "com.apple.security.network.client": true,
+      "com.apple.security.personal-information.addressbook": true,
       "com.apple.security.personal-information.calendars": true,
     });
   });
@@ -646,6 +651,7 @@ describe("least-privilege entitlement review", () => {
     expect(snapshot.application.extracted.entitlements).toEqual({
       "com.apple.security.automation.apple-events": true,
       "com.apple.security.network.client": true,
+      "com.apple.security.personal-information.addressbook": true,
       "com.apple.security.personal-information.calendars": true,
     });
     expect(() =>

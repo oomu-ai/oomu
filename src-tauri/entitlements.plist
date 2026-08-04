@@ -13,5 +13,9 @@
   <!-- Required for EventKit Calendar reads and user-approved event writes. -->
   <key>com.apple.security.personal-information.calendars</key>
   <true/>
+  <!-- Required for native Contacts reads after macOS grants the user-facing
+       Contacts permission. -->
+  <key>com.apple.security.personal-information.addressbook</key>
+  <true/>
 </dict>
 </plist>

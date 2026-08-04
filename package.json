@@ -8,7 +8,7 @@
   },
   "packageManager": "npm@10.9.2",
   "scripts": {
-    "dev": "node scripts/prepare-local-infer.mjs && node scripts/prepare-pdf-helper.mjs && node scripts/prepare-artifact-helper.mjs && node scripts/prepare-artifact-pdf-helper.mjs && src-tauri/src-swift/build.sh && tauri dev --config src-tauri/tauri.development.conf.json",
+    "dev": "node scripts/prepare-portable-python.mjs && node scripts/prepare-local-infer.mjs && node scripts/prepare-pdf-helper.mjs && node scripts/prepare-artifact-helper.mjs && node scripts/prepare-artifact-pdf-helper.mjs && node scripts/prepare-vision-helper.mjs && src-tauri/src-swift/build.sh && node scripts/prepare-tauri-external-bins.mjs --verify && tauri dev --runner ../scripts/tauri-dev-runner.mjs --config src-tauri/tauri.development.conf.json",
     "dev:frontend": "next dev --port 3000 --turbo",
     "build": "next build",
     "tauri:prepare": "npm run build && node scripts/prepare-portable-python.mjs --release && node scripts/prepare-tauri-external-bins.mjs && node scripts/prepare-local-infer.mjs --release && node scripts/prepare-pdf-helper.mjs --release && node scripts/prepare-artifact-helper.mjs --release && node scripts/prepare-artifact-pdf-helper.mjs --release && node scripts/prepare-vision-helper.mjs --release && src-tauri/src-swift/build.sh && node scripts/prepare-tauri-external-bins.mjs --verify && node scripts/prepare-portable-python.mjs --release && npm run check:bundle-size",

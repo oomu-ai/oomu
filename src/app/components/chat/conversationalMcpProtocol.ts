@@ -59,10 +59,83 @@ export function parseConversationalMcpToolRequest(
   text: string,
 ): ParsedConversationalMcpToolRequest | null {
   const match = toolFencePattern.exec(text);
+  if (match) {
+    const parsed = parseJsonObject(match[1] ?? "");
+    const call = parsed ? normalizeConversationalMcpToolCall(parsed) : null;
+    return call ? { call, blockText: match[0] } : null;
+  }
+  return parseCompactConversationalMcpToolRequest(text);
+}
+
+const compactToolCallPattern =
+  /^call:([a-zA-Z0-9_-]{1,80})\/([a-zA-Z0-9_.-]{1,120})\s*(\{[^\r\n]{0,2000}\})$/;
+
+/**
+ * Small local models occasionally preserve the tool identity but compress the
+ * requested fenced JSON into `call:server/tool{key: value}`. Accept only that
+ * exact, whole-response form. Availability, schema, approval, and execution
+ * remain enforced by the native broker; prose containing a lookalike is never
+ * promoted into a tool request.
+ */
+function parseCompactConversationalMcpToolRequest(
+  text: string,
+): ParsedConversationalMcpToolRequest | null {
+  const blockText = text.trim();
+  const match = compactToolCallPattern.exec(blockText);
   if (!match) return null;
-  const parsed = parseJsonObject(match[1] ?? "");
-  const call = parsed ? normalizeConversationalMcpToolCall(parsed) : null;
-  return call ? { call, blockText: match[0] } : null;
+  const argumentsValue = parseCompactArguments(match[3] ?? "");
+  if (!argumentsValue) return null;
+  return {
+    call: {
+      serverName: match[1],
+      toolName: match[2],
+      argumentsValue,
+    },
+    blockText,
+  };
+}
+
+function parseCompactArguments(text: string): Record<string, unknown> | null {
+  const json = parseJsonObject(text);
+  if (json) return json;
+  const body = text.slice(1, -1).trim();
+  if (!body) return {};
+
+  const fields = body.split(/,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\s*:)/);
+  if (fields.length > 16) return null;
+  const result: Record<string, unknown> = {};
+  for (const field of fields) {
+    const separator = field.indexOf(":");
+    if (separator <= 0) return null;
+    const key = field.slice(0, separator).trim();
+    const rawValue = field.slice(separator + 1).trim();
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key) || key in result || !rawValue) {
+      return null;
+    }
+    const value = parseCompactScalar(rawValue);
+    if (value === undefined) return null;
+    result[key] = value;
+  }
+  return result;
+}
+
+function parseCompactScalar(value: string): unknown | undefined {
+  if (/^"(?:[^"\\]|\\.)*"$/.test(value)) {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return undefined;
+    }
+  }
+  if (value === "true") return true;
+  if (value === "false") return false;
+  if (value === "null") return null;
+  if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value)) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : undefined;
+  }
+  if (/[{}\[\]`]/.test(value)) return undefined;
+  return value;
 }
 
 function normalizeConversationalMcpToolCall(

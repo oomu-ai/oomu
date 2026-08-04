@@ -769,8 +769,8 @@ mod native {
             store.requestAccessForEntityType_completionHandler(CNEntityType::Contacts, &completion)
         };
         receiver
-            .recv()
-            .map_err(|_| "permission_request_interrupted".to_string())
+            .recv_timeout(Duration::from_secs(45))
+            .map_err(|_| "permission_request_timeout".to_string())
     }
 
     fn photos_status() -> MacosPermissionStatus {

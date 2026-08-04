@@ -3,6 +3,7 @@ import { shouldBlockUnverifiedActionClaim } from "./executionIntentPolicy";
 import {
   mcpMutationResultHasVerifiedPostcondition,
   nativeMcpExecutionReceipt,
+  nativeMcpPermissionFailure,
   verifiedSovereignMcpSearchResult,
 } from "./mcpToolResults";
 
@@ -52,6 +53,7 @@ describe("native MCP execution authority", () => {
         oomuNativeExecutionReceipt: {
           schema: "oomu.native-mcp-execution.v1",
           receiptId: "apple-operation-1-abcdef",
+          capabilityId: "contacts",
           outcome: "succeeded",
           verified: true,
           postcondition: { nativeResultCode: "verified" },
@@ -59,10 +61,37 @@ describe("native MCP execution authority", () => {
       },
     })).toEqual({
       receiptId: "apple-operation-1-abcdef",
+      capabilityId: "contacts",
       outcome: "succeeded",
       verified: true,
       nativeResultCode: "verified",
     });
+  });
+
+  it("promotes only a native unmet permission receipt to recovery", () => {
+    const denial = nativeMcpExecutionReceipt({
+      content: [{ type: "text", text: "Contacts access is off." }],
+      isError: true,
+      _meta: {
+        oomuNativeExecutionReceipt: {
+          schema: "oomu.native-mcp-execution.v1",
+          receiptId: "apple-operation-2-abcdef",
+          capabilityId: "contacts",
+          outcome: "unmet",
+          verified: false,
+          postcondition: { nativeResultCode: "contacts_permission_denied" },
+        },
+      },
+    });
+
+    expect(nativeMcpPermissionFailure(denial)).toEqual({
+      capabilityId: "contacts",
+      code: "contacts_permission_denied",
+    });
+    expect(nativeMcpPermissionFailure({
+      ...denial!,
+      outcome: "failed",
+    })).toBeNull();
   });
 
   it("rejects a nominal result without the native receipt schema", () => {

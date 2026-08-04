@@ -4,7 +4,8 @@
   "reviewed_entitlements": {
     "com.apple.security.automation.apple-events": true,
     "com.apple.security.network.client": true,
+    "com.apple.security.personal-information.addressbook": true,
     "com.apple.security.personal-information.calendars": true
   },
-  "sha256": "bfe16ab8e2d7afbd2aa4497a5e2f1c8003e500bcbba3a8e31c4c6754fae5b612"
+  "sha256": "5c3dbe3f15fed1bac4521e3a0e492f49b56681e09280f5b2ae32e0ac9bfc4e07"
 }

@@ -266,6 +266,7 @@ import {
   conversationalMcpToolIsMutation,
   mcpToolResultText,
   nativeMcpExecutionReceipt,
+  nativeMcpPermissionFailure,
   protectedAppleLibraryDesktopKey,
   protectedAppleLibraryFailureKey,
   verifiedSovereignMcpSearchResult,
@@ -3865,7 +3866,7 @@ export function ChatScreen({
   async function handleConversationalMcpToolRequest(
     request: ParsedConversationalMcpToolRequest,
     context: ConversationalMcpTurnContext,
-  ) {
+  ): Promise<void> {
     const appendTurnSystemMessage = (content: string) => {
       if (!turnIsCurrent(context.turnContext)) {
         return;
@@ -4016,6 +4017,39 @@ export function ChatScreen({
         });
         return;
       }
+      const permissionFailure = nativeMcpPermissionFailure(nativeReceipt);
+      if (permissionFailure) {
+        const pendingRecovery = requestDirectApplePermissionRecovery(
+          context.turnContext,
+          permissionFailure.capabilityId,
+          { code: permissionFailure.code },
+        );
+        if (pendingRecovery) {
+          const choice = await pendingRecovery;
+          if (choice === "retry") {
+            await handleConversationalMcpToolRequest(request, context);
+          } else if (turnIsCurrent(context.turnContext)) {
+            setChatStatusForSession(context.sessionId, t("tasks.error_cancelled"));
+          }
+          return;
+        }
+      }
+      if (nativeReceipt && nativeReceipt.outcome !== "succeeded") {
+        await queueToolContinuation({
+          resultText: mcpTerminalOutcomeText(
+            call,
+            nativeReceipt.outcome,
+            nativeReceipt.nativeResultCode ?? "The native broker could not verify completion.",
+          ),
+          message: mcpTerminalOutcomeMessage(call),
+          capabilities: [],
+          nativeExecutionReceiptId: nativeReceipt.receiptId,
+          outstandingNativeEffect: null,
+          verifiedNativeExecutionReceipt: false,
+          announceResult: false,
+        });
+        return;
+      }
       const resultText = mcpToolResultText(result, verifiedExecutionCopy);
       if (!turnIsCurrent(context.turnContext)) {
         return;
@@ -4035,22 +4069,6 @@ export function ChatScreen({
           message: mcpTerminalOutcomeMessage(call),
           capabilities: [],
           nativeExecutionReceiptId: nativeReceipt?.receiptId ?? null,
-          outstandingNativeEffect: null,
-          verifiedNativeExecutionReceipt: false,
-          announceResult: false,
-        });
-        return;
-      }
-      if (nativeReceipt && nativeReceipt.outcome !== "succeeded") {
-        await queueToolContinuation({
-          resultText: mcpTerminalOutcomeText(
-            call,
-            nativeReceipt.outcome,
-            nativeReceipt.nativeResultCode ?? "The native broker could not verify completion.",
-          ),
-          message: mcpTerminalOutcomeMessage(call),
-          capabilities: [],
-          nativeExecutionReceiptId: nativeReceipt.receiptId,
           outstandingNativeEffect: null,
           verifiedNativeExecutionReceipt: false,
           announceResult: false,

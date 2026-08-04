@@ -14,9 +14,15 @@ type NormalizedMcpPayload = {
 
 export type NativeMcpExecutionReceipt = {
   receiptId: string;
+  capabilityId: string;
   outcome: "succeeded" | "failed" | "unmet" | "unsupported";
   verified: boolean;
   nativeResultCode: string | null;
+};
+
+export type NativeMcpPermissionFailure = {
+  capabilityId: string;
+  code: string;
 };
 
 export type VerifiedSovereignMcpSearchResult = {
@@ -208,9 +214,13 @@ export function nativeMcpExecutionReceipt(
   const receiptId = typeof receipt.receiptId === "string"
     ? receipt.receiptId.trim()
     : "";
+  const capabilityId = typeof receipt.capabilityId === "string"
+    ? receipt.capabilityId.trim()
+    : "";
   const outcome = receipt.outcome;
   if (
     !receiptId || receiptId.length > 256 ||
+    !/^[a-z][a-z0-9_]{0,79}$/.test(capabilityId) ||
     !["succeeded", "failed", "unmet", "unsupported"].includes(String(outcome))
   ) {
     return null;
@@ -218,12 +228,27 @@ export function nativeMcpExecutionReceipt(
   const postcondition = plainRecord(receipt.postcondition);
   return {
     receiptId,
+    capabilityId,
     outcome: outcome as NativeMcpExecutionReceipt["outcome"],
     verified: outcome === "succeeded" && receipt.verified === true,
     nativeResultCode: typeof postcondition?.nativeResultCode === "string"
       ? postcondition.nativeResultCode.trim() || null
       : null,
   };
+}
+
+export function nativeMcpPermissionFailure(
+  receipt: NativeMcpExecutionReceipt | null,
+): NativeMcpPermissionFailure | null {
+  const code = receipt?.nativeResultCode?.trim().toLowerCase() ?? "";
+  if (
+    receipt?.outcome !== "unmet" ||
+    !code ||
+    !/(?:permission|authorization|access)/.test(code)
+  ) {
+    return null;
+  }
+  return { capabilityId: receipt.capabilityId, code };
 }
 
 function positiveSafeInteger(value: unknown): value is number {

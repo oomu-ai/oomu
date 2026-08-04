@@ -31,6 +31,7 @@ function signedSnapshot() {
     entitlements: {
       "com.apple.security.automation.apple-events": true,
       "com.apple.security.network.client": true,
+      "com.apple.security.personal-information.addressbook": true,
       "com.apple.security.personal-information.calendars": true,
     },
     application_signature: {

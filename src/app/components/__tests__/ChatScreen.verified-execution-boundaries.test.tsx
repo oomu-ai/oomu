@@ -239,6 +239,7 @@ it("retries ordinary chat once when an escalated planner route is rejected", asy
       _meta: {
         oomuNativeExecutionReceipt: {
           schema: "oomu.native-mcp-execution.v1", receiptId: "apple-operation-write-1",
+          capabilityId: "files_and_folders",
           outcome: "succeeded", verified: true,
           postcondition: { nativeResultCode: "verified" },
         },

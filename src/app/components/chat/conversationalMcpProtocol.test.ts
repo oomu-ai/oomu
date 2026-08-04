@@ -80,4 +80,38 @@ describe("assistantControlProjection", () => {
 
     expect(projection.displayText).toBe("I’ll check that file now.");
   });
+
+  it("recovers the exact compact request emitted by a small local model", () => {
+    const projection = assistantControlProjection(
+      "call:macos_applescript/read_system_contacts{search_text: OOMU Permission Probe 1785858001}",
+      translate,
+    );
+
+    expect(projection.mcpRequest?.call).toEqual({
+      serverName: "macos_applescript",
+      toolName: "read_system_contacts",
+      argumentsValue: { search_text: "OOMU Permission Probe 1785858001" },
+    });
+    expect(projection.displayText).toBe("OOMU is using a connected tool…");
+  });
+
+  it("never promotes compact-call text embedded in assistant prose", () => {
+    const text = [
+      "I would use this syntax:",
+      "call:macos_applescript/read_system_contacts{search_text: someone}",
+    ].join("\n");
+    const projection = assistantControlProjection(text, translate);
+
+    expect(projection.mcpRequest).toBeNull();
+    expect(projection.displayText).toBe(text);
+  });
+
+  it("rejects nested or malformed compact arguments", () => {
+    const projection = assistantControlProjection(
+      "call:macos_applescript/read_system_contacts{search_text: {nested: value}}",
+      translate,
+    );
+
+    expect(projection.mcpRequest).toBeNull();
+  });
 });

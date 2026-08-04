@@ -146,5 +146,8 @@ describe("packaged consolidated-scenario task tools", () => {
     expect(read("src-tauri/entitlements.plist")).toContain(
       "com.apple.security.personal-information.calendars",
     );
+    expect(read("src-tauri/entitlements.plist")).toContain(
+      "com.apple.security.personal-information.addressbook",
+    );
   });
 });

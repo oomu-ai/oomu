@@ -834,6 +834,7 @@ function initializeReleaseContext() {
 
 function runAutomatedReleaseGates(context) {
   const { node, npm, rawEvidenceDir, signingPreflightEnvironment, releaseEnvironment } = context;
+  const automatedEnvironment = sanitizedChildEnvironment();
   runStep("apple_toolchain", node, [
     "scripts/preflight-apple-toolchain.mjs",
     "--output",
@@ -872,20 +873,20 @@ function runAutomatedReleaseGates(context) {
       || !/^[a-f0-9]{64}$/u.test(entry.canonical_path_sha256))) {
     throw new Error("Native path-remap preflight did not produce bound passing evidence.");
   }
-  runStep("automated_strict_lint", npm, ["run", "lint"], { env: releaseEnvironment });
-  runStep("automated_version", npm, ["run", "check:version"], { env: releaseEnvironment });
-  runStep("automated_source_size", npm, ["run", "check:source-size"], { env: releaseEnvironment });
-  runStep("automated_real_components", npm, ["run", "check:real-components"], { env: releaseEnvironment });
-  runStep("automated_p0_architecture", npm, ["run", "check:p0-architecture"], { env: releaseEnvironment });
-  runStep("automated_p1_contracts", npm, ["run", "check:p1-contracts"], { env: releaseEnvironment });
-  runStep("automated_novice_ui", npm, ["run", "check:novice-ui"], { env: releaseEnvironment });
-  runStep("automated_module_cycles", npm, ["run", "check:module-cycles"], { env: releaseEnvironment });
-  runStep("automated_unused_exports", npm, ["run", "check:unused-exports"], { env: releaseEnvironment });
-  runStep("automated_repository_hygiene", npm, ["run", "check:repository-hygiene"], { env: releaseEnvironment });
-  runStep("automated_release_integrity", npm, ["run", "test:release-integrity"], { env: releaseEnvironment });
-  runStep("automated_i18n", npm, ["run", "check:i18n"], { env: releaseEnvironment });
-  runStep("automated_typecheck", npm, ["run", "typecheck"], { env: releaseEnvironment });
-  runStep("automated_frontend", npm, ["run", "test:frontend"], { env: releaseEnvironment });
+  runStep("automated_strict_lint", npm, ["run", "lint"], { env: automatedEnvironment });
+  runStep("automated_version", npm, ["run", "check:version"], { env: automatedEnvironment });
+  runStep("automated_source_size", npm, ["run", "check:source-size"], { env: automatedEnvironment });
+  runStep("automated_real_components", npm, ["run", "check:real-components"], { env: automatedEnvironment });
+  runStep("automated_p0_architecture", npm, ["run", "check:p0-architecture"], { env: automatedEnvironment });
+  runStep("automated_p1_contracts", npm, ["run", "check:p1-contracts"], { env: automatedEnvironment });
+  runStep("automated_novice_ui", npm, ["run", "check:novice-ui"], { env: automatedEnvironment });
+  runStep("automated_module_cycles", npm, ["run", "check:module-cycles"], { env: automatedEnvironment });
+  runStep("automated_unused_exports", npm, ["run", "check:unused-exports"], { env: automatedEnvironment });
+  runStep("automated_repository_hygiene", npm, ["run", "check:repository-hygiene"], { env: automatedEnvironment });
+  runStep("automated_release_integrity", npm, ["run", "test:release-integrity"], { env: automatedEnvironment });
+  runStep("automated_i18n", npm, ["run", "check:i18n"], { env: automatedEnvironment });
+  runStep("automated_typecheck", npm, ["run", "typecheck"], { env: automatedEnvironment });
+  runStep("automated_frontend", npm, ["run", "test:frontend"], { env: automatedEnvironment });
   return {
     toolchain,
     dependencyResult,

@@ -543,6 +543,31 @@ describe("deterministic native release qualification", () => {
     expect(cargoTest).toContain('"test", "--locked", "--target"');
     expect(cargoTest).toContain('"--", "--test-threads=1"');
   });
+
+  it("keeps controlled compiler remapping out of source-only gates", () => {
+    const canonical = readFileSync(join(root, "scripts", "release.mjs"), "utf8");
+    const unsigned = readFileSync(
+      join(root, "scripts", "release-unsigned.mjs"),
+      "utf8",
+    );
+
+    expect(canonical).toContain(
+      "const automatedEnvironment = sanitizedChildEnvironment();",
+    );
+    expect(canonical).toContain(
+      'runStep("automated_release_integrity", npm, ["run", "test:release-integrity"], { env: automatedEnvironment })',
+    );
+    expect(canonical).toContain("runRustQualification(node, releaseEnvironment)");
+    expect(unsigned).toContain(
+      "function runSourceQualification(toolchain, sourceEnvironment, nativeEnvironment)",
+    );
+    expect(unsigned).toContain(
+      'captureStep(toolchain, "npm", label, args, sourceEnvironment)',
+    );
+    expect(unsigned).toContain(
+      'captureStep(toolchain, "cargo", label, args, nativeEnvironment)',
+    );
+  });
 });
 
 describe("canonical release orchestration", () => {

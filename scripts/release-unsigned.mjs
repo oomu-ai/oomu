@@ -91,21 +91,21 @@ function findNamed(directory, predicate) {
   return matches;
 }
 
-function runSourceQualification(toolchain, environment) {
+function runSourceQualification(toolchain, sourceEnvironment, nativeEnvironment) {
   const results = NPM_GATES.map(([label, args]) =>
-    captureStep(toolchain, "npm", label, args, environment));
+    captureStep(toolchain, "npm", label, args, sourceEnvironment));
   const nodeSteps = [
     ["rust-dependency-audit", ["scripts/audit-rust-dependencies.mjs"]],
     ["entitlement-snapshot", ["scripts/check-entitlements.mjs"]],
   ];
   results.push(...nodeSteps.map(([label, args]) =>
-    captureStep(toolchain, "node", label, args, environment)));
+    captureStep(toolchain, "node", label, args, sourceEnvironment)));
   results.push(captureStep(
     toolchain,
     "npm",
     "dependency-audit",
     ["audit", "--omit=dev", "--audit-level=high", "--json"],
-    environment,
+    sourceEnvironment,
     (output) => JSON.parse(output),
   ));
   results.push(captureStep(
@@ -113,14 +113,14 @@ function runSourceQualification(toolchain, environment) {
     "node",
     "external-bin-manifest-reservation",
     ["scripts/prepare-tauri-external-bins.mjs"],
-    environment,
+    sourceEnvironment,
   ));
   results.push(captureStep(
     toolchain,
     "node",
     "portable-python-preparation",
     ["scripts/prepare-portable-python.mjs", "--release"],
-    environment,
+    sourceEnvironment,
   ));
   const cargoSteps = [
     ["pdf-containment", [
@@ -139,7 +139,7 @@ function runSourceQualification(toolchain, environment) {
     ]],
   ];
   results.push(...cargoSteps.map(([label, args]) =>
-    captureStep(toolchain, "cargo", label, args, environment)));
+    captureStep(toolchain, "cargo", label, args, nativeEnvironment)));
   return results;
 }
 
@@ -230,23 +230,30 @@ function main() {
   const outputDirectory = resolve(required("OOMU_UNSIGNED_HANDOFF_DIR"));
   if (existsSync(outputDirectory)) throw new Error("Unsigned handoff output must be new.");
   const evidenceDirectory = mkdtempSync(join(tmpdir(), "oomu-unsigned-evidence-"));
-  const environment = {
+  const sourceEnvironment = {
     OOMU_RELEASE_PIPELINE: "unsigned-v2",
     OOMU_BUILD_ID: buildIdentifier,
     OOMU_SOURCE_REVISION: sourceRevision,
     OOMU_RELEASE_POLICY_SHA256: toolchain.policyDigest,
+  };
+  const nativeEnvironment = {
+    ...sourceEnvironment,
     ...canonicalNativePathRemapEnvironment(
       root,
       process.env,
       releaseToolchainHomeDirectory(toolchain),
     ),
   };
-  const gateResults = runSourceQualification(toolchain, environment);
-  const appPath = buildUnsignedApplication(toolchain, environment, gateResults);
+  const gateResults = runSourceQualification(
+    toolchain,
+    sourceEnvironment,
+    nativeEnvironment,
+  );
+  const appPath = buildUnsignedApplication(toolchain, nativeEnvironment, gateResults);
   sanitizeUnsignedApplication({
     appPath,
     buildIdentifier,
-    environment,
+    environment: nativeEnvironment,
     evidenceDirectory,
     results: gateResults,
     toolchain,

@@ -422,6 +422,55 @@ async fn classifier_streams_when_no_explicit_action_rule_matches() {
 }
 
 #[tokio::test]
+async fn classifier_routes_common_rich_document_requests_to_native_artifacts() {
+    for prompt in [
+        "Create a PDF document containing ‘Hello World’.",
+        "Create a Word doc with ‘Hello World’.",
+        "Create a PowerPoint presentation containing ‘Hello World’.",
+        "Create an Excel spreadsheet containing ‘Hello World’.",
+    ] {
+        let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {
+            prompt: prompt.to_string(),
+            automated_web_grounding_enabled: None,
+            attachments: vec![],
+        })
+        .await
+        .unwrap();
+
+        assert!(
+            matches!(decision.route, ChatIntentRoute::AgenticPlanner),
+            "{prompt} routed via {}",
+            decision.decision_source
+        );
+        assert!(decision.requires_local_access, "{prompt}");
+        assert_eq!(decision.decision_source, "native_artifact_creation_filter");
+        assert!(has_executable_agent_objective(prompt), "{prompt}");
+    }
+}
+
+#[tokio::test]
+async fn classifier_keeps_rich_format_explanations_and_reads_out_of_creation_filter() {
+    for prompt in [
+        "Explain what a PDF is.",
+        "Read report.pdf.",
+        "What is an Excel spreadsheet?",
+    ] {
+        let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {
+            prompt: prompt.to_string(),
+            automated_web_grounding_enabled: None,
+            attachments: vec![],
+        })
+        .await
+        .unwrap();
+
+        assert_ne!(
+            decision.decision_source, "native_artifact_creation_filter",
+            "{prompt} was mistaken for a native artifact write"
+        );
+    }
+}
+
+#[tokio::test]
 async fn classifier_keeps_prior_browser_behavior_questions_conversational() {
     let prompt = "Why did you open the browser panel?";
     let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {

@@ -1072,6 +1072,10 @@ export function shouldUseConversationalMcpBridge(
   }
   // Native capability validation and Shield approve selected tools.
 
+  if (routeDecision.decision_source === "native_artifact_creation_filter") {
+    return false;
+  }
+
   return !hasStructuralExecutionIntent(normalized);
 }
 

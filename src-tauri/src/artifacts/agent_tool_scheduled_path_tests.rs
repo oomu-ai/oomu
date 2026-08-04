@@ -189,6 +189,39 @@ fn scheduled_filename_uses_the_promised_occurrence_and_routine_timezone() {
 }
 
 #[test]
+fn direct_chat_resolution_expands_home_before_project_path_binding() {
+    let (root, project_root, engine, task) =
+        scheduled_file_fixture("direct-home", 1_784_631_600_000, 1_784_631_600_000, "UTC");
+    engine
+        .open_connection()
+        .unwrap()
+        .execute(
+            "UPDATE task_runs SET runtime_kind='agent',origin='chat' WHERE task_run_id=?1",
+            params![task.task_run_id],
+        )
+        .unwrap();
+    let resolved = resolve_registration_for_task(
+        &engine,
+        &task,
+        json!({"file":{
+            "title":"Hello World","content":"Hello World","locale":"en-US","format":"pdf",
+            "destinationPath":"~/Downloads/hello_world.pdf"
+        }}),
+    )
+    .unwrap();
+    let destination = resolved["file"]["destinationPath"].as_str().unwrap();
+    let expected = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .expect("HOME")
+        .join("Downloads/hello_world.pdf");
+    assert_eq!(Path::new(destination), expected);
+    assert!(!Path::new(destination).starts_with(project_root));
+
+    drop(engine);
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
 fn scheduled_writer_creates_one_missing_output_folder_then_verifies_real_bytes() {
     let (root, project_root, engine, task) = scheduled_file_fixture(
         "missing-folder",

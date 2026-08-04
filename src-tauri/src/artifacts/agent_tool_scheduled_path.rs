@@ -74,6 +74,11 @@ pub(super) fn resolve_registration_for_task(
         .file
         .destination_path
         .replace(TASK_RUN_TIMESTAMP_TOKEN, &timestamp);
+    let requested = if scheduled_routine {
+        requested
+    } else {
+        expand_direct_home_destination(&requested)?
+    };
     if scheduled_routine || !Path::new(&requested).is_absolute() {
         let root = single_active_project_root(persistence, &task.project_id)?;
         request.file.destination_path = resolve_project_output_path(&root, &requested)?
@@ -83,6 +88,16 @@ pub(super) fn resolve_registration_for_task(
         request.file.destination_path = requested;
     }
     serde_json::to_value(request).map_err(|error| error.to_string())
+}
+
+fn expand_direct_home_destination(requested: &str) -> Result<String, String> {
+    let Some(relative) = requested.strip_prefix("~/") else {
+        return Ok(requested.to_string());
+    };
+    let home = std::env::var_os("HOME")
+        .map(std::path::PathBuf::from)
+        .ok_or_else(|| "Unable to resolve the user home directory.".to_string())?;
+    Ok(home.join(relative).to_string_lossy().to_string())
 }
 
 pub(super) fn scheduled_workflow_task(

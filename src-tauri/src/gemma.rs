@@ -28,6 +28,10 @@ use crate::{
     settings,
 };
 pub(crate) use action_plan_prompt::action_plan_grammar;
+
+pub(crate) fn is_single_file_creation_objective(prompt: &str) -> bool {
+    single_file_creation::is_objective(&prompt.trim().to_ascii_lowercase())
+}
 pub use action_plan_prompt::planner_prompt;
 pub use classifier_health::{AutoRouteClassifierHealth, AutoRouteClassifierStatus};
 pub(crate) use model_identity::resolve_legacy_identity;
@@ -2949,10 +2953,11 @@ fn grounded_create_file_step(
 ) -> Result<GeneratedPlanStepDraft, String> {
     let format = requested_file_format(lowered)
         .ok_or_else(|| "What format should the file use?".to_string())?;
-    let destination_path = explicit_file_destination(objective, format);
     let content = requested_file_content(objective).or_else(|| {
         (lowered.contains("empty file") || lowered.contains("blank file")).then(String::new)
     });
+    let destination_path =
+        inferred_file_destination(objective, lowered, format, content.as_deref());
     let mut missing = Vec::new();
     if destination_path.is_none() {
         missing.push("its exact path and file name");
@@ -3002,14 +3007,104 @@ fn explicit_file_destination(objective: &str, format: &str) -> Option<String> {
     let suffix = format!(".{format}");
     let end = lowered.rfind(&suffix)? + suffix.len();
     let prefix = &objective[..end];
-    let start = ["~/", "/Users/", "/Volumes/", "/private/", "/tmp/"]
+    let lowered_prefix = &lowered[..end];
+    let start = ["~/", "/users/", "/volumes/", "/private/", "/tmp/"]
         .iter()
-        .filter_map(|marker| prefix.rfind(marker))
+        .flat_map(|marker| lowered_prefix.match_indices(marker).map(|(index, _)| index))
+        .filter(|index| absolute_destination_starts_at(prefix, *index))
         .max()?;
     let candidate = prefix[start..]
         .trim_matches(|character: char| matches!(character, '"' | '\'' | '`' | ' '))
         .to_string();
-    (candidate.starts_with('/') || candidate.starts_with("~/")).then_some(candidate)
+    normalize_absolute_file_destination(&candidate)
+}
+
+fn absolute_destination_starts_at(value: &str, index: usize) -> bool {
+    index == 0
+        || value[..index].chars().next_back().is_some_and(|character| {
+            !character.is_ascii_alphanumeric() && !matches!(character, '_' | '-' | '.' | '~')
+        })
+}
+
+fn inferred_file_destination(
+    objective: &str,
+    lowered: &str,
+    format: &str,
+    content: Option<&str>,
+) -> Option<String> {
+    explicit_file_destination(objective, format).or_else(|| {
+        let folder = requested_standard_user_folder(lowered).unwrap_or("Downloads");
+        let home = env::var_os("HOME").map(PathBuf::from)?;
+        let filename = inferred_file_stem(content, format);
+        Some(
+            home.join(folder)
+                .join(format!("{filename}.{format}"))
+                .to_string_lossy()
+                .to_string(),
+        )
+    })
+}
+
+fn normalize_absolute_file_destination(candidate: &str) -> Option<String> {
+    if let Some(relative) = candidate.strip_prefix("~/") {
+        return env::var_os("HOME")
+            .map(PathBuf::from)
+            .map(|home| home.join(relative).to_string_lossy().to_string());
+    }
+    Path::new(candidate)
+        .is_absolute()
+        .then(|| candidate.to_string())
+}
+
+fn requested_standard_user_folder(lowered: &str) -> Option<&'static str> {
+    [
+        ("downloads", "Downloads"),
+        ("download", "Downloads"),
+        ("documents", "Documents"),
+        ("desktop", "Desktop"),
+    ]
+    .into_iter()
+    .filter_map(|(alias, canonical)| {
+        lowered.match_indices(alias).find_map(|(index, _)| {
+            let before = lowered[..index].chars().next_back();
+            let after = lowered[index + alias.len()..].chars().next();
+            (before.is_none_or(|character| !character.is_ascii_alphanumeric())
+                && after.is_none_or(|character| !character.is_ascii_alphanumeric()))
+            .then_some((index, canonical))
+        })
+    })
+    .min_by_key(|(index, _)| *index)
+    .map(|(_, folder)| folder)
+}
+
+fn inferred_file_stem(content: Option<&str>, format: &str) -> String {
+    let mut stem = String::new();
+    let mut pending_separator = false;
+    for character in content.unwrap_or_default().trim().chars() {
+        if character.is_ascii_alphanumeric() {
+            if pending_separator && !stem.is_empty() {
+                stem.push('_');
+            }
+            stem.push(character.to_ascii_lowercase());
+            pending_separator = false;
+        } else if !stem.is_empty() {
+            pending_separator = true;
+        }
+        if stem.len() >= 64 {
+            break;
+        }
+    }
+    while stem.ends_with('_') {
+        stem.pop();
+    }
+    if !stem.is_empty() {
+        return stem;
+    }
+    match format {
+        "xlsx" | "xls" | "csv" => "spreadsheet".to_string(),
+        "pptx" => "presentation".to_string(),
+        _ => "document".to_string(),
+    }
 }
 
 fn requested_file_content(objective: &str) -> Option<String> {

@@ -760,6 +760,22 @@ describe("ChatScreen request-driven tool catalog contracts", () => {
       ),
     ).toBe(true);
 
+    for (const prompt of [
+      'Create a PDF document containing "Hello World".',
+      'Create a Word doc with "Hello World".',
+      'Create a PowerPoint presentation containing "Hello World".',
+      'Create an Excel spreadsheet containing "Hello World".',
+    ]) {
+      expect(
+        shouldUseConversationalMcpBridge(
+          prompt,
+          { ...routeDecision, decision_source: "native_artifact_creation_filter" },
+          capabilities,
+        ),
+        `${prompt} must stay on the verified native artifact path`,
+      ).toBe(false);
+    }
+
     const mailCapabilities: ConversationalMcpToolCapability[] = [{
       serverName: "macos_applescript",
       toolName: "read_system_emails",

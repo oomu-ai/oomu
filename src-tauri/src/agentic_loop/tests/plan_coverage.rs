@@ -723,6 +723,22 @@ fn unicode_before_plain_paths_is_safe_and_absolute_paths_remain_exact() {
 }
 
 #[test]
+fn private_tmp_output_paths_keep_their_root_and_require_an_exact_candidate() {
+    let destination = "/private/tmp/oomu-artifact-hotfix/output/hello_world.pdf";
+    let objective = format!("Create the PDF file at {destination} containing ‘Hello World’. ");
+
+    assert_eq!(normalize_path(destination), destination);
+    validate_objective_coverage(&objective, &draft(vec![create_file(destination, "pdf")]))
+        .expect("an exact /private/tmp output must satisfy strict coverage");
+
+    let truncated = "/tmp/oomu-artifact-hotfix/output/hello_world.pdf";
+    let error =
+        validate_objective_coverage(&objective, &draft(vec![create_file(truncated, "pdf")]))
+            .expect_err("dropping the /private root must remain a coverage failure");
+    assert_eq!(error.missing, vec![format!("output file '{destination}'")]);
+}
+
+#[test]
 fn escaped_icloud_input_is_one_canonical_requirement_and_path_fragments_cannot_cover_it() {
     let canonical = "/Users/example/Library/Mobile Documents/com~apple~CloudDocs/OOMU Test Data/mock_data/q3_strategic_vendor_proposals.txt";
     let objective = r"Read /Users/example/Library/Mobile\ Documents/com\~apple\~CloudDocs/OOMU Test Data/mock_data/q3_strategic_vendor_proposals.txt in my testing folder and summarize only the stated facts in exactly three bullets.";

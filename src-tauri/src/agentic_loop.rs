@@ -392,6 +392,17 @@ pub async fn classify_chat_intent_route_inner(
             status_label: "OOMU is planning local actions...".to_string(),
         });
     }
+    if crate::gemma::is_single_file_creation_objective(prompt) {
+        return Ok(ChatIntentRouteDecision {
+            route: ChatIntentRoute::AgenticPlanner,
+            requires_local_access: true,
+            decision_source: "native_artifact_creation_filter".to_string(),
+            reason: "A requested file format must use OOMU's verified native artifact creator."
+                .to_string(),
+            matched_signals: vec!["native artifact creation request".to_string()],
+            status_label: "OOMU is planning local actions...".to_string(),
+        });
+    }
     if is_informational_local_system_topic_question(prompt) {
         return Ok(ChatIntentRouteDecision {
             route: ChatIntentRoute::ConversationalStream,
@@ -1344,6 +1355,7 @@ pub(crate) fn has_executable_agent_objective(prompt: &str) -> bool {
         || is_explicit_protected_apple_library_read(prompt)
         || contains_explicit_web_search_intent(&normalized)
         || is_explicit_read_only_project_status_request(prompt)
+        || crate::gemma::is_single_file_creation_objective(prompt)
         || agent_owned_artifact::is_directory_only_markdown_request(prompt)
         || !explicit_action_request_signals(&normalized).is_empty()
     {
@@ -1353,6 +1365,7 @@ pub(crate) fn has_executable_agent_objective(prompt: &str) -> bool {
         || contains_explicit_native_task_operation(&normalized)
         || contains_explicit_local_app_access(&normalized)
 }
+
 fn validate_agent_planner_objective(objective: &str) -> Result<(), AgenticLoopError> {
     let normalized = objective.trim().to_ascii_lowercase();
     if contains_approved_file_marker(objective) {

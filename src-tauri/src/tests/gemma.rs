@@ -1165,9 +1165,12 @@ fn honest_file_creation_complete_request_recovers_without_inventing_fields() {
         } => {
             assert_eq!(operation, "create_file");
             assert_eq!(arguments["file"]["format"], "pdf");
+            let home = std::env::var_os("HOME").map(PathBuf::from).expect("HOME");
             assert_eq!(
                 arguments["file"]["destinationPath"],
-                "~/Downloads/hello-world.pdf"
+                home.join("Downloads/hello-world.pdf")
+                    .to_string_lossy()
+                    .as_ref()
             );
             assert_eq!(arguments["file"]["content"], "Hello World");
         }
@@ -1202,7 +1205,9 @@ fn honest_file_creation_complete_request_reaches_the_bound_permission_contract()
 
     let action = step_to_request(&step);
     assert_eq!(action.kind, "create_file");
-    assert_eq!(action.path.as_deref(), Some("~/Downloads/hello-world.pdf"));
+    let home = std::env::var_os("HOME").map(PathBuf::from).expect("HOME");
+    let destination = home.join("Downloads/hello-world.pdf");
+    assert_eq!(action.path.as_deref(), destination.to_str());
     let payload = action
         .content
         .as_deref()
@@ -1210,9 +1215,6 @@ fn honest_file_creation_complete_request_reaches_the_bound_permission_contract()
         .expect("validated create_file payload");
     assert_eq!(payload["file"]["content"], "Hello World");
 
-    let Some(home) = std::env::var_os("HOME").map(PathBuf::from) else {
-        return;
-    };
     if !home.join("Downloads").is_dir() {
         return;
     }
@@ -1227,12 +1229,12 @@ fn honest_file_creation_complete_request_reaches_the_bound_permission_contract()
         matches!(authorized, AuthorizedActions::RegisteredTaskTool(request)
         if request.operation == "create_file"
             && request.arguments["file"]["destinationPath"]
-                == "~/Downloads/hello-world.pdf")
+                == destination.to_string_lossy().as_ref())
     );
 }
 
 #[test]
-fn file_creation_normalizer_requires_a_creation_verb_and_destination() {
+fn file_creation_normalizer_requires_a_creation_verb_and_content() {
     for objective in [
         "Explain what a PDF document is.",
         "The Downloads folder contains a PDF document.",
@@ -1260,7 +1262,7 @@ fn file_creation_normalizer_requires_a_creation_verb_and_destination() {
 }
 
 #[test]
-fn honest_file_creation_common_extensions_require_name_and_content() {
+fn honest_file_creation_common_extensions_infer_a_name_but_require_content() {
     for format in [
         "csv", "docx", "html", "json", "md", "pdf", "pptx", "rtf", "txt", "xls", "xlsx", "xml",
     ] {
@@ -1277,10 +1279,59 @@ fn honest_file_creation_common_extensions_require_name_and_content() {
         assert!(matches!(
             &draft.steps[0].tool,
             GeneratedToolDraft::Unsupported { requested }
-                if requested.contains("exact path and file name")
+                if !requested.contains("exact path and file name")
                     && requested.contains("what it should contain")
         ));
     }
+}
+
+#[test]
+fn common_artifact_names_create_hello_world_in_the_requested_user_folder() {
+    let home = std::env::var_os("HOME").map(PathBuf::from).expect("HOME");
+    for (label, format, folder) in [
+        ("PDF document", "pdf", "Downloads"),
+        ("Word doc", "docx", "Documents"),
+        ("PowerPoint", "pptx", "Desktop"),
+        ("Excel file", "xlsx", "Downloads"),
+    ] {
+        let objective =
+            format!("Create a {label} in my {folder} folder with content “Hello World”.");
+        let draft = generated_plan_from_text(
+            objective,
+            "model emitted malformed action-plan text".to_string(),
+        );
+        let expected = home.join(folder).join(format!("hello_world.{format}"));
+        assert!(
+            matches!(
+                &draft.steps[0].tool,
+                GeneratedToolDraft::RegisteredTaskTool { operation, arguments }
+                    if operation == "create_file"
+                        && arguments["file"]["format"] == format
+                        && arguments["file"]["destinationPath"] == expected.to_string_lossy().as_ref()
+                        && arguments["file"]["title"] == "hello_world"
+                        && arguments["file"]["content"] == "Hello World"
+            ),
+            "{label}"
+        );
+    }
+}
+
+#[test]
+fn common_artifact_without_a_destination_uses_downloads_and_an_obvious_name() {
+    let home = std::env::var_os("HOME").map(PathBuf::from).expect("HOME");
+    let draft = generated_plan_from_text(
+        "Create a Word doc with “Hello World”.".to_string(),
+        "model emitted malformed action-plan text".to_string(),
+    );
+    let expected = home.join("Downloads/hello_world.docx");
+    assert!(matches!(
+        &draft.steps[0].tool,
+        GeneratedToolDraft::RegisteredTaskTool { operation, arguments }
+            if operation == "create_file"
+                && arguments["file"]["format"] == "docx"
+                && arguments["file"]["destinationPath"] == expected.to_string_lossy().as_ref()
+                && arguments["file"]["content"] == "Hello World"
+    ));
 }
 
 #[test]
@@ -1307,6 +1358,30 @@ fn honest_file_creation_common_extensions_preserve_exact_grounded_values() {
                     && arguments["file"]["destinationPath"] == destination
                     && arguments["file"]["title"] == format!("exact-{format}")
                     && arguments["file"]["content"] == content
+        ));
+    }
+}
+
+#[test]
+fn private_tmp_file_creation_preserves_the_complete_absolute_destination() {
+    let destination = "/private/tmp/oomu-artifact-hotfix/output/hello_world.pdf";
+    for objective in [
+        format!("Create the PDF file at {destination} containing ‘Hello World’."),
+        format!(
+            "Use /tmp/unrelated-context as background. Create the PDF file at {destination} containing ‘Hello World’."
+        ),
+    ] {
+        let draft = generated_plan_from_text(
+            objective,
+            "model emitted malformed action-plan text".to_string(),
+        );
+        assert!(matches!(
+            &draft.steps[0].tool,
+            GeneratedToolDraft::RegisteredTaskTool { operation, arguments }
+                if operation == "create_file"
+                    && arguments["file"]["format"] == "pdf"
+                    && arguments["file"]["destinationPath"] == destination
+                    && arguments["file"]["content"] == "Hello World"
         ));
     }
 }

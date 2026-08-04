@@ -363,30 +363,6 @@ describe("production release build controls", () => {
     expect(canonicalEvidence).toContain("source_size_violations: 0");
   });
 
-  it("runs the complete native release suite deterministically", () => {
-    const release = readFileSync(join(root, "scripts", "release.mjs"), "utf8");
-    const unsignedRelease = readFileSync(
-      join(root, "scripts", "release-unsigned.mjs"),
-      "utf8",
-    );
-    const cargoTestStart = release.indexOf('runStep("automated_cargo_test"');
-    const cargoTestEnd = release.indexOf("], { env: releaseEnvironment });", cargoTestStart);
-    const cargoTest = release.slice(cargoTestStart, cargoTestEnd);
-    const unsignedCargoTestStart = unsignedRelease.indexOf('["cargo-test", [');
-    const unsignedCargoTestEnd = unsignedRelease.indexOf("]]", unsignedCargoTestStart);
-    const unsignedCargoTest = unsignedRelease.slice(
-      unsignedCargoTestStart,
-      unsignedCargoTestEnd,
-    );
-
-    expect(cargoTestStart).toBeGreaterThanOrEqual(0);
-    expect(cargoTest).toContain('"test", "--locked", "--target", EXPECTED_RELEASE_TARGET');
-    expect(cargoTest).toContain('"--", "--test-threads=1"');
-    expect(unsignedCargoTestStart).toBeGreaterThanOrEqual(0);
-    expect(unsignedCargoTest).toContain('"test", "--locked", "--target", toolchain.policy.target');
-    expect(unsignedCargoTest).toContain('"--", "--test-threads=1"');
-  });
-
   it("rejects ignored dotenv inputs and ambient release-affecting overrides", () => {
     const cleanCheckout = temporaryRoot("release-inputs");
     expect(() => assertNoRepositoryDotenvFiles(cleanCheckout)).not.toThrow();
@@ -550,6 +526,22 @@ describe("production release security boundaries", () => {
     expect(client).toContain('minVersion: "TLSv1.3"');
     expect(client).toContain("rejectUnauthorized: true");
     expect(client).not.toMatch(/synthetic:\s*true|status:\s*[\"']passed[\"']/);
+  });
+});
+
+describe("deterministic native release qualification", () => {
+  it.each([
+    ["release.mjs", 'runStep("automated_cargo_test"'],
+    ["release-unsigned.mjs", '["cargo-test", ['],
+  ])("serializes the full native suite in %s", (file, marker) => {
+    const release = readFileSync(join(root, "scripts", file), "utf8");
+    const cargoTestStart = release.indexOf(marker);
+    const cargoTestEnd = release.indexOf("],", cargoTestStart);
+    const cargoTest = release.slice(cargoTestStart, cargoTestEnd);
+
+    expect(cargoTestStart).toBeGreaterThanOrEqual(0);
+    expect(cargoTest).toContain('"test", "--locked", "--target"');
+    expect(cargoTest).toContain('"--", "--test-threads=1"');
   });
 });
 

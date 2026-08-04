@@ -92,7 +92,7 @@ function run(command, args) {
   const result = spawnSync(command, args, {
     cwd: root,
     stdio: "inherit",
-    env: process.env,
+    env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" },
   });
   if (result.error) {
     throw result.error;
@@ -442,7 +442,6 @@ if (!extractedPythonRoot) {
 clearGeneratedPythonRuntime(resourcePythonDir);
 copyDirectoryContents(extractedPythonRoot, resourcePythonDir);
 prunePortablePython(resourcePythonDir);
-writeNativeFileManifest(resourcePythonDir);
 
 const pythonBinary = portablePythonBinary(resourcePythonDir);
 if (process.platform !== "win32") {
@@ -466,4 +465,6 @@ writeFileSync(
 
 rmSync(stagingDir, { recursive: true, force: true });
 run(pythonBinary, ["--version"]);
+prunePythonCaches(resourcePythonDir);
+writeNativeFileManifest(resourcePythonDir);
 console.log(`[portable-python] Cached standalone Python at ${resourcePythonDir}.`);

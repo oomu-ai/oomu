@@ -1,6 +1,15 @@
 import { readdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
 import process from "node:process";
+
+const CARGO_ENCODED_FLAG_SEPARATOR = "\u001f";
+const CANONICAL_RUST_PATHS = Object.freeze({
+  repository: "/oomu/source",
+  cargo: "/oomu/toolchains/cargo",
+  rustup: "/oomu/toolchains/rustup",
+  home: "/oomu/builder-home",
+});
 
 const SENSITIVE_CHILD_ENV = [
   "APPLE_CERTIFICATE",
@@ -10,11 +19,15 @@ const SENSITIVE_CHILD_ENV = [
   "APPLE_API_ISSUER",
   "APPLE_API_KEY",
   "APPLE_API_KEY_PATH",
+  "APPLE_NOTARY_KEYCHAIN_PROFILE",
   "APPLE_SIGNING_IDENTITY",
   "APPLE_TEAM_ID",
   "OOMU_RELEASE_MANIFEST_PRIVATE_KEY_PATH",
   "OOMU_RELEASE_AUTHORIZATION_BASE64",
   "OOMU_OAUTH_SECRET_SCAN_CANARIES_BASE64",
+  "TAURI_SIGNING_PRIVATE_KEY",
+  "TAURI_SIGNING_PRIVATE_KEY_PATH",
+  "TAURI_SIGNING_PRIVATE_KEY_PASSWORD",
 ];
 
 const RELEASE_CHILD_ENV_ALLOWLIST = Object.freeze([
@@ -56,6 +69,7 @@ const RELEASE_CHILD_OVERRIDE_ALLOWLIST = new Set([
   "APPLE_API_ISSUER",
   "APPLE_API_KEY",
   "APPLE_API_KEY_PATH",
+  "APPLE_NOTARY_KEYCHAIN_PROFILE",
   "APPLE_SIGNING_IDENTITY",
   "APPLE_TEAM_ID",
   "OOMU_RELEASE_PIPELINE",
@@ -64,6 +78,10 @@ const RELEASE_CHILD_OVERRIDE_ALLOWLIST = new Set([
   "OOMU_RELEASE_AUTHORIZATION_BASE64",
   "OOMU_RELEASE_MANIFEST_PUBLIC_KEY_PATH",
   "OOMU_OAUTH_SECRET_SCAN_CANARIES_BASE64",
+  "OOMU_UPDATER_PUBLIC_KEY",
+  "TAURI_SIGNING_PRIVATE_KEY",
+  "TAURI_SIGNING_PRIVATE_KEY_PATH",
+  "TAURI_SIGNING_PRIVATE_KEY_PASSWORD",
 ]);
 
 const FORBIDDEN_RELEASE_ENVIRONMENT_NAMES = new Set([
@@ -74,7 +92,9 @@ const FORBIDDEN_RELEASE_ENVIRONMENT_NAMES = new Set([
   "ZDOTDIR",
   "RUSTFLAGS",
   "CARGO_ENCODED_RUSTFLAGS",
+  "CARGO_HOME",
   "CARGO_BUILD_TARGET",
+  "CARGO_TARGET_DIR",
   "MACOSX_DEPLOYMENT_TARGET",
   "SDKROOT",
   "CC",
@@ -82,6 +102,7 @@ const FORBIDDEN_RELEASE_ENVIRONMENT_NAMES = new Set([
   "AR",
   "LD",
   "RANLIB",
+  "RUSTUP_HOME",
   "TAURI_ENV_TARGET_TRIPLE",
   "OOMU_PORTABLE_PYTHON_RELEASE",
   "OOMU_PORTABLE_PYTHON_VERSION",
@@ -89,6 +110,35 @@ const FORBIDDEN_RELEASE_ENVIRONMENT_NAMES = new Set([
   "OOMU_PORTABLE_PYTHON_ASSET",
   "OOMU_PORTABLE_PYTHON_SHA256",
 ]);
+
+export function canonicalRustPathRemapEnvironment(checkoutRoot, source = process.env) {
+  const repository = resolve(checkoutRoot);
+  const home = resolve(source.HOME?.trim() || homedir());
+  const mappings = [
+    [repository, CANONICAL_RUST_PATHS.repository],
+    [resolve(home, ".cargo"), CANONICAL_RUST_PATHS.cargo],
+    [resolve(home, ".rustup"), CANONICAL_RUST_PATHS.rustup],
+    [home, CANONICAL_RUST_PATHS.home],
+  ]
+    .filter(([from], index, values) =>
+      values.findIndex(([candidate]) => candidate === from) === index)
+    .sort(([left], [right]) => right.length - left.length);
+  for (const [from, to] of mappings) {
+    if (
+      !from.startsWith("/")
+      || !to.startsWith("/oomu/")
+      || from.includes("=")
+      || from.includes(CARGO_ENCODED_FLAG_SEPARATOR)
+    ) {
+      throw new Error("Canonical Rust path remapping requires bounded absolute paths.");
+    }
+  }
+  const flags = [
+    "--remap-path-scope=all",
+    ...mappings.map(([from, to]) => `--remap-path-prefix=${from}=${to}`),
+  ];
+  return { CARGO_ENCODED_RUSTFLAGS: flags.join(CARGO_ENCODED_FLAG_SEPARATOR) };
+}
 
 function releaseEnvironmentOverrideNames(environment) {
   return Object.keys(environment).filter(

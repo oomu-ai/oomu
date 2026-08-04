@@ -4,8 +4,11 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::io::Read;
 
+#[path = "../../test_local_models.rs"]
+pub(crate) mod test_local_models;
+
 pub(super) fn installed_model_root() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models")
+    test_local_models::root()
 }
 
 pub(super) fn test_verified_auto_route_baseline(model_id: &str) -> VerifiedAutoRouteBaseline {

@@ -16,6 +16,16 @@ export OOMU_RELEASE_LAB_CLIENT_KEY_PATH="/secure/path/release-lab-client-key.pem
 export OOMU_RELEASE_LAB_CA_PATH="/secure/path/release-lab-ca.pem"
 export OOMU_OAUTH_SECRET_SCAN_CANARIES_BASE64="BASE64_JSON_ARRAY_FROM_CI_SECRET_STORE"
 
+# The updater public key is embedded in the release application. Its matching
+# encrypted private key is used only after notarization to sign the updater
+# archive. Neither the private-key path nor its password is passed to ordinary
+# release child processes.
+export OOMU_UPDATER_PUBLIC_KEY="BASE64_TAURI_UPDATER_PUBLIC_KEY"
+export TAURI_SIGNING_PRIVATE_KEY_PATH="/secure/path/oomu-updater.key"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="UPDATER_KEY_PASSWORD"
+# Set after the local canonical signing phase emits the exact-byte descriptor.
+export OOMU_SIGNED_CANDIDATE_DESCRIPTOR_PATH="/absolute/path/release/evidence/build-id/signed-candidate-descriptor.json"
+
 # Optional public Slack messaging-service configuration. These values are
 # reviewed metadata, not credentials. Direct Slack work access remains available
 # without them; real-time inbound Slack messaging requires both values.
@@ -39,8 +49,12 @@ export APPLE_ID="developer@example.com"
 export APPLE_PASSWORD="app-specific-password"
 export APPLE_TEAM_ID="TEAMID1234"
 
-# Alternative notarization flow. Leave these unset when using APPLE_ID,
-# APPLE_PASSWORD, and APPLE_TEAM_ID above.
+# Preferred local notarization flow when credentials already live in the macOS
+# Keychain. This avoids exporting Apple passwords or API private keys.
+export APPLE_NOTARY_KEYCHAIN_PROFILE="OOMU-notary"
+
+# Alternative notarization flow. Leave these unset when using the Keychain
+# profile above or APPLE_ID, APPLE_PASSWORD, and APPLE_TEAM_ID.
 # export APPLE_API_ISSUER="00000000-0000-0000-0000-000000000000"
 # export APPLE_API_KEY="ABC123DEFG"
 # export APPLE_API_KEY_PATH="/absolute/path/to/AuthKey_ABC123DEFG.p8"

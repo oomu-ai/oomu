@@ -824,8 +824,6 @@ describe("ChatScreen request-driven tool catalog contracts", () => {
       ),
     ).toBe(true);
   });
-
-
 });
 
 describe("ChatScreen search and planner recovery presentation contracts", () => {

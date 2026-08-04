@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.3",
+  "notes": {
+    "de-DE": "Neu: sichere Updates direkt in OOMU, Sitzungsfreigaben für die öffentliche Suche, zuverlässige Erstellung von PDF-, Word-, PowerPoint- und Excel-Dateien, funktionierende externe Links, verlässlicheres Speichern von Agenten sowie native macOS-Berechtigungen und Zugriff auf Kontakte.",
+    "en-US": "Adds secure updates directly in OOMU, session approvals for public search, reliable PDF, Word, PowerPoint, and Excel creation, working external links, more reliable agent saving, and native macOS Contacts permission and access.",
+    "es-ES": "Añade actualizaciones seguras directamente en OOMU, aprobaciones por sesión para la búsqueda pública, creación fiable de archivos PDF, Word, PowerPoint y Excel, enlaces externos funcionales, guardado de agentes más fiable y permisos y acceso nativos a Contactos de macOS.",
+    "fr-FR": "Ajoute des mises à jour sécurisées directement dans OOMU, des autorisations par session pour la recherche publique, la création fiable de fichiers PDF, Word, PowerPoint et Excel, des liens externes fonctionnels, un enregistrement plus fiable des agents, ainsi que l’autorisation et l’accès natifs aux Contacts de macOS.",
+    "id-ID": "Menambahkan pembaruan aman langsung di OOMU, persetujuan per sesi untuk pencarian publik, pembuatan PDF, Word, PowerPoint, dan Excel yang andal, tautan eksternal yang berfungsi, penyimpanan agen yang lebih andal, serta izin dan akses Kontak macOS secara native.",
+    "ja-JP": "OOMU 内での安全なアップデート、公開検索のセッション単位の承認、PDF・Word・PowerPoint・Excel ファイルの確実な作成、外部リンクの正常な表示、エージェント保存の信頼性向上、macOS の連絡先に対するネイティブな権限要求とアクセスを追加しました。",
+    "pt-BR": "Adiciona atualizações seguras diretamente no OOMU, aprovações por sessão para pesquisas públicas, criação confiável de arquivos PDF, Word, PowerPoint e Excel, links externos funcionais, salvamento mais confiável de agentes e permissão e acesso nativos aos Contatos do macOS.",
+    "ru-RU": "Добавлены безопасные обновления прямо в OOMU, разрешение на публичный поиск в рамках сеанса, надёжное создание файлов PDF, Word, PowerPoint и Excel, рабочие внешние ссылки, более надёжное сохранение агентов, а также системный запрос разрешения и доступ к Контактам macOS.",
+    "uk-UA": "Додано безпечні оновлення безпосередньо в OOMU, дозвіл на публічний пошук у межах сеансу, надійне створення файлів PDF, Word, PowerPoint і Excel, робочі зовнішні посилання, надійніше збереження агентів, а також системний запит дозволу й доступ до Контактів macOS.",
+    "vi-VN": "Bổ sung cập nhật an toàn ngay trong OOMU, phê duyệt theo phiên cho tìm kiếm công khai, tạo tệp PDF, Word, PowerPoint và Excel đáng tin cậy, mở liên kết bên ngoài đúng cách, lưu tác nhân ổn định hơn, cùng quyền và khả năng truy cập Danh bạ macOS nguyên bản.",
+    "zh-CN": "新增 OOMU 内安全更新、公共搜索的会话级批准、可靠创建 PDF、Word、PowerPoint 和 Excel 文件、正常打开外部链接、更可靠地保存智能体，以及原生的 macOS 通讯录权限请求与访问。",
+    "zh-TW": "新增 OOMU 內安全更新、公開搜尋的工作階段核准、可靠建立 PDF、Word、PowerPoint 和 Excel 檔案、正常開啟外部連結、更可靠地儲存代理程式，以及原生的 macOS 聯絡人權限要求與存取。"
+  }
+}

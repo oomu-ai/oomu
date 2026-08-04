@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { verifyReleaseManifest } from "./release-manifest.mjs";
@@ -37,7 +37,15 @@ function validReleaseBinding(binding) {
       binding.releaseProvenanceStableSha256,
       binding.manifestSha256,
       binding.manifestPayloadSha256,
+      binding.containerSha256,
+      binding.entitlementDigest,
     ].every((value) => SHA256_PATTERN.test(value ?? ""))
+    && typeof binding.containerName === "string"
+    && binding.containerName.length > 0
+    && typeof binding.teamId === "string"
+    && binding.teamId.length > 0
+    && typeof binding.bundleIdentifier === "string"
+    && binding.bundleIdentifier.length > 0
     && /^sha256:[a-f0-9]{64}$/u.test(binding.signedOutputDigest ?? "");
 }
 
@@ -94,6 +102,9 @@ function exactExistingPath(path, label, kind) {
 
 export function inspectCanonicalReleaseBinding(input, sourceIdentity, options = {}) {
   const appPath = exactExistingPath(input.appPath, "Application path", "directory");
+  const containerPath = exactExistingPath(input.containerPath, "Container path", "file");
+  const entitlementReportPath = exactExistingPath(
+    input.entitlementReportPath, "Entitlement report", "file");
   const manifestPath = exactExistingPath(input.manifestPath, "Manifest", "file");
   const publicKeyPath = exactExistingPath(input.publicKeyPath, "Manifest public key", "file");
   const provenancePath = exactExistingPath(
@@ -114,8 +125,31 @@ export function inspectCanonicalReleaseBinding(input, sourceIdentity, options = 
       ? { trustedPublicKeyHex: options.trustedPublicKeyHex }
       : {}),
   });
-  const appSubtree = manifest.subtrees?.find((entry) => entry.path_prefix === input.appPrefix);
+  const appPrefix = requiredString(input.appPrefix, "Application manifest prefix");
+  const expectedTeamId = requiredString(input.expectedTeamId, "Team ID");
+  const expectedBundleIdentifier = requiredString(
+    input.expectedBundleIdentifier, "Bundle ID");
+  if (basename(appPath) !== appPrefix || dirname(containerPath) !== dirname(appPath)) {
+    throw new Error(
+      "The signed candidate application and container must be exact siblings in one manifest tree.",
+    );
+  }
+  const containerBytes = readFileSync(containerPath);
+  const containerName = basename(containerPath);
+  const containerEntry = manifest.entries?.find((entry) => entry.path === containerName);
+  const containerSha256 = sha256(containerBytes);
+  if (
+    containerEntry?.type !== "file"
+    || containerEntry.size_bytes !== containerBytes.byteLength
+    || containerEntry.sha256 !== containerSha256
+  ) {
+    throw new Error("The distribution container is not the exact manifest-authenticated file.");
+  }
+  const appSubtree = manifest.subtrees?.find((entry) => entry.path_prefix === appPrefix);
   const expectedBuildNumber = Number(input.expectedBuildNumber);
+  const candidateIdentity = provenance?.releaseCandidateIntegrity;
+  const entitlementReport = JSON.parse(readFileSync(entitlementReportPath, "utf8"));
+  const entitlementDigest = entitlementReport?.application?.extracted?.canonical_sha256;
   if (provenance?.schemaVersion !== 1 || provenance.kind !== "oomu.release-provenance"
     || provenance.workflowSourceCommit !== sourceIdentity.sourceRevision
     || provenance.signedOutputDigest !== manifest.artifact_digest
@@ -123,6 +157,10 @@ export function inspectCanonicalReleaseBinding(input, sourceIdentity, options = 
       !== appSubtree?.artifact_digest
     || Number(provenance.releaseCandidateIntegrity?.buildNumber) !== expectedBuildNumber
     || Number(provenance.releaseVersion?.buildNumber) !== expectedBuildNumber
+    || candidateIdentity?.teamId !== expectedTeamId
+    || candidateIdentity?.bundleIdentifier !== expectedBundleIdentifier
+    || !SHA256_PATTERN.test(entitlementDigest ?? "")
+    || candidateIdentity?.entitlementDigest !== entitlementDigest
     || stableJson(manifest.release_provenance) !== stableJson(provenance)) {
     throw new Error(
       "The signed candidate is not bound to canonical release provenance for these exact bytes.",
@@ -138,6 +176,11 @@ export function inspectCanonicalReleaseBinding(input, sourceIdentity, options = 
     manifestSha256: sha256(readFileSync(manifestPath)),
     manifestPayloadSha256: manifest.payload_sha256,
     signedOutputDigest: manifest.artifact_digest,
+    containerName,
+    containerSha256,
+    teamId: expectedTeamId,
+    bundleIdentifier: expectedBundleIdentifier,
+    entitlementDigest,
   };
 }
 

@@ -19,7 +19,7 @@
     },
     "scripts/__tests__/release-integrity.test.mjs": {
       "owner": "release/quality-gates",
-      "functionLines": 218
+      "functionLines": 125
     },
     "scripts/check-novice-first-ui.mjs": {
       "owner": "release/quality-gates",
@@ -68,7 +68,7 @@
     },
     "src-tauri/src/agentic_loop.rs": {
       "owner": "agents/planning-execution",
-      "bytes": 200149,
+      "bytes": 199138,
       "functionLines": 789,
       "complexity": 91
     },
@@ -89,10 +89,6 @@
       "owner": "native/agentic_loop",
       "functionLines": 163,
       "complexity": 29
-    },
-    "src-tauri/src/agentic_loop/plan_coverage.rs": {
-      "owner": "native/agentic_loop",
-      "maxLineBytes": 574
     },
     "src-tauri/src/agentic_loop/plan_coverage/compound_requirements.rs": {
       "owner": "native/agentic_loop",
@@ -438,7 +434,7 @@
     },
     "src-tauri/src/gemma.rs": {
       "owner": "inference/local-model-lifecycle",
-      "bytes": 118311,
+      "bytes": 118033,
       "maxLineBytes": 1293
     },
     "src-tauri/src/gemma/action_plan_prompt.rs": {
@@ -757,8 +753,8 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 321399,
-      "functionLines": 5435,
+      "bytes": 321279,
+      "functionLines": 5432,
       "complexity": 136
     },
     "src/app/components/HomeChrome.tsx": {

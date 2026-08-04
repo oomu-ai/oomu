@@ -3,6 +3,7 @@ mod classifier_health;
 pub(crate) mod classifier_protocol;
 mod classifier_runtime;
 pub(crate) mod deterministic_transform;
+mod file_creation_destination;
 #[path = "gemma_file_formats.rs"]
 mod file_formats;
 mod gguf_selection;
@@ -2956,8 +2957,12 @@ fn grounded_create_file_step(
     let content = requested_file_content(objective).or_else(|| {
         (lowered.contains("empty file") || lowered.contains("blank file")).then(String::new)
     });
-    let destination_path =
-        inferred_file_destination(objective, lowered, format, content.as_deref());
+    let destination_path = file_creation_destination::inferred_file_destination(
+        objective,
+        lowered,
+        format,
+        content.as_deref(),
+    );
     let mut missing = Vec::new();
     if destination_path.is_none() {
         missing.push("its exact path and file name");
@@ -3000,111 +3005,6 @@ fn requested_file_format(lowered: &str) -> Option<&'static str> {
     file_formats::requested_file_formats(lowered)
         .into_iter()
         .next()
-}
-
-fn explicit_file_destination(objective: &str, format: &str) -> Option<String> {
-    let lowered = objective.to_ascii_lowercase();
-    let suffix = format!(".{format}");
-    let end = lowered.rfind(&suffix)? + suffix.len();
-    let prefix = &objective[..end];
-    let lowered_prefix = &lowered[..end];
-    let start = ["~/", "/users/", "/volumes/", "/private/", "/tmp/"]
-        .iter()
-        .flat_map(|marker| lowered_prefix.match_indices(marker).map(|(index, _)| index))
-        .filter(|index| absolute_destination_starts_at(prefix, *index))
-        .max()?;
-    let candidate = prefix[start..]
-        .trim_matches(|character: char| matches!(character, '"' | '\'' | '`' | ' '))
-        .to_string();
-    normalize_absolute_file_destination(&candidate)
-}
-
-fn absolute_destination_starts_at(value: &str, index: usize) -> bool {
-    index == 0
-        || value[..index].chars().next_back().is_some_and(|character| {
-            !character.is_ascii_alphanumeric() && !matches!(character, '_' | '-' | '.' | '~')
-        })
-}
-
-fn inferred_file_destination(
-    objective: &str,
-    lowered: &str,
-    format: &str,
-    content: Option<&str>,
-) -> Option<String> {
-    explicit_file_destination(objective, format).or_else(|| {
-        let folder = requested_standard_user_folder(lowered).unwrap_or("Downloads");
-        let home = env::var_os("HOME").map(PathBuf::from)?;
-        let filename = inferred_file_stem(content, format);
-        Some(
-            home.join(folder)
-                .join(format!("{filename}.{format}"))
-                .to_string_lossy()
-                .to_string(),
-        )
-    })
-}
-
-fn normalize_absolute_file_destination(candidate: &str) -> Option<String> {
-    if let Some(relative) = candidate.strip_prefix("~/") {
-        return env::var_os("HOME")
-            .map(PathBuf::from)
-            .map(|home| home.join(relative).to_string_lossy().to_string());
-    }
-    Path::new(candidate)
-        .is_absolute()
-        .then(|| candidate.to_string())
-}
-
-fn requested_standard_user_folder(lowered: &str) -> Option<&'static str> {
-    [
-        ("downloads", "Downloads"),
-        ("download", "Downloads"),
-        ("documents", "Documents"),
-        ("desktop", "Desktop"),
-    ]
-    .into_iter()
-    .filter_map(|(alias, canonical)| {
-        lowered.match_indices(alias).find_map(|(index, _)| {
-            let before = lowered[..index].chars().next_back();
-            let after = lowered[index + alias.len()..].chars().next();
-            (before.is_none_or(|character| !character.is_ascii_alphanumeric())
-                && after.is_none_or(|character| !character.is_ascii_alphanumeric()))
-            .then_some((index, canonical))
-        })
-    })
-    .min_by_key(|(index, _)| *index)
-    .map(|(_, folder)| folder)
-}
-
-fn inferred_file_stem(content: Option<&str>, format: &str) -> String {
-    let mut stem = String::new();
-    let mut pending_separator = false;
-    for character in content.unwrap_or_default().trim().chars() {
-        if character.is_ascii_alphanumeric() {
-            if pending_separator && !stem.is_empty() {
-                stem.push('_');
-            }
-            stem.push(character.to_ascii_lowercase());
-            pending_separator = false;
-        } else if !stem.is_empty() {
-            pending_separator = true;
-        }
-        if stem.len() >= 64 {
-            break;
-        }
-    }
-    while stem.ends_with('_') {
-        stem.pop();
-    }
-    if !stem.is_empty() {
-        return stem;
-    }
-    match format {
-        "xlsx" | "xls" | "csv" => "spreadsheet".to_string(),
-        "pptx" => "presentation".to_string(),
-        _ => "document".to_string(),
-    }
 }
 
 fn requested_file_content(objective: &str) -> Option<String> {
@@ -3391,6 +3291,10 @@ fn should_log_local_inference_audit(request: &InferRequest) -> bool {
 #[cfg(test)]
 #[path = "gemma_spreadsheet_tests.rs"]
 mod spreadsheet_tests;
+
+#[cfg(test)]
+#[path = "tests/gemma_artifact_creation.rs"]
+mod artifact_creation_tests;
 
 #[cfg(test)]
 #[path = "tests/gemma.rs"]

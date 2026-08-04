@@ -24,6 +24,7 @@ mod browser_proxy;
 mod calendar_permissions;
 mod capability_bundles;
 mod chat_attention;
+mod chat_session_lifecycle;
 mod command_registration;
 pub mod computer_use;
 mod condition_expression;
@@ -120,8 +121,7 @@ use persistence_health::{
     BackingStoreClass, DegradedModeState, DegradedModeStatus, VolatileRecoveryStatus,
     VolatileStoreSession, VolatileStoreSessionManager,
 };
-use std::time::Duration;
-use tauri::Manager;
+use {std::time::Duration, tauri::Manager};
 fn update_window_icon(window: &tauri::WebviewWindow, theme: &tauri::Theme) {
     let icon_filename = match theme {
         tauri::Theme::Dark => "OOMU-macOS-Dark-1024x1024@1x.png",

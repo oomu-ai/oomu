@@ -241,7 +241,7 @@ mod tests {
     const TEST_PROVIDER_CONFIG_ID: &str = "prov-auto-route-disable-test";
 
     fn model_root() -> std::path::PathBuf {
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models")
+        crate::db::tests::test_local_models::root()
     }
 
     fn temporary_paths(label: &str) -> (std::path::PathBuf, std::path::PathBuf) {

@@ -12,11 +12,13 @@ const signingIdentityVars = ["APPLE_SIGNING_IDENTITY"];
 const certificateImportVars = ["APPLE_CERTIFICATE", "APPLE_CERTIFICATE_PASSWORD"];
 const appleIdNotarizationVars = ["APPLE_ID", "APPLE_PASSWORD", "APPLE_TEAM_ID"];
 const apiNotarizationVars = ["APPLE_API_ISSUER", "APPLE_API_KEY", "APPLE_API_KEY_PATH"];
+const keychainNotarizationVars = ["APPLE_NOTARY_KEYCHAIN_PROFILE"];
 const trackedVars = [
   ...signingIdentityVars,
   ...certificateImportVars,
   ...appleIdNotarizationVars,
   ...apiNotarizationVars,
+  ...keychainNotarizationVars,
 ];
 
 function isPresent(value) {
@@ -52,6 +54,7 @@ function buildStatus(values) {
   const hasSigningIdentity = hasAll(signingIdentityVars, values);
   const hasAppleIdNotarization = hasAll(appleIdNotarizationVars, values);
   const hasApiNotarization = hasAll(apiNotarizationVars, values);
+  const hasKeychainNotarization = hasAll(keychainNotarizationVars, values);
   const setCertificateVars = certificateImportVars.filter((name) => isPresent(values[name]));
   const hasPartialCertificateImport =
     setCertificateVars.length > 0 && setCertificateVars.length < certificateImportVars.length;
@@ -60,10 +63,12 @@ function buildStatus(values) {
     hasSigningIdentity,
     hasAppleIdNotarization,
     hasApiNotarization,
+    hasKeychainNotarization,
     hasPartialCertificateImport,
     missingSigningIdentity: missingVars(signingIdentityVars, values),
     missingAppleIdNotarization: missingVars(appleIdNotarizationVars, values),
     missingApiNotarization: missingVars(apiNotarizationVars, values),
+    missingKeychainNotarization: missingVars(keychainNotarizationVars, values),
     missingCertificateImport: missingVars(certificateImportVars, values),
   };
 }
@@ -98,6 +103,9 @@ function printFailure({ activeValues, values, status }) {
     "  - Or APPLE_API_ISSUER, APPLE_API_KEY, APPLE_API_KEY_PATH: App Store Connect API notarization flow."
   );
   console.error(
+    "  - Or APPLE_NOTARY_KEYCHAIN_PROFILE: an existing notarytool profile stored in the macOS Keychain."
+  );
+  console.error(
     "  - APPLE_CERTIFICATE and APPLE_CERTIFICATE_PASSWORD: required together when importing a .p12 certificate in CI."
   );
   console.error(`  - Bundle identifier: ${bundleIdentifier} from src-tauri/tauri.conf.json.`);
@@ -106,9 +114,9 @@ function printFailure({ activeValues, values, status }) {
   if (!status.hasSigningIdentity) {
     console.error(`  - ${status.missingSigningIdentity.join(", ")}`);
   }
-  if (!status.hasAppleIdNotarization && !status.hasApiNotarization) {
+  if (!status.hasAppleIdNotarization && !status.hasApiNotarization && !status.hasKeychainNotarization) {
     console.error(
-      `  - Notarization credentials. Provide either ${appleIdNotarizationVars.join(", ")} or ${apiNotarizationVars.join(", ")}.`
+      `  - Notarization credentials. Provide ${keychainNotarizationVars.join(", ")}, ${appleIdNotarizationVars.join(", ")}, or ${apiNotarizationVars.join(", ")}.`
     );
   }
   if (status.hasPartialCertificateImport) {
@@ -116,7 +124,7 @@ function printFailure({ activeValues, values, status }) {
   }
   if (
     status.hasSigningIdentity &&
-    (status.hasAppleIdNotarization || status.hasApiNotarization) &&
+    (status.hasAppleIdNotarization || status.hasApiNotarization || status.hasKeychainNotarization) &&
     !status.hasPartialCertificateImport
   ) {
     console.error("  - No individual required values are missing, but the configuration did not validate.");
@@ -149,7 +157,8 @@ async function main() {
   const activeValues = getActiveEnvValues();
   const values = activeValues;
   const status = buildStatus(values);
-  const notarizationReady = status.hasAppleIdNotarization || status.hasApiNotarization;
+  const notarizationReady =
+    status.hasAppleIdNotarization || status.hasApiNotarization || status.hasKeychainNotarization;
   const certificateImportReady = !status.hasPartialCertificateImport;
   const teamId = values.APPLE_TEAM_ID;
   const teamIdReady = isPresent(teamId) && /^[A-Z0-9]{10}$/.test(teamId);
@@ -191,9 +200,31 @@ async function main() {
     process.exit(1);
   }
 
-  const notarizationMode = status.hasAppleIdNotarization
-    ? "Apple ID notarization"
-    : "App Store Connect API notarization";
+  if (status.hasKeychainNotarization) {
+    const profileCheck = childProcess.spawnSync(
+      "/usr/bin/xcrun",
+      [
+        "notarytool",
+        "history",
+        "--keychain-profile",
+        values.APPLE_NOTARY_KEYCHAIN_PROFILE.trim(),
+        "--output-format",
+        "json",
+      ],
+      { encoding: "utf8", env: securityEnvironment },
+    );
+    if (profileCheck.error || profileCheck.status !== 0) {
+      console.error("Signing preflight could not authenticate the configured Apple notary Keychain profile.");
+      console.error("No credential values were printed.");
+      process.exit(1);
+    }
+  }
+
+  const notarizationMode = status.hasKeychainNotarization
+    ? "macOS Keychain notarization profile"
+    : status.hasAppleIdNotarization
+      ? "Apple ID notarization"
+      : "App Store Connect API notarization";
   console.log(
     `Signing preflight passed: found ${notarizationMode} inputs and APPLE_SIGNING_IDENTITY via the active environment.`
   );

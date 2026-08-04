@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { lstatSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import process from "node:process";
+import { createSanitizedChildEnvironment } from "./release-environment.mjs";
 
 const SOURCE_REVISION_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
 
@@ -9,6 +11,7 @@ function gitBuffer(repositoryRoot, args) {
   const result = spawnSync("/usr/bin/git", args, {
     cwd: repositoryRoot,
     encoding: null,
+    env: createSanitizedChildEnvironment({}, process.env),
     maxBuffer: 128 * 1024 * 1024,
   });
   if (result.status !== 0) {

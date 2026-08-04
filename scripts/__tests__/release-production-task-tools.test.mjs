@@ -5,6 +5,10 @@ import {
   assertNativeCommandHandlerWiring,
   registeredProductionCommands,
 } from "../native-command-registry.mjs";
+import {
+  SUPPORTED_LOCALE_FILES,
+  validateConfiguredLocaleResources,
+} from "../release-gates/bundle-resource-inventory.mjs";
 
 const root = resolve(import.meta.dirname, "..", "..");
 
@@ -128,7 +132,9 @@ describe("packaged consolidated-scenario task tools", () => {
     }
 
     expect(baseConfig.bundle.resources).toContain("resources/mcp/mcp_applescript.py");
-    expect(baseConfig.bundle.resources).toContain("../src/locales/**/*");
+    expect(validateConfiguredLocaleResources(baseConfig)).toEqual(
+      SUPPORTED_LOCALE_FILES.map((file) => `../src/locales/${file}`).sort(),
+    );
     const mailBridge = read("src-tauri/resources/mcp/mcp_applescript.py");
     expect(mailBridge).toContain('"name": "send_system_email"');
     expect(mailBridge).toContain("return send_system_email(arguments)");

@@ -172,8 +172,43 @@ function unequal(left, right) {
 }
 
 function identityFailures(previous, current) {
-  return ["bundle_identifier", "main_executable", "entitlements"]
+  return ["bundle_identifier", "main_executable"]
     .filter((key) => unequal(previous[key], current[key]));
+}
+
+function approvedEntitlementAdditions(previous, current, transition) {
+  if (
+    !transition || typeof transition !== "object" || Array.isArray(transition)
+    || transition.from_product_version !== previous.product_version
+    || transition.from_build_number !== previous.build_number
+    || transition.to_product_version !== current.product_version
+    || transition.to_build_number !== current.build_number
+    || !transition.additions || typeof transition.additions !== "object"
+    || Array.isArray(transition.additions)
+  ) {
+    return {};
+  }
+  return transition.additions;
+}
+
+function entitlementFailures(previous, current, approvedTransition) {
+  const prior = previous.entitlements;
+  const next = current.entitlements;
+  const approved = approvedEntitlementAdditions(previous, current, approvedTransition);
+  if (
+    !prior || typeof prior !== "object" || Array.isArray(prior)
+    || !next || typeof next !== "object" || Array.isArray(next)
+  ) {
+    return ["entitlements"];
+  }
+  const removedOrChanged = Object.entries(prior).some(
+    ([key, value]) => !(key in next) || unequal(value, next[key]),
+  );
+  const unreviewedAddition = Object.entries(next).some(
+    ([key, value]) => !(key in prior)
+      && (!(key in approved) || unequal(value, approved[key])),
+  );
+  return removedOrChanged || unreviewedAddition ? ["entitlements"] : [];
 }
 
 function usageFailures(previous, current, approvedUsage) {
@@ -209,6 +244,11 @@ function helperSignatureFailures(previous, current) {
 export function comparePermissionContinuity(previous, current, options = {}) {
   const failures = [
     ...identityFailures(previous, current),
+    ...entitlementFailures(
+      previous,
+      current,
+      options.approvedEntitlementTransition,
+    ),
     ...usageFailures(previous, current, options.approvedUsageKeyAdditions ?? []),
     ...(unequal(helperInventory(previous), helperInventory(current))
       ? ["helper_executables"]
@@ -344,11 +384,15 @@ function main() {
   verifyExpectedTeam(current, expectedTeam);
   const reviewed = JSON.parse(readFileSync(reviewedSnapshotPath, "utf8"));
   comparePermissionContinuity(previous, current, {
+    approvedEntitlementTransition:
+      reviewed.approved_n_plus_one_entitlement_transition ?? null,
     approvedUsageKeyAdditions: reviewed.approved_n_plus_one_usage_key_additions ?? [],
     requireBuildIncrease: true,
   });
   current.continuity_review = {
     previous_snapshot: resolve(previousPath),
+    approved_entitlement_transition:
+      reviewed.approved_n_plus_one_entitlement_transition ?? null,
     approved_usage_key_additions:
       reviewed.approved_n_plus_one_usage_key_additions ?? [],
   };

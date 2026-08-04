@@ -41,6 +41,7 @@ mod execution_lease;
 pub(crate) mod execution_resume;
 mod execution_terminal;
 mod future_schedule;
+mod intent_topics;
 mod model_router;
 mod permission_checkpoint;
 mod permission_preflight;
@@ -63,6 +64,7 @@ use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use cloud_planner::*;
 use execution_authority::*;
 use execution_resume::{serialize_plan_for_persistence, AgentExecutionOriginGuard};
+use intent_topics::{is_informational_local_system_topic_question, mentions_local_system_topic};
 use model_router::ModelRouter;
 use permission_preflight::preflight_action_permission;
 #[cfg(test)]
@@ -662,90 +664,6 @@ fn routing_intent_latest_turn(prompt: &str) -> Option<&str> {
         .split_once(ROUTING_INTENT_LATEST_TURN_HEADING)
         .map(|(_, latest_turn)| latest_turn.trim())
         .filter(|latest_turn| !latest_turn.is_empty())
-}
-fn is_informational_local_system_topic_question(prompt: &str) -> bool {
-    let normalized = prompt.to_lowercase();
-    let trimmed = normalized.trim();
-    if trimmed.is_empty() || !mentions_local_system_topic(trimmed) {
-        return false;
-    }
-    if [
-        "check my",
-        "read my",
-        "review my",
-        "scan my",
-        "show my",
-        "show me my",
-        "list my",
-        "find my",
-        "look for",
-        "summarize my",
-        "summarise my",
-        "report on my",
-        "what is on my",
-        "what's on my",
-        "what are my",
-        "what's in my",
-        "what is in my",
-        "do i have",
-        "did i have",
-        "are there",
-        "how many",
-        "when is my",
-        "when are my",
-    ]
-    .iter()
-    .any(|term| trimmed.contains(term))
-    {
-        return false;
-    }
-    [
-        "how do i",
-        "how can i",
-        "how should i",
-        "how does",
-        "how do",
-        "how ",
-        "what is",
-        "what are",
-        "why does",
-        "why do",
-        "explain",
-        "tell me about",
-        "tell me how",
-        "help me understand",
-        "configure",
-        "set up",
-        "setup",
-        "troubleshoot",
-    ]
-    .iter()
-    .any(|term| trimmed.contains(term))
-}
-fn mentions_local_system_topic(prompt: &str) -> bool {
-    [
-        "mail",
-        "email",
-        "e-mail",
-        "inbox",
-        "calendar",
-        "agenda",
-        "scheduled event",
-        "reminder",
-        "task",
-        "todo",
-        "to-do",
-        "note",
-        "contact",
-        "address book",
-        "photo",
-        "picture",
-        "camera roll",
-        "messages app",
-        "imessage",
-    ]
-    .iter()
-    .any(|term| prompt.contains(term))
 }
 fn has_hydrated_text_attachment(request: &ChatIntentRouteRequest) -> bool {
     request.attachments.iter().any(|attachment| {

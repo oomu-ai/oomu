@@ -112,6 +112,11 @@ import {
   type SessionConfigRecord,
 } from "./chat/autoRouteSessionIdentity"; // Typed routing.
 import { ChatConsentCards } from "./chat/ChatConsentCards";
+import {
+  useProjectScopedChatSessionCreator,
+  useRemoteMcpCancellation,
+  useVerifiedExecutionCopy,
+} from "./chat/useChatScreenRuntimeBindings";
 import { resolveChatCloudConsentBoundary } from "./chat/chatCloudConsentFlow";
 import { completeOneTimeRoutineHandoff } from "./chat/chatRoutineHandoff";
 import { assistantExecutionIsLocal, assistantExecutionModelLabel, isLocalModelProviderId } from "./chat/assistantExecutionMetadata";
@@ -817,16 +822,6 @@ type ExecuteCommandResponse = {
   message: string;
   verified: boolean;
   claims?: string[];
-};
-
-type VerifiedExecutionCopy = {
-  failurePrefix: string;
-  receiptPrefix: string;
-  toolFailureWithoutDetails: string;
-  toolResultMissing: string;
-  fileChangedBeforeSave: string;
-  filePreparationFailed: string;
-  fileVerificationFailed: string;
 };
 
 type DirectLocalCalendarReadRequest = {
@@ -2831,33 +2826,13 @@ export function ChatScreen({
 }) {
   const { t, language } = useI18n();
   const { getRiskLevelLabel, getToolKindLabel } = useHumanTrust();
-  const createSessionInContext = useCallback(
-    (agentId: string, route: ChatSessionRouteBinding) =>
-      projectId
-        ? onCreateSession(agentId, route, projectId)
-        : onCreateSession(agentId, route),
-    [onCreateSession, projectId],
-  );
-  const verifiedExecutionCopy = useMemo<VerifiedExecutionCopy>(() => ({
-    failurePrefix: t("trust.local_command_failed"),
-    receiptPrefix: t("trust.verified_native_receipt"),
-    toolFailureWithoutDetails: t("trust.local_tool_failure_no_details"),
-    toolResultMissing: t("trust.local_tool_no_verifiable_result"),
-    fileChangedBeforeSave: t("trust.file_changed_before_save"),
-    filePreparationFailed: t("trust.file_preparation_failed"),
-    fileVerificationFailed: t("trust.file_verification_failed"),
-  }), [t]);
+  const createSessionInContext = useProjectScopedChatSessionCreator(onCreateSession, projectId);
+  const verifiedExecutionCopy = useVerifiedExecutionCopy(t);
   const tRef = useRef(t);
   tRef.current = t;
   const approvals = useOptionalApproval();
   const mcp = useOptionalMcp();
-  const cancelRemoteMcpOperations = mcp?.cancelRemoteOperations;
-  useEffect(
-    () => () => {
-      void cancelRemoteMcpOperations?.();
-    },
-    [activeSessionId, cancelRemoteMcpOperations],
-  );
+  useRemoteMcpCancellation(activeSessionId, mcp?.cancelRemoteOperations);
   const [systemHardwareProfile, setSystemHardwareProfile] = useState<SystemHardwareProfile | null>(null);
   const activeSession = useMemo(
     () => sessions.find((session) => session.id === activeSessionId),
@@ -7480,7 +7455,7 @@ export function ChatScreen({
   ) => {
     attachmentReadAbortRef.current?.abort();
     attachmentReadAbortRef.current = null;
-    void cancelRemoteMcpOperations?.();
+    void mcp?.cancelRemoteOperations();
     if (!streamId) return;
     setChatStatusForSession(sessionId, t("chat.status.stopping_generation"));
     if (invalidateGeneration) {

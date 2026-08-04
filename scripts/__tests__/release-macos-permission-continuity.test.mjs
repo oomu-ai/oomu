@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { copyFileSync, mkdtempSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { comparePermissionContinuity } from "../release-gates/macos-permission-continuity.mjs";
@@ -149,6 +156,95 @@ describe("macOS permission continuity release gate", () => {
     expect(() => comparePermissionContinuity(previous, unreviewed, {
       approvedUsageKeyAdditions: ["NSRemindersFullAccessUsageDescription"],
     })).toThrow("usage_description_keys");
+  });
+});
+
+describe("macOS permission continuity entitlement transitions", () => {
+  it("allows only the reviewed Contacts entitlement addition from 0.1.2", () => {
+    const reviewed = JSON.parse(readFileSync(
+      join(root, "release", "macos-permission-continuity.snapshot.json"),
+      "utf8",
+    ));
+    expect(reviewed.approved_n_plus_one_entitlement_transition).toEqual({
+      from_product_version: "0.1.2",
+      from_build_number: 7,
+      to_product_version: "0.1.3",
+      to_build_number: 8,
+      additions: {
+        "com.apple.security.personal-information.addressbook": true,
+      },
+    });
+
+    const previous = signedSnapshot();
+    previous.product_version = "0.1.2";
+    previous.bundle_version = "7";
+    previous.build_number = 7;
+    delete previous.entitlements["com.apple.security.personal-information.addressbook"];
+    const current = signedSnapshot();
+    current.product_version = "0.1.3";
+    current.bundle_version = "8";
+    current.build_number = 8;
+
+    expect(() => comparePermissionContinuity(previous, current, {
+      requireBuildIncrease: true,
+    })).toThrow("entitlements");
+    expect(comparePermissionContinuity(previous, current, {
+      approvedEntitlementTransition:
+        reviewed.approved_n_plus_one_entitlement_transition,
+      requireBuildIncrease: true,
+    })).toBe(true);
+
+    const wrongDestination = structuredClone(current);
+    wrongDestination.product_version = "0.1.4";
+    expect(() => comparePermissionContinuity(previous, wrongDestination, {
+      approvedEntitlementTransition:
+        reviewed.approved_n_plus_one_entitlement_transition,
+      requireBuildIncrease: true,
+    })).toThrow("entitlements");
+  });
+
+  it("rejects unreviewed, changed, and removed entitlements during the Contacts transition", () => {
+    const previous = signedSnapshot();
+    delete previous.entitlements["com.apple.security.personal-information.addressbook"];
+    previous.product_version = "0.1.2";
+    previous.bundle_version = "7";
+    previous.build_number = 7;
+    const approved = {
+      from_product_version: "0.1.2",
+      from_build_number: 7,
+      to_product_version: "0.1.3",
+      to_build_number: 8,
+      additions: {
+        "com.apple.security.personal-information.addressbook": true,
+      },
+    };
+
+    const unreviewed = signedSnapshot();
+    unreviewed.product_version = "0.1.3";
+    unreviewed.bundle_version = "8";
+    unreviewed.build_number = 8;
+    unreviewed.entitlements["com.apple.security.files.user-selected.read-write"] = true;
+    expect(() => comparePermissionContinuity(previous, unreviewed, {
+      approvedEntitlementTransition: approved,
+    })).toThrow("entitlements");
+
+    const wrongValue = signedSnapshot();
+    wrongValue.product_version = "0.1.3";
+    wrongValue.bundle_version = "8";
+    wrongValue.build_number = 8;
+    wrongValue.entitlements["com.apple.security.personal-information.addressbook"] = false;
+    expect(() => comparePermissionContinuity(previous, wrongValue, {
+      approvedEntitlementTransition: approved,
+    })).toThrow("entitlements");
+
+    const removed = structuredClone(previous);
+    removed.product_version = "0.1.3";
+    removed.bundle_version = "8";
+    removed.build_number = 8;
+    delete removed.entitlements["com.apple.security.network.client"];
+    expect(() => comparePermissionContinuity(previous, removed, {
+      approvedEntitlementTransition: approved,
+    })).toThrow("entitlements");
   });
 
   it.each([

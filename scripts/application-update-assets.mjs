@@ -20,6 +20,14 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 import { artifactDigestForEntries, collectTreeEntries } from "./release-manifest.mjs";
 import { loadReleaseVersionRecord } from "./release-version.mjs";
+import { loadVerifiedApplicationUpdateCandidate } from "./application-update-candidate.mjs";
+import { createSanitizedChildEnvironment } from "./release-environment.mjs";
+import {
+  assertUpdaterPublicKeyEmbeddedInApp,
+  normalizeUpdaterPublicKey,
+  updaterPublicKeySha256,
+  verifyUpdaterArchiveSignature,
+} from "./updater-signature-verification.mjs";
 
 export const SUPPORTED_UPDATE_LOCALES = Object.freeze([
   "de-DE", "en-US", "es-ES", "fr-FR", "id-ID", "ja-JP",
@@ -40,7 +48,7 @@ function run(executable, args, options = {}) {
   const result = spawnSync(executable, args, {
     cwd: options.cwd ?? root,
     encoding: "utf8",
-    env: options.env ?? process.env,
+    env: options.env ?? createSanitizedChildEnvironment({}, process.env),
     maxBuffer: 8 * 1024 * 1024,
   });
   if (result.status !== 0) {
@@ -134,7 +142,10 @@ function prepareOutput(path) {
 function archiveQualifiedApp(app, archivePath) {
   run("/usr/bin/tar", ["-czf", archivePath, "-C", dirname(app), basename(app)], {
     label: "updater archive creation",
-    env: { ...process.env, COPYFILE_DISABLE: "1" },
+    env: {
+      ...createSanitizedChildEnvironment({}, process.env),
+      COPYFILE_DISABLE: "1",
+    },
   });
   const extraction = mkdtempSync(join(tmpdir(), "oomu-update-archive-"));
   try {
@@ -150,17 +161,31 @@ function archiveQualifiedApp(app, archivePath) {
   }
 }
 
-function signArchive(archivePath) {
+function signArchive(archivePath, updaterPublicKey) {
   required("TAURI_SIGNING_PRIVATE_KEY_PASSWORD");
   if (!process.env.TAURI_SIGNING_PRIVATE_KEY && !process.env.TAURI_SIGNING_PRIVATE_KEY_PATH) {
     throw new Error("A dedicated Tauri updater private key is required.");
   }
   const cli = join(root, "node_modules", ".bin", "tauri");
-  run(cli, ["signer", "sign", archivePath], { label: "Tauri updater signature" });
+  const signingEnvironment = createSanitizedChildEnvironment(
+    Object.fromEntries([
+      "TAURI_SIGNING_PRIVATE_KEY",
+      "TAURI_SIGNING_PRIVATE_KEY_PATH",
+      "TAURI_SIGNING_PRIVATE_KEY_PASSWORD",
+    ]
+      .filter((name) => process.env[name] !== undefined)
+      .map((name) => [name, process.env[name]])),
+    process.env,
+  );
+  run(cli, ["signer", "sign", archivePath], {
+    label: "Tauri updater signature",
+    env: signingEnvironment,
+  });
   const signaturePath = `${archivePath}.sig`;
   if (!existsSync(signaturePath) || statSync(signaturePath).size === 0) {
     throw new Error("Tauri did not produce the updater signature.");
   }
+  verifyUpdaterArchiveSignature(archivePath, signaturePath, updaterPublicKey);
   return signaturePath;
 }
 
@@ -173,12 +198,16 @@ function assertCleanSource() {
 export function createApplicationUpdateAssets() {
   const versionRecord = loadReleaseVersionRecord(root);
   assertPlainSemver(versionRecord.productVersion);
-  const updaterPublicKey = required("OOMU_UPDATER_PUBLIC_KEY");
-  if (updaterPublicKey.length > 4096 || !/^[A-Za-z0-9+/=\r\n]+$/u.test(updaterPublicKey)) {
-    throw new Error("OOMU_UPDATER_PUBLIC_KEY is not a bounded base64 public key.");
-  }
+  const updaterPublicKey = normalizeUpdaterPublicKey(required("OOMU_UPDATER_PUBLIC_KEY"));
   const sourceRevision = assertCleanSource();
   const app = assertQualifiedApp(required("OOMU_QUALIFIED_APP_PATH"));
+  const candidate = loadVerifiedApplicationUpdateCandidate({
+    descriptorPath: required("OOMU_SIGNED_CANDIDATE_DESCRIPTOR_PATH"),
+    record: versionRecord,
+    sourceRevision,
+    appPath: app,
+  });
+  assertUpdaterPublicKeyEmbeddedInApp(app, updaterPublicKey);
   const { destination, staging } = prepareOutput(required("OOMU_UPDATER_OUTPUT_DIR"));
   try {
     populateUpdateAssets({
@@ -187,6 +216,7 @@ export function createApplicationUpdateAssets() {
       sourceRevision,
       updaterPublicKey,
       versionRecord,
+      candidate,
     });
     renameSync(staging, destination);
     return {
@@ -199,14 +229,29 @@ export function createApplicationUpdateAssets() {
   }
 }
 
-function populateUpdateAssets({ output, app, sourceRevision, updaterPublicKey, versionRecord }) {
-  const target = process.arch === "arm64" ? "darwin-aarch64" : "darwin-x86_64";
+function populateUpdateAssets({
+  output,
+  app,
+  sourceRevision,
+  updaterPublicKey,
+  versionRecord,
+  candidate,
+}) {
+  const target = candidate.updaterTarget;
   const archiveName = `OOMU_${versionRecord.productVersion}_${target}.app.tar.gz`;
   const archivePath = join(output, archiveName);
   const appTreeDigest = archiveQualifiedApp(app, archivePath);
-  const signaturePath = signArchive(archivePath);
+  if (appTreeDigest !== candidate.appTreeDigest) {
+    throw new Error("Updater archive source does not match the descriptor-bound application.");
+  }
+  const signaturePath = signArchive(archivePath, updaterPublicKey);
   const signature = readFileSync(signaturePath, "utf8").trim();
-  const notesSource = resolve(process.env.OOMU_UPDATE_NOTES_PATH ?? join(root, "release", "update-notes", `${versionRecord.productVersion}.json`));
+  const notesSource = join(
+    root,
+    "release",
+    "update-notes",
+    `${versionRecord.productVersion}.json`,
+  );
   const notes = validateReleaseNotes(JSON.parse(readFileSync(notesSource, "utf8")), versionRecord.productVersion);
   const notesPath = join(output, "release-notes.json");
   writeJson(notesPath, notes);
@@ -229,9 +274,15 @@ function populateUpdateAssets({ output, app, sourceRevision, updaterPublicKey, v
     intendedTag: versionRecord.intendedTag,
     sourceRevision,
     target,
-    qualifiedAppPath: app,
+    signedCandidateDescriptorPath: candidate.descriptorPath,
+    signedCandidateDescriptorSha256: candidate.descriptorSha256,
+    qualifiedAppPath: candidate.appPath,
     qualifiedAppTreeDigest: appTreeDigest,
-    updaterPublicKeySha256: createHash("sha256").update(updaterPublicKey.trim()).digest("hex"),
+    qualifiedDmgPath: candidate.dmgPath,
+    qualifiedDmgSha256: candidate.dmgSha256,
+    updaterPublicKeySha256: updaterPublicKeySha256(updaterPublicKey),
+    updaterPublicKeyEmbedded: true,
+    updaterSignatureVerified: true,
     assets: readdirSync(output).sort().map((name) => ({ name, sha256: sha256(join(output, name)), sizeBytes: statSync(join(output, name)).size })),
   });
 }

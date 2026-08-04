@@ -1,5 +1,8 @@
 use super::*;
 
+#[path = "../../test_local_models.rs"]
+mod test_local_models;
+
 #[test]
 fn missing_delete_preflight_uses_plain_stable_copy() {
     let verifier_reason = "Pre-flight ActionPlan verification failed for 1 issue(s): Shield Gate rejected step 'Delete the specified file': The requested file is not there.";
@@ -695,7 +698,7 @@ fn dynamic_planner_uses_the_accepted_sessions_local_baseline_not_the_agent_defau
                 context_budget: 8_192,
                 provenance: crate::db::AutoRouteProvenance::ExplicitSession,
             },
-            &std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models"),
+            &test_local_models::root(),
         )
         .unwrap();
     let agent = AgentConfig {

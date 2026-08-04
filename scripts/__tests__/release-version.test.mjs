@@ -35,10 +35,10 @@ describe("public version authority", () => {
   it("synchronizes every active application manifest", () => {
     const result = checkActiveVersionSurfaces(root);
     expect(result.surfaces).toMatchObject({
-      "package.json": "0.1.2",
-      "src-tauri/tauri.conf.json": "0.1.2",
-      "macOS bundleVersion": "7",
-      "macOS build number": "7",
+      "package.json": "0.1.3",
+      "src-tauri/tauri.conf.json": "0.1.3",
+      "macOS bundleVersion": "8",
+      "macOS build number": "8",
     });
   });
 
@@ -105,9 +105,9 @@ describe("public version authority", () => {
   it("derives artifact identities from version authority and build number", () => {
     const record = loadReleaseVersionRecord(root);
     expect(releaseArtifactIdentifier(record, "12345678")).toBe(
-      "oomu-macos-0.1.2-build.7-12345678",
+      "oomu-macos-0.1.3-build.8-12345678",
     );
-    expect(releaseDmgName(record, "OOMU")).toBe("OOMU-0.1.2.dmg");
+    expect(releaseDmgName(record, "OOMU")).toBe("OOMU-0.1.3.dmg");
   });
 
   it("fails when an active manifest drifts", () => {
@@ -130,10 +130,10 @@ describe("public version authority", () => {
     }
     const packagePath = join(root, "package.json");
     const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
-    packageJson.version = "0.1.3";
+    packageJson.version = "0.1.4";
     writeFileSync(join(directory, "package.json"), `${JSON.stringify(packageJson)}\n`);
     expect(() => checkActiveVersionSurfaces(directory)).toThrow(
-      /package\.json reports "0\.1\.3"; expected 0\.1\.2/u,
+      /package\.json reports "0\.1\.4"; expected 0\.1\.3/u,
     );
   });
 });

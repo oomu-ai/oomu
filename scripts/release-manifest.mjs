@@ -32,7 +32,7 @@ export const MANIFEST_SCHEMA_VERSION = 3;
 // Reviewed Architect Root release key. Rotating it requires a source review and
 // coordinated secure provisioning of the corresponding private key in CI.
 export const TRUSTED_RELEASE_PUBLIC_KEY_HEX =
-  "d40713a67f6ec73f2cadfa89bbc92d4535055655d368cc0606051b6b60f29620";
+  "10543bcbfa20b4c58d587aa969053124cc3340b11470b84ba9df763fee9100bb";
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -233,7 +233,7 @@ function validateReleaseProvenance(provenance, sourceRevision, entries) {
     .filter((subtree) => subtree.path_prefix.endsWith(".app"));
   const candidateIdentityValid =
     candidate?.kind === "oomu.release-candidate-integrity" &&
-    candidate?.schemaVersion === 1 &&
+    candidate?.schemaVersion === 2 &&
     /^[0-9a-f]{64}$/u.test(candidate?.reportSha256 ?? "") &&
     applicationSubtrees.length === 1 &&
     candidate?.applicationTreeDigest === applicationSubtrees[0].artifact_digest &&

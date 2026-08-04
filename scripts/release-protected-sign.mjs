@@ -159,7 +159,9 @@ function assertOnlySigningMutations(
 
 function notarize(toolchain, path, credentials) {
   const args = ["submit", path, "--wait", "--output-format", "json"];
-  if (credentials.mode === "apple-id") {
+  if (credentials.mode === "keychain-profile") {
+    args.push("--keychain-profile", credentials.profile);
+  } else if (credentials.mode === "apple-id") {
     args.push(
       "--apple-id", credentials.appleId,
       "--password", credentials.password,
@@ -229,6 +231,12 @@ function loadVerifiedHandoff() {
 }
 
 function releaseCredentials(teamId) {
+  if (process.env.APPLE_NOTARY_KEYCHAIN_PROFILE?.trim()) {
+    return {
+      mode: "keychain-profile",
+      profile: process.env.APPLE_NOTARY_KEYCHAIN_PROFILE.trim(),
+    };
+  }
   if (process.env.APPLE_ID && process.env.APPLE_PASSWORD) {
     return {
       mode: "apple-id",
@@ -252,6 +260,7 @@ function verifySigningAuthority(toolchain) {
     "APPLE_API_ISSUER",
     "APPLE_API_KEY",
     "APPLE_API_KEY_PATH",
+    "APPLE_NOTARY_KEYCHAIN_PROFILE",
     "APPLE_SIGNING_IDENTITY",
     "APPLE_TEAM_ID",
   ];

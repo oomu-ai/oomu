@@ -19,6 +19,11 @@ const releaseBinding = {
   manifestSha256: digest,
   manifestPayloadSha256: digest,
   signedOutputDigest: `sha256:${digest}`,
+  containerName: "OOMU.dmg",
+  containerSha256: digest,
+  teamId: "R7AQ8287N6",
+  bundleIdentifier: "ai.eldris.oomu.gpd",
+  entitlementDigest: digest,
 };
 const input = {
   appPath: "/private/tmp/OOMU.app",

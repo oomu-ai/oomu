@@ -4503,7 +4503,7 @@ mod memory_retrieval_and_extraction_tests {
         assert!(captured.iter().any(|memory| {
             memory.memory_kind == "user_profile"
                 && memory.scope == "identity_or_goal"
-                && memory.content.to_lowercase().starts_with("call me jeff")
+                && memory.content.to_lowercase().starts_with("call me alex")
         }));
         let profile = ledger
             .select_user_personality_profile_sync(&identity)

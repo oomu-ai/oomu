@@ -21,6 +21,31 @@ fn assert_workflow_awaiting_approval(response: &RunWorkflowResponse) {
     );
 }
 
+fn approve_local_sandbox_write(persistence: &PersistenceEngine, response: &RunWorkflowResponse) {
+    let arguments = normalize_mcp_text_writer_arguments(
+        "write_file",
+        resolve_json_templates(
+            &json!({
+                "path": "executive_summary.txt",
+                "content": "{{nodes.local-sandbox-summary.output.data}}"
+            }),
+            &response.instance.memory,
+        )
+        .expect("write arguments resolve from the verified summary"),
+    );
+    let material = task_tools::workflow_mcp_approval_material(&arguments, None);
+    persistence
+        .record_workflow_approval(
+            "test-local-sandbox-native-approval",
+            &response.instance.id,
+            "local-sandbox-write",
+            "write_file",
+            &material,
+            "approve",
+        )
+        .expect("native file write receives exact test approval authority");
+}
+
 #[test]
 fn prior_permission_approval_requires_bound_mcp_approval_for_next_high_risk_tool() {
     let mut compiled = compiled_workflow(false);
@@ -239,6 +264,7 @@ fn local_sandbox_log_summarizer_runs_end_to_end_with_filesystem_mcp() {
     assert_eq!(observed[0].trim(), TEST_INSTRUCTION);
     drop(observed);
 
+    approve_local_sandbox_write(&persistence, &paused);
     let approval = paused.approval_request.expect("approval is requested");
     assert_eq!(approval.node_id, "local-sandbox-approval");
     let completed = resolve_persisted_permission(

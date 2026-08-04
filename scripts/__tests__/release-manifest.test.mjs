@@ -204,7 +204,7 @@ describe("signed release provenance manifest", () => {
       buildSignPhaseIsolated: false,
       releaseCandidateIntegrity: {
         kind: "oomu.release-candidate-integrity",
-        schemaVersion: 1,
+        schemaVersion: 2,
         reportSha256: "e".repeat(64),
         applicationTreeDigest,
         codeObjectCount: 1,

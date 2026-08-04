@@ -1487,6 +1487,7 @@ fn grounding_bypass_skips_standard_chat_auto_compaction() {
 }
 
 mod continuation;
+mod continuation_native_artifacts;
 mod continuation_runtime;
 mod output_integrity;
 mod provider_stream;

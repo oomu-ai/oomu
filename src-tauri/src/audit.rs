@@ -22,7 +22,7 @@ const REQUIRED_RUNS: usize = 3;
 // Reviewed Architect Root release key. Rotation is a source-reviewed operation and requires
 // coordinated provisioning of the matching private key in the release secret store.
 const TRUSTED_RELEASE_PUBLIC_KEY_HEX: &str =
-    "d40713a67f6ec73f2cadfa89bbc92d4535055655d368cc0606051b6b60f29620";
+    "10543bcbfa20b4c58d587aa969053124cc3340b11470b84ba9df763fee9100bb";
 const REQUIRED_RELEASE_CHECKS: [&str; 13] = [
     "apple_toolchain",
     "dependency_audit",

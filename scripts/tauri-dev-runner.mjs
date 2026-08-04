@@ -157,8 +157,8 @@ if (process.platform === "darwin") {
     ["CFBundleInfoDictionaryVersion", "string", "6.0"],
     ["CFBundleName", "string", "OOMU Development"],
     ["CFBundlePackageType", "string", "APPL"],
-    ["CFBundleShortVersionString", "string", "0.1.2"],
-    ["CFBundleVersion", "string", "7"],
+    ["CFBundleShortVersionString", "string", "0.1.3"],
+    ["CFBundleVersion", "string", "8"],
   ]) {
     setPlistValue(bundledInfoPlistPath, key, type, value);
   }

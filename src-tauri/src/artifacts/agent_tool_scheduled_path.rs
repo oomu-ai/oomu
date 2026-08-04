@@ -79,15 +79,28 @@ pub(super) fn resolve_registration_for_task(
     } else {
         expand_direct_home_destination(&requested)?
     };
-    if scheduled_routine || !Path::new(&requested).is_absolute() {
-        let root = single_active_project_root(persistence, &task.project_id)?;
-        request.file.destination_path = resolve_project_output_path(&root, &requested)?
-            .to_string_lossy()
-            .to_string();
-    } else {
-        request.file.destination_path = requested;
-    }
+    request.file.destination_path = resolve_task_output_destination(
+        persistence,
+        &task.project_id,
+        requested,
+        scheduled_routine,
+    )?;
     serde_json::to_value(request).map_err(|error| error.to_string())
+}
+
+fn resolve_task_output_destination(
+    persistence: &crate::db::PersistenceEngine,
+    project_id: &str,
+    requested: String,
+    scheduled_routine: bool,
+) -> Result<String, String> {
+    if !scheduled_routine && Path::new(&requested).is_absolute() {
+        return Ok(requested);
+    }
+    let root = single_active_project_root(persistence, project_id)?;
+    Ok(resolve_project_output_path(&root, &requested)?
+        .to_string_lossy()
+        .to_string())
 }
 
 fn expand_direct_home_destination(requested: &str) -> Result<String, String> {

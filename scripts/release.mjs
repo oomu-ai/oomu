@@ -42,6 +42,7 @@ import {
 import {
   assertNoReleaseEnvironmentOverrides,
   assertNoRepositoryDotenvFiles as assertNoRepositoryDotenvFilesAt,
+  canonicalRustPathRemapEnvironment,
   createSanitizedChildEnvironment,
   externalHarnessEnvironment,
 } from "./release-environment.mjs";
@@ -56,6 +57,7 @@ import {
   releaseDmgName,
 } from "./release-version.mjs";
 import { writeCanonicalSignedCandidateDescriptor } from "./release-candidate-descriptor.mjs";
+import { normalizeUpdaterPublicKey } from "./updater-signature-verification.mjs";
 import {
   assertSignedArtifactUnchanged,
   orderedNestedCodeTargets,
@@ -101,6 +103,7 @@ const SIGNING_PREFLIGHT_ENV = [
   "APPLE_API_ISSUER",
   "APPLE_API_KEY",
   "APPLE_API_KEY_PATH",
+  "APPLE_NOTARY_KEYCHAIN_PROFILE",
   "APPLE_SIGNING_IDENTITY",
   "APPLE_TEAM_ID",
 ];
@@ -261,6 +264,10 @@ function requireEnvironment(name) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} is required by the canonical release pipeline.`);
   return value;
+}
+
+export function validateUpdaterPublicKey(value) {
+  return normalizeUpdaterPublicKey(value);
 }
 
 function repositoryReleaseRunner(fileName) {
@@ -456,7 +463,10 @@ function writeArtifactHelperIntegrityManifest(appPath) {
 function notarizationArgs(path, credentials) {
   const args = ["notarytool", "submit", path, "--wait", "--output-format", "json"];
   const redacted = ["notarytool", "submit", basename(path), "--wait", "--output-format", "json"];
-  if (credentials.mode === "apple-id") {
+  if (credentials.mode === "keychain-profile") {
+    args.push("--keychain-profile", credentials.profile);
+    redacted.push("--keychain-profile", credentials.profile);
+  } else if (credentials.mode === "apple-id") {
     args.push("--apple-id", credentials.appleId, "--password", credentials.password, "--team-id", credentials.teamId);
     redacted.push("--apple-id", "<redacted>", "--password", "<redacted>", "--team-id", credentials.teamId);
   } else {
@@ -731,6 +741,9 @@ function initializeReleaseContext() {
   const publicKeyPath = resolve(requireEnvironment("OOMU_RELEASE_MANIFEST_PUBLIC_KEY_PATH"));
   const signingIdentity = requireEnvironment("APPLE_SIGNING_IDENTITY");
   const teamId = requireEnvironment("APPLE_TEAM_ID");
+  const updaterPublicKey = validateUpdaterPublicKey(
+    requireEnvironment("OOMU_UPDATER_PUBLIC_KEY"),
+  );
   const permission = permissionContinuityPrerequisite();
   const cleanMachineRunner = repositoryReleaseRunner("clean-machine-launch.mjs");
   const p0AcceptanceRunner = repositoryReleaseRunner("p0-acceptance.mjs");
@@ -748,26 +761,35 @@ function initializeReleaseContext() {
   })) {
     throw new Error("Release public key does not match the reviewed authorization key.");
   }
-  const releaseEnvironment = sanitizedChildEnvironment({
-    OOMU_RELEASE_PIPELINE: "canonical-v1",
-    OOMU_BUILD_ID: buildId,
-    OOMU_SOURCE_REVISION: sourceRevision,
-    OOMU_RELEASE_AUTHORIZATION_BASE64: releaseAuthorization,
-    OOMU_RELEASE_MANIFEST_PUBLIC_KEY_PATH: publicKeyPath,
-  });
+  const releaseEnvironment = {
+    ...sanitizedChildEnvironment({
+      OOMU_RELEASE_PIPELINE: "canonical-v1",
+      OOMU_BUILD_ID: buildId,
+      OOMU_SOURCE_REVISION: sourceRevision,
+      OOMU_RELEASE_AUTHORIZATION_BASE64: releaseAuthorization,
+      OOMU_RELEASE_MANIFEST_PUBLIC_KEY_PATH: publicKeyPath,
+      OOMU_UPDATER_PUBLIC_KEY: updaterPublicKey,
+    }),
+    ...canonicalRustPathRemapEnvironment(root),
+  };
   const signingPreflightEnvironment = sanitizedChildEnvironment(Object.fromEntries(
     SIGNING_PREFLIGHT_ENV
       .filter((name) => process.env[name] !== undefined)
       .map((name) => [name, process.env[name]]),
   ));
-  const credentials = process.env.APPLE_ID && process.env.APPLE_PASSWORD
+  const credentials = process.env.APPLE_NOTARY_KEYCHAIN_PROFILE?.trim()
     ? {
+        mode: "keychain-profile",
+        profile: process.env.APPLE_NOTARY_KEYCHAIN_PROFILE.trim(),
+      }
+    : process.env.APPLE_ID && process.env.APPLE_PASSWORD
+      ? {
         mode: "apple-id",
         appleId: process.env.APPLE_ID,
         password: process.env.APPLE_PASSWORD,
         teamId,
       }
-    : {
+      : {
         mode: "api-key",
         issuer: requireEnvironment("APPLE_API_ISSUER"),
         keyId: requireEnvironment("APPLE_API_KEY"),
@@ -1233,6 +1255,7 @@ function qualifyAndMaterializeRelease(
   notarized,
   candidate,
   releaseEvidence,
+  candidateDescriptor,
 ) {
   const qualification = runCleanMachineQualification({
     ...context,
@@ -1248,9 +1271,6 @@ function qualifyAndMaterializeRelease(
     expectedBuildNumber: releaseVersion.buildNumber,
     expectedBundleIdentifier: tauriConfig.identifier,
   });
-  const candidateDescriptor = materializeCandidateDescriptor(
-    context, candidate, releaseEvidence,
-  );
   const canonicalEvidence = materializeCanonicalReleaseEvidence({
     ...context,
     ...gates,
@@ -1259,6 +1279,7 @@ function qualifyAndMaterializeRelease(
     ...candidate,
     ...releaseEvidence,
     ...qualification,
+    signedCandidateDescriptor: candidateDescriptor,
     repositoryRoot: root,
   });
   console.log(
@@ -1270,7 +1291,6 @@ function qualifyAndMaterializeRelease(
   console.log(
     `OOMU_RELEASE_CANDIDATE_EVIDENCE=${canonicalEvidence.candidateIntegrityRecordPath}`,
   );
-  console.log(`OOMU_SIGNED_CANDIDATE_DESCRIPTOR=${candidateDescriptor.path}`);
 }
 
 function main() {
@@ -1284,9 +1304,13 @@ function main() {
   const releaseEvidence = writeReleaseProvenanceAndManifest(
     context, built, notarized, candidate,
   );
+  const candidateDescriptor = materializeCandidateDescriptor(
+    context, candidate, releaseEvidence,
+  );
+  console.log(`OOMU_SIGNED_CANDIDATE_DESCRIPTOR=${candidateDescriptor.path}`);
 
   qualifyAndMaterializeRelease(
-    context, gates, built, notarized, candidate, releaseEvidence,
+    context, gates, built, notarized, candidate, releaseEvidence, candidateDescriptor,
   );
 }
 

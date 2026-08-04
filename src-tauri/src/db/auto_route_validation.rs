@@ -199,8 +199,7 @@ mod tests {
             reasoning_depth: "medium".to_string(),
             context_budget: 12_288,
         };
-        let model_root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../assets/models");
+        let model_root = crate::db::tests::test_local_models::root();
 
         let verified = resolve_verified_auto_route_baseline(&[provider], &request, &model_root)
             .expect("the typed configured provider resolves");

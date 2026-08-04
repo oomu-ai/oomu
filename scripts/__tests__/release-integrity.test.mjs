@@ -34,6 +34,10 @@ import {
 } from "../release.mjs";
 import { verifyReleaseAuthorization } from "../assert-release-entrypoint.mjs";
 import { TRUSTED_RELEASE_PUBLIC_KEY_HEX } from "../release-manifest.mjs";
+import {
+  SUPPORTED_LOCALE_FILES,
+  validateConfiguredLocaleResources,
+} from "../release-gates/bundle-resource-inventory.mjs";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const temporaryRoots = [];
@@ -129,6 +133,25 @@ describe("production release entrypoints", () => {
     expect(development.identifier).toBe("ai.eldris.oomu.gpd.development");
     expect(development.identifier).not.toBe(production.identifier);
     expect(development.productName).toBe("OOMU Development");
+  });
+
+  it("packages exactly the 12 supported locale JSON catalogs and no test source", () => {
+    const tauri = JSON.parse(
+      readFileSync(join(root, "src-tauri", "tauri.conf.json"), "utf8"),
+    );
+    expect(validateConfiguredLocaleResources(tauri)).toEqual(
+      SUPPORTED_LOCALE_FILES.map((file) => `../src/locales/${file}`).sort(),
+    );
+    for (const file of SUPPORTED_LOCALE_FILES) {
+      expect(() => JSON.parse(readFileSync(join(root, "src", "locales", file), "utf8")))
+        .not.toThrow();
+    }
+
+    const contaminated = structuredClone(tauri);
+    contaminated.bundle.resources.push("../src/locales/englishTranslationSource.test.ts");
+    expect(() => validateConfiguredLocaleResources(contaminated)).toThrow(
+      /exactly the 12 supported JSON catalogs/iu,
+    );
   });
 
   it("packages localized Calendar Full Access privacy copy for every supported locale", () => {
@@ -504,13 +527,16 @@ describe("production release security boundaries", () => {
     expect(client).toContain("rejectUnauthorized: true");
     expect(client).not.toMatch(/synthetic:\s*true|status:\s*[\"']passed[\"']/);
   });
+});
 
+describe("production release credential boundaries", () => {
   it("does not expose release credentials or capabilities to child processes and harnesses", () => {
     const previous = { ...process.env };
     try {
       process.env.APPLE_CERTIFICATE_PASSWORD = "certificate-secret";
       process.env.APPLE_API_ISSUER = "issuer-secret";
       process.env.APPLE_API_KEY = "key-secret";
+      process.env.APPLE_NOTARY_KEYCHAIN_PROFILE = "OOMU-notary";
       process.env.OOMU_RELEASE_MANIFEST_PRIVATE_KEY_PATH = "/secret/release.pem";
       process.env.OOMU_RELEASE_AUTHORIZATION_BASE64 = "authorization-secret";
       process.env.OOMU_CLEAN_MACHINE_TEST_RUNNER = "/external/clean-runner";
@@ -526,12 +552,19 @@ describe("production release security boundaries", () => {
         "APPLE_CERTIFICATE_PASSWORD",
         "APPLE_API_ISSUER",
         "APPLE_API_KEY",
+        "APPLE_NOTARY_KEYCHAIN_PROFILE",
         "OOMU_RELEASE_MANIFEST_PRIVATE_KEY_PATH",
         "OOMU_RELEASE_AUTHORIZATION_BASE64",
         "OOMU_CLEAN_MACHINE_TEST_RUNNER",
       ]) {
         expect(childEnvironment[name]).toBeUndefined();
       }
+
+      const signingEnvironment = sanitizedChildEnvironment(
+        { APPLE_NOTARY_KEYCHAIN_PROFILE: "OOMU-notary" },
+        releaseSource,
+      );
+      expect(signingEnvironment.APPLE_NOTARY_KEYCHAIN_PROFILE).toBe("OOMU-notary");
 
       const harnessEnvironment = externalHarnessEnvironment({});
       expect(harnessEnvironment.OOMU_UNRELATED_VALUE).toBeUndefined();

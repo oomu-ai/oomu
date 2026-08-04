@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import process from "node:process";
 import { createUnsignedHandoff } from "./release-handoff.mjs";
+import { canonicalRustPathRemapEnvironment } from "./release-environment.mjs";
 import {
   collectReleaseToolchain,
   runApproved,
@@ -230,6 +231,7 @@ function main() {
     OOMU_BUILD_ID: buildIdentifier,
     OOMU_SOURCE_REVISION: sourceRevision,
     OOMU_RELEASE_POLICY_SHA256: toolchain.policyDigest,
+    ...canonicalRustPathRemapEnvironment(root),
   };
   const gateResults = runSourceQualification(toolchain, environment);
   const appPath = buildUnsignedApplication(toolchain, environment, gateResults);

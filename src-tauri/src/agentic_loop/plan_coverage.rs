@@ -5,7 +5,6 @@ use crate::gemma::{
 use regex::Regex;
 use serde_json::Value;
 use std::{collections::HashSet, path::Path, sync::OnceLock};
-
 mod compound_requirements;
 mod decision_pack_contract;
 mod evidence_artifact_contract;
@@ -1086,9 +1085,10 @@ fn absolute_path_start_regex() -> &'static Regex {
 fn file_extension_boundary_regex() -> &'static Regex {
     static REGEX: OnceLock<Regex> = OnceLock::new();
     REGEX.get_or_init(|| {
-        Regex::new(
-            r"(?i)(\.(?:c|cpp|csv|db|doc|docx|gif|go|gz|h|hpp|htm|html|java|jpeg|jpg|js|json|jsx|kt|md|markdown|pdf|png|ppt|pptx|py|rb|rs|rtf|sh|sql|sqlite|svg|swift|tar|toml|ts|tsv|tsx|txt|webp|xls|xlsx|xml|yaml|yml|zip|zsh))(?:$|[.,:;!?\])}]|\s+(?:and|or|then|from|with|without|to|in|into|inside|under|at|for|before|after|while|but|please|containing|contains|analy[sz]e|archive|attach|compare|copy|create|delete|describe|draft|email|explain|export|import|inspect|list|move|open|prepare|publish|read|recommend|remove|rename|review|run|save|send|share|show|summari[sz]e|trash|upload|write)\b)",
-        )
+        Regex::new(concat!(
+            r"(?i)(\.(?:c|cpp|csv|db|doc|docx|gif|go|gz|h|hpp|htm|html|java|jpeg|jpg|js|json|jsx|kt|md|markdown|pdf|png|ppt|pptx|py|rb|rs|rtf|sh|sql|sqlite|svg|swift|tar|toml|ts|tsv|tsx|txt|webp|xls|xlsx|xml|yaml|yml|zip|zsh))(?:$|[.,:;!?\])}]|\s+(?:and|or|then|from|with|without|to|in|into|inside|under|at|for|before|after|while|but|please|containing|",
+            r"contains|analy[sz]e|archive|attach|compare|copy|create|delete|describe|draft|email|explain|export|import|inspect|list|move|open|prepare|publish|read|recommend|remove|rename|review|run|save|send|share|show|summari[sz]e|trash|upload|write)\b)",
+        ))
         .expect("file extension boundary regex")
     })
 }

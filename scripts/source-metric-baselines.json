@@ -1132,7 +1132,7 @@
     },
     "src/app/page.tsx": {
       "owner": "renderer/application",
-      "functionLines": 1329,
+      "functionLines": 1324,
       "complexity": 35
     },
     "src/components/AgentProfileView.tsx": {

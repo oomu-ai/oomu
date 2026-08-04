@@ -543,7 +543,7 @@ describe("production release credential boundaries", () => {
       process.env.OOMU_UNRELATED_VALUE = "retained";
 
       const releaseSource = withoutEnvironmentKeys(process.env, [
-        "NODE_ENV", "MACOSX_DEPLOYMENT_TARGET",
+        "NODE_ENV", "MACOSX_DEPLOYMENT_TARGET", "CARGO_ENCODED_RUSTFLAGS",
       ]);
       const childEnvironment = sanitizedChildEnvironment({}, releaseSource);
       expect(childEnvironment.OOMU_UNRELATED_VALUE).toBeUndefined();

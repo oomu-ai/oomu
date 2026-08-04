@@ -1,6 +1,6 @@
 import { readdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import process from "node:process";
 
 const CARGO_ENCODED_FLAG_SEPARATOR = "\u001f";
@@ -95,6 +95,8 @@ const FORBIDDEN_RELEASE_ENVIRONMENT_NAMES = new Set([
   "CARGO_HOME",
   "CARGO_BUILD_TARGET",
   "CARGO_TARGET_DIR",
+  "CFLAGS",
+  "CXXFLAGS",
   "MACOSX_DEPLOYMENT_TARGET",
   "SDKROOT",
   "CC",
@@ -111,9 +113,31 @@ const FORBIDDEN_RELEASE_ENVIRONMENT_NAMES = new Set([
   "OOMU_PORTABLE_PYTHON_SHA256",
 ]);
 
-export function canonicalRustPathRemapEnvironment(checkoutRoot, source = process.env) {
+export function releaseToolchainHomeDirectory(toolchain) {
+  const cargo = resolve(toolchain?.tools?.cargo?.executable ?? "");
+  const rustBin = dirname(cargo);
+  const toolchainDirectory = dirname(rustBin);
+  const toolchainsDirectory = dirname(toolchainDirectory);
+  const rustupHome = dirname(toolchainsDirectory);
+  if (basename(cargo) !== "cargo" || basename(rustBin) !== "bin"
+    || basename(toolchainsDirectory) !== "toolchains"
+    || basename(rustupHome) !== ".rustup") {
+    throw new Error("Pinned Rust toolchain does not identify a canonical release home.");
+  }
+  return dirname(rustupHome);
+}
+
+export function canonicalNativePathRemapConfiguration(
+  checkoutRoot,
+  source = process.env,
+  pinnedHomeDirectory = null,
+) {
   const repository = resolve(checkoutRoot);
-  const home = resolve(source.HOME?.trim() || homedir());
+  const ambientHome = resolve(source.HOME?.trim() || homedir());
+  const home = resolve(pinnedHomeDirectory ?? ambientHome);
+  if (ambientHome !== home) {
+    throw new Error("Release HOME does not match the pinned Rust toolchain home.");
+  }
   const mappings = [
     [repository, CANONICAL_RUST_PATHS.repository],
     [resolve(home, ".cargo"), CANONICAL_RUST_PATHS.cargo],
@@ -129,15 +153,41 @@ export function canonicalRustPathRemapEnvironment(checkoutRoot, source = process
       || !to.startsWith("/oomu/")
       || from.includes("=")
       || from.includes(CARGO_ENCODED_FLAG_SEPARATOR)
+      || !/^\/[A-Za-z0-9._/-]+$/u.test(from)
+      || !/^\/[A-Za-z0-9._/-]+$/u.test(to)
     ) {
-      throw new Error("Canonical Rust path remapping requires bounded absolute paths.");
+      throw new Error("Canonical native path remapping requires bounded absolute paths.");
     }
   }
   const flags = [
     "--remap-path-scope=all",
     ...mappings.map(([from, to]) => `--remap-path-prefix=${from}=${to}`),
   ];
-  return { CARGO_ENCODED_RUSTFLAGS: flags.join(CARGO_ENCODED_FLAG_SEPARATOR) };
+  const compilerFlags = mappings.flatMap(([from, to]) => [
+    `-ffile-prefix-map=${from}=${to}`,
+    `-fdebug-prefix-map=${from}=${to}`,
+    `-fmacro-prefix-map=${from}=${to}`,
+  ]);
+  return { compilerFlags, mappings, rustFlags: flags };
+}
+
+export function canonicalNativePathRemapEnvironment(
+  checkoutRoot,
+  source = process.env,
+  pinnedHomeDirectory = null,
+) {
+  const configuration = canonicalNativePathRemapConfiguration(
+    checkoutRoot,
+    source,
+    pinnedHomeDirectory,
+  );
+  const compilerFlags = configuration.compilerFlags.join(" ");
+  return {
+    CARGO_ENCODED_RUSTFLAGS:
+      configuration.rustFlags.join(CARGO_ENCODED_FLAG_SEPARATOR),
+    CFLAGS: compilerFlags,
+    CXXFLAGS: compilerFlags,
+  };
 }
 
 function releaseEnvironmentOverrideNames(environment) {

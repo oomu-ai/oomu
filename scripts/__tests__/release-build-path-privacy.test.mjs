@@ -8,8 +8,11 @@ import {
 } from "../release-gates/build-path-privacy.mjs";
 import {
   assertNoReleaseEnvironmentOverrides,
-  canonicalRustPathRemapEnvironment,
+  canonicalNativePathRemapConfiguration,
+  canonicalNativePathRemapEnvironment,
+  releaseToolchainHomeDirectory,
 } from "../release-environment.mjs";
+import { inspectNativePathRemapArtifact } from "../preflight-native-path-remap.mjs";
 
 const root = resolve(import.meta.dirname, "..", "..");
 
@@ -34,9 +37,10 @@ function fakeMachO(content) {
 
 describe("release build-path privacy", () => {
   it("uses stable path remapping only through the reviewed production environment", () => {
-    const environment = canonicalRustPathRemapEnvironment(
+    const environment = canonicalNativePathRemapEnvironment(
       "/Users/release-builder/work/OOMU",
       { HOME: "/Users/release-builder" },
+      "/Users/release-builder",
     );
     const flags = environment.CARGO_ENCODED_RUSTFLAGS.split("\u001f");
     expect(flags).toContain("--remap-path-scope=all");
@@ -52,23 +56,83 @@ describe("release build-path privacy", () => {
     expect(flags).toContain(
       "--remap-path-prefix=/Users/release-builder=/oomu/builder-home",
     );
+    for (const name of ["CFLAGS", "CXXFLAGS"]) {
+      expect(environment[name]).toContain(
+        "-ffile-prefix-map=/Users/release-builder/work/OOMU=/oomu/source",
+      );
+      expect(environment[name]).toContain(
+        "-fdebug-prefix-map=/Users/release-builder/.cargo=/oomu/toolchains/cargo",
+      );
+      expect(environment[name]).toContain(
+        "-fmacro-prefix-map=/Users/release-builder=/oomu/builder-home",
+      );
+    }
     expect(() => assertNoReleaseEnvironmentOverrides({
       CARGO_ENCODED_RUSTFLAGS: "--unreviewed",
     })).toThrow(/environment overrides are prohibited/i);
     expect(() => assertNoReleaseEnvironmentOverrides({
       CARGO_HOME: "/unreviewed/cargo",
     })).toThrow(/environment overrides are prohibited/i);
+    expect(() => assertNoReleaseEnvironmentOverrides({
+      CXXFLAGS: "-DUNREVIEWED_RELEASE_INPUT=1",
+    })).toThrow(/environment overrides are prohibited/i);
 
     const canonicalRelease = readFileSync(join(root, "scripts", "release.mjs"), "utf8");
     const unsignedRelease = readFileSync(
       join(root, "scripts", "release-unsigned.mjs"), "utf8",
     );
+    const canonicalEvidence = readFileSync(
+      join(root, "scripts", "release-canonical-evidence.mjs"), "utf8",
+    );
     const packageJson = readFileSync(join(root, "package.json"), "utf8");
-    expect(canonicalRelease).toContain("canonicalRustPathRemapEnvironment(root)");
-    expect(unsignedRelease).toContain("canonicalRustPathRemapEnvironment(root)");
+    expect(canonicalRelease).toContain("canonicalNativePathRemapEnvironment(");
+    expect(unsignedRelease).toContain("canonicalNativePathRemapEnvironment(");
+    expect(canonicalRelease).toContain("releaseToolchainHomeDirectory(immutableReleaseToolchain)");
+    expect(unsignedRelease).toContain("releaseToolchainHomeDirectory(toolchain)");
+    expect(canonicalRelease).toContain('runStep("automated_native_path_remap"');
+    expect(canonicalRelease).toContain("nativePathRemap.checked_languages");
+    expect(canonicalEvidence).toContain("native_path_remap: context.nativePathRemap");
+    expect(canonicalRelease.indexOf('runStep("automated_native_path_remap"')).toBeLessThan(
+      canonicalRelease.indexOf("...runRustQualification(node, releaseEnvironment)"),
+    );
     expect(packageJson).not.toContain("CARGO_ENCODED_RUSTFLAGS");
+    expect(releaseToolchainHomeDirectory({
+      tools: {
+        cargo: {
+          executable:
+            "/Users/release-builder/.rustup/toolchains/1.91.0-aarch64-apple-darwin/bin/cargo",
+        },
+      },
+    })).toBe("/Users/release-builder");
+    expect(() => canonicalNativePathRemapEnvironment(
+      "/Users/release-builder/work/OOMU",
+      { HOME: "/Users/other-builder" },
+      "/Users/release-builder",
+    )).toThrow(/does not match the pinned Rust toolchain home/i);
+    expect(() => canonicalNativePathRemapEnvironment(
+      "/Users/release builder/work/OOMU",
+      { HOME: "/Users/release builder" },
+      "/Users/release builder",
+    )).toThrow(/bounded absolute paths/i);
   });
 
+  it("rejects local C and C++ canary paths before the production compile", () => {
+    const configuration = canonicalNativePathRemapConfiguration(
+      "/Users/release-builder/work/OOMU",
+      { HOME: "/Users/release-builder" },
+    );
+    expect(inspectNativePathRemapArtifact(
+      Buffer.from("/Users/release-builder/.cargo/registry/native.cpp"),
+      configuration,
+    ).findings).toEqual(["local_path_marker"]);
+    expect(inspectNativePathRemapArtifact(
+      Buffer.from("/oomu/toolchains/cargo/registry/native.cpp"),
+      configuration,
+    ).findings).toEqual([]);
+  });
+});
+
+describe("release build-path privacy bundle scan", () => {
   it("accepts canonical production paths and ordinary bundle resources", async () => {
     const value = fixture();
     writeFileSync(join(value.macOS, "oomu"), fakeMachO("/oomu/source/src/main.rs"));

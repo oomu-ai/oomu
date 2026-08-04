@@ -79,6 +79,7 @@ function materializeBuildEvidence(context, dependencies, common) {
     "automated_module_cycles",
     "automated_unused_exports",
     "automated_repository_hygiene",
+    "automated_native_path_remap",
     "automated_release_integrity",
     "automated_i18n",
     "automated_typecheck",
@@ -88,13 +89,15 @@ function materializeBuildEvidence(context, dependencies, common) {
   ], context.npm), {
     passed: true,
     source_revision: context.sourceRevision,
+    native_path_remap: context.nativePathRemap,
     source_line_baseline_sha256: context.dependencyLockDigests.source_line_baseline_sha256,
     lint_warnings: 0,
     source_size_violations: 0,
     suites: [
       "lint", "check:source-size", "check:real-components", "check:p0-architecture",
       "check:p1-contracts", "check:novice-ui", "check:module-cycles",
-      "check:unused-exports", "check:repository-hygiene", "test:release-integrity",
+      "check:unused-exports", "check:repository-hygiene", "native path-remap preflight",
+      "test:release-integrity",
       "check:i18n", "typecheck", "test:frontend", "cargo check", "cargo test",
     ],
   });

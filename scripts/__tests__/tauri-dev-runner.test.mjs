@@ -9,21 +9,34 @@ const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"))
 
 describe("Tauri development macOS permission identity", () => {
   it("runs every Tauri development launch through the isolated signer", () => {
+    const developmentPhases = packageJson.scripts.dev.split(" && ");
     expect(packageJson.scripts.dev).toContain(
       "tauri dev --runner ../scripts/tauri-dev-runner.mjs",
     );
     expect(statSync(runnerPath).mode & 0o111).not.toBe(0);
     for (const preparation of [
       "prepare-portable-python.mjs",
-      "prepare-local-infer.mjs",
-      "prepare-pdf-helper.mjs",
-      "prepare-artifact-helper.mjs",
+      "prepare-rust-helpers.mjs",
       "prepare-artifact-pdf-helper.mjs",
       "prepare-vision-helper.mjs",
       "prepare-tauri-external-bins.mjs --verify",
     ]) {
       expect(packageJson.scripts.dev).toContain(preparation);
     }
+    for (const supersededPreparation of [
+      "prepare-local-infer.mjs",
+      "prepare-pdf-helper.mjs",
+      "prepare-artifact-helper.mjs",
+    ]) {
+      expect(packageJson.scripts.dev).not.toContain(supersededPreparation);
+    }
+    expect(developmentPhases.slice(1, 6)).toEqual([
+      "node scripts/prepare-rust-helpers.mjs",
+      "node scripts/prepare-artifact-pdf-helper.mjs",
+      "node scripts/prepare-vision-helper.mjs",
+      "src-tauri/src-swift/build.sh",
+      "node scripts/prepare-tauri-external-bins.mjs --verify",
+    ]);
   });
 
   it("uses the development identifier and reviewed entitlements without password access", () => {

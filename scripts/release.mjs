@@ -42,9 +42,10 @@ import {
 import {
   assertNoReleaseEnvironmentOverrides,
   assertNoRepositoryDotenvFiles as assertNoRepositoryDotenvFilesAt,
-  canonicalRustPathRemapEnvironment,
+  canonicalNativePathRemapEnvironment,
   createSanitizedChildEnvironment,
   externalHarnessEnvironment,
+  releaseToolchainHomeDirectory,
 } from "./release-environment.mjs";
 import { runCleanMachineQualification } from "./release-clean-machine.mjs";
 import {
@@ -87,6 +88,7 @@ const LOCAL_GATE_LABELS = [
   "automated_module_cycles",
   "automated_unused_exports",
   "automated_repository_hygiene",
+  "automated_native_path_remap",
   "automated_release_integrity",
   "automated_i18n",
   "automated_typecheck",
@@ -771,7 +773,10 @@ function initializeReleaseContext() {
       OOMU_RELEASE_MANIFEST_PUBLIC_KEY_PATH: publicKeyPath,
       OOMU_UPDATER_PUBLIC_KEY: updaterPublicKey,
     }),
-    ...canonicalRustPathRemapEnvironment(root),
+    ...canonicalNativePathRemapEnvironment(
+      root, process.env,
+      releaseToolchainHomeDirectory(immutableReleaseToolchain),
+    ),
   };
   const signingPreflightEnvironment = sanitizedChildEnvironment(Object.fromEntries(
     SIGNING_PREFLIGHT_ENV
@@ -846,6 +851,27 @@ function runAutomatedReleaseGates(context) {
     { echo: false },
   );
   const dependencyResult = JSON.parse(dependencyAudit.stdout);
+  const nativeCompiler = immutableReleaseToolchain.tools.clang;
+  const nativePathRemapPath = join(rawEvidenceDir, "native-path-remap-preflight.json");
+  runStep("automated_native_path_remap", node, [
+    "scripts/preflight-native-path-remap.mjs",
+    "--clang", nativeCompiler.executable,
+    "--output", nativePathRemapPath,
+  ], { env: releaseEnvironment });
+  const nativePathRemap = readJson(nativePathRemapPath, "Native path-remap preflight");
+  if (nativePathRemap.schema_version !== 1
+    || nativePathRemap.kind !== "oomu.native-path-remap-preflight"
+    || nativePathRemap.status !== "passed" || nativePathRemap.synthetic !== false
+    || nativePathRemap.compiler_sha256 !== nativeCompiler.sha256
+    || !Array.isArray(nativePathRemap.checked_languages)
+    || JSON.stringify(nativePathRemap.checked_languages.map((entry) => entry.language))
+      !== JSON.stringify(["c", "c++"])
+    || nativePathRemap.checked_languages.some((entry) =>
+      entry.local_path_findings.length !== 0
+      || !/^[a-f0-9]{64}$/u.test(entry.object_sha256)
+      || !/^[a-f0-9]{64}$/u.test(entry.canonical_path_sha256))) {
+    throw new Error("Native path-remap preflight did not produce bound passing evidence.");
+  }
   runStep("automated_strict_lint", npm, ["run", "lint"], { env: releaseEnvironment });
   runStep("automated_version", npm, ["run", "check:version"], { env: releaseEnvironment });
   runStep("automated_source_size", npm, ["run", "check:source-size"], { env: releaseEnvironment });
@@ -863,6 +889,7 @@ function runAutomatedReleaseGates(context) {
   return {
     toolchain,
     dependencyResult,
+    nativePathRemap,
     ...runRustQualification(node, releaseEnvironment),
   };
 }

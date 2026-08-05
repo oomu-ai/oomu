@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "productVersion": "0.1.3",
+  "productVersion": "0.1.4",
   "channel": "beta",
-  "publicLabel": "OOMU 0.1.3 — Public Beta",
-  "intendedTag": "v0.1.3",
-  "buildNumber": 8
+  "publicLabel": "OOMU 0.1.4 — Public Beta",
+  "intendedTag": "v0.1.4",
+  "buildNumber": 9
 }

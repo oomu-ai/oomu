@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.4",
+  "notes": {
+    "de-DE": "Verbessert toolgestützte Antworten, damit Ergebnisse bereits auf die erste Anfrage erscheinen, verhindert, dass verifizierte Belege nativer Tools während der Freigabe verfallen, und bietet eine zuverlässige Wiederherstellung mit einer klaren Option zum Fortfahren.",
+    "en-US": "Improves tool-assisted replies so results appear on the first request, prevents verified native-tool receipts from expiring during approval, and adds reliable recovery with a clear Continue option.",
+    "es-ES": "Mejora las respuestas asistidas por herramientas para que los resultados aparezcan desde la primera solicitud, evita que los comprobantes verificados de herramientas nativas caduquen durante la aprobación y añade una recuperación fiable con una opción clara para continuar.",
+    "fr-FR": "Améliore les réponses assistées par des outils afin que les résultats apparaissent dès la première demande, empêche l’expiration des justificatifs vérifiés des outils natifs pendant l’autorisation et ajoute une récupération fiable avec une option claire pour continuer.",
+    "id-ID": "Meningkatkan balasan berbantuan alat agar hasil muncul pada permintaan pertama, mencegah bukti alat native yang terverifikasi kedaluwarsa selama persetujuan, dan menambahkan pemulihan yang andal dengan opsi Lanjutkan yang jelas.",
+    "ja-JP": "ツールを使った回答が最初の依頼から表示されるよう改善し、承認中に検証済みのネイティブツール証明が失効する問題を防ぎ、明確な「続ける」オプションを備えた確実な復旧を追加しました。",
+    "pt-BR": "Melhora as respostas com ferramentas para que os resultados apareçam já na primeira solicitação, impede que comprovantes verificados de ferramentas nativas expirem durante a aprovação e adiciona uma recuperação confiável com uma opção clara para continuar.",
+    "ru-RU": "Улучшены ответы с использованием инструментов: результаты появляются уже по первому запросу, подтверждённые квитанции нативных инструментов не истекают во время согласования, а восстановление стало надёжным и получило понятную кнопку продолжения.",
+    "uk-UA": "Поліпшено відповіді з використанням інструментів: результати з’являються вже після першого запиту, підтверджені квитанції нативних інструментів не втрачають чинності під час погодження, а відновлення стало надійним і отримало зрозумілу кнопку продовження.",
+    "vi-VN": "Cải thiện câu trả lời có công cụ để kết quả xuất hiện ngay từ yêu cầu đầu tiên, ngăn biên nhận công cụ gốc đã xác minh hết hạn trong lúc phê duyệt và bổ sung khả năng khôi phục đáng tin cậy với tùy chọn Tiếp tục rõ ràng.",
+    "zh-CN": "改进工具辅助回复，使结果在首次请求时即可显示；防止已验证的原生工具凭据在审批期间失效；并新增可靠的恢复流程和清晰的“继续”选项。",
+    "zh-TW": "改進工具輔助回覆，使結果在第一次要求時即可顯示；防止已驗證的原生工具憑據在核准期間失效；並新增可靠的復原流程和清楚的「繼續」選項。"
+  }
+}

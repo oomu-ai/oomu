@@ -33,11 +33,20 @@ export function SetupLaunchGate({
   setupState,
 }: SetupLaunchGateProps) {
   const [firstRunJourneyDismissed, setFirstRunJourneyDismissed] = useState(false);
+  const [dismissedRecoveryKey, setDismissedRecoveryKey] = useState<string | null>(null);
   const firstRunRequested = firstRunSetup && !firstRunJourneyDismissed;
   const previewMode = firstRunRequested && setupState.currentStep === "finished";
+  const recoveryKey = JSON.stringify({
+    hasVolatileStorage: degradedModeStatus.hasVolatileStorage,
+    reason: degradedModeStatus.reason,
+    subsystems: degradedModeStatus.subsystems
+      .filter((subsystem) => subsystem.active)
+      .map((subsystem) => [subsystem.subsystem, subsystem.cause]),
+  });
   const surface = startupSurface(
     setupState,
-    shouldShowDegradedLanding(degradedModeStatus, activeItem),
+    dismissedRecoveryKey !== recoveryKey &&
+      shouldShowDegradedLanding(degradedModeStatus, activeItem),
     firstRunRequested,
   );
 
@@ -45,6 +54,7 @@ export function SetupLaunchGate({
     return (
       <DegradedModeLanding
         status={degradedModeStatus}
+        onContinue={() => setDismissedRecoveryKey(recoveryKey)}
         onOpenSettings={onOpenSettings}
         onStatusChange={onStatusChange}
       />

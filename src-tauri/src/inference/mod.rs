@@ -53,7 +53,7 @@ use provider_stream::{
 use stream_text::{merge_stream_text_chunk, sanitize_stream_text};
 use turn_preparation::{
     load_parent_turn_context, prepare_turn_attachments, resolve_bound_mod_ids,
-    verified_native_execution_authority,
+    validate_native_execution_authority_request, verified_native_execution_authority,
 };
 use validated_stream::ChatEventStream;
 
@@ -1230,13 +1230,10 @@ async fn run_chat_turn(
     // The legacy boolean remains deserializable for older callers, but renderer
     // input never grants execution authority. Native background completion is
     // the sole exception: its turn kind is rejected by the public IPC boundary.
-    let verified_native_execution_receipt = verified_native_execution_authority(
+    validate_native_execution_authority_request(
         native_execution_receipt_id.as_deref(),
         parent_turn_context.as_ref(),
         steering_only,
-        has_verified_approved_file_context,
-        &turn_kind,
-        legacy_native_execution_receipt_claim,
     )?;
     let bound_mod_ids = resolve_bound_mod_ids(
         &agent_manager,
@@ -2253,6 +2250,17 @@ async fn run_chat_turn(
         } else {
             None
         };
+        // Consent challenges release the accepted turn for an exact retry. Keep
+        // the one-use native receipt unconsumed until those pre-dispatch gates
+        // clear, then consume it immediately before provider execution.
+        let verified_native_execution_receipt = verified_native_execution_authority(
+            native_execution_receipt_id.as_deref(),
+            parent_turn_context.as_ref(),
+            steering_only,
+            has_verified_approved_file_context,
+            &turn_context.turn_kind,
+            legacy_native_execution_receipt_claim,
+        )?;
         auto_route_execution::emit_executor_receipt(
             auto_route_executor_identity.as_ref(),
             active_session_id.as_str(),

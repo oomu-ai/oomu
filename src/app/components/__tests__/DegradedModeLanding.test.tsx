@@ -93,6 +93,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         onStatusChange={onStatusChange}
         status={INFERENCE_DEGRADED_STATUS}
@@ -132,6 +133,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         status={INFERENCE_DEGRADED_STATUS}
       />,
@@ -159,6 +161,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         status={{
           active: true,
@@ -214,6 +217,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         status={{
           active: true,
@@ -270,6 +274,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         status={{
           active: true,
@@ -316,6 +321,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         onStatusChange={onStatusChange}
         status={{
@@ -352,6 +358,7 @@ describe("DegradedModeLanding local inference recovery", () => {
 
     render(
       <DegradedModeLanding
+        onContinue={vi.fn()}
         onOpenSettings={vi.fn()}
         status={INFERENCE_DEGRADED_STATUS}
       />,
@@ -369,5 +376,31 @@ describe("DegradedModeLanding local inference recovery", () => {
       await screen.findByText("OOMU couldn't restart its on-device model."),
     ).toBeVisible();
     expect(screen.queryByText(nativeCanary)).toBeNull();
+  });
+
+  it("always provides a direct way to continue using OOMU", async () => {
+    const onContinue = vi.fn();
+    invokeMock.mockImplementation(async (command: string) => {
+      if (command === "get_locale_state") return localeState();
+      if (command === "get_persistence_recovery_status") return null;
+      return null;
+    });
+
+    render(
+      <DegradedModeLanding
+        onContinue={onContinue}
+        onOpenSettings={vi.fn()}
+        status={{
+          active: true,
+          reason: "migration recovery required",
+          hasVolatileStorage: true,
+          subsystems: [],
+        }}
+      />,
+      { wrapper: I18nProvider },
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+    expect(onContinue).toHaveBeenCalledOnce();
   });
 });

@@ -144,7 +144,7 @@ fn connector_scope_migration_preserves_existing_bindings_and_marks_only_existing
 }
 
 #[test]
-fn legacy_runner_checksums_require_a_verified_schema_and_never_cover_sql_migrations() {
+fn legacy_checksums_require_a_verified_schema_and_reject_unapproved_sql_migrations() {
     let temp_dir =
         std::env::temp_dir().join(format!("oomu_legacy_runner_checksum_{}", unix_time_ms()));
     std::fs::create_dir_all(&temp_dir).unwrap();
@@ -185,6 +185,36 @@ fn legacy_runner_checksums_require_a_verified_schema_and_never_cover_sql_migrati
     drop(connection);
     let error = engine.run_migrations().unwrap_err().to_string();
     assert!(error.contains("checksum mismatch for 0002_workflow_execution"));
+
+    let _ = std::fs::remove_dir_all(temp_dir);
+}
+
+#[test]
+fn adaptive_learning_beta_checksum_recovers_only_with_the_verified_schema() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "oomu_adaptive_learning_checksum_{}",
+        unix_time_ms()
+    ));
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    let engine = PersistenceEngine::initialize_at(temp_dir.join("state.sqlite")).unwrap();
+
+    engine
+        .open_connection()
+        .unwrap()
+        .execute(
+            "UPDATE schema_migration_ledger SET checksum_sha256=?1 WHERE sequence=23",
+            params!["c".repeat(64)],
+        )
+        .unwrap();
+    engine.run_migrations().unwrap();
+
+    engine
+        .open_connection()
+        .unwrap()
+        .execute_batch("DROP TABLE saved_method_versions;")
+        .unwrap();
+    let error = engine.run_migrations().unwrap_err().to_string();
+    assert!(error.contains("required table saved_method_versions is missing"));
 
     let _ = std::fs::remove_dir_all(temp_dir);
 }

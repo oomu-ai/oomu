@@ -1,12 +1,19 @@
 use super::*;
 
-pub(super) fn accepts_legacy_runner_checksum(
+pub(super) fn accepts_verified_legacy_checksum(
     checksum: &str,
     migration: MigrationDescriptor,
 ) -> bool {
     let legacy_runner_checksum = matches!(migration.sequence, 1 | 3 | 4 | 6 | 7)
         && matches!(migration.source, MigrationSource::RustImplementation { .. });
-    legacy_runner_checksum
+    // Early beta builds recorded a different source checksum for this SQL
+    // migration even though they installed the compatible adaptive-learning
+    // schema. The caller must verify the complete schema contract before
+    // accepting either compatibility case.
+    let adaptive_learning_beta_checksum = migration.sequence == 23
+        && migration.id == "0023_adaptive_learning"
+        && matches!(migration.source, MigrationSource::Sql(_));
+    (legacy_runner_checksum || adaptive_learning_beta_checksum)
         && checksum.len() == 64
         && checksum
             .bytes()

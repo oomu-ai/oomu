@@ -62,10 +62,12 @@ const DEGRADED_SUBSYSTEM_IMPACT_KEYS: Record<string, string> = {
 
 export function DegradedModeLanding({
   status,
+  onContinue,
   onOpenSettings,
   onStatusChange,
 }: {
   status: DegradedModeStatus;
+  onContinue: () => void;
   onOpenSettings: () => void;
   onStatusChange?: (status: DegradedModeStatus) => void;
 }) {
@@ -384,6 +386,13 @@ export function DegradedModeLanding({
         )}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            className="rounded-[var(--radius-sm)] bg-[var(--inverse-background)] px-5 py-2.5 text-sm font-semibold text-[var(--inverse-foreground)] transition-colors hover:bg-[var(--accent-hover)]"
+            onClick={onContinue}
+            type="button"
+          >
+            {t("setup.continue")}
+          </button>
           {inferenceUnavailable && (
             <>
               <button

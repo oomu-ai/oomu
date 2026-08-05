@@ -64,6 +64,54 @@ fn volatile_records_reconcile_to_durable_store_and_survive_restart() {
 }
 
 #[test]
+fn volatile_recovery_reconciles_into_a_verified_early_beta_schema() {
+    let temp_dir = std::env::temp_dir().join(format!("oomu_beta_reconcile_db_{}", unix_time_ms()));
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    let durable_path = temp_dir.join("durable.sqlite");
+    let volatile_path = temp_dir.join("volatile.sqlite");
+    let durable = PersistenceEngine::initialize_at(durable_path.clone()).unwrap();
+    durable
+        .open_connection()
+        .unwrap()
+        .execute(
+            "UPDATE schema_migration_ledger SET checksum_sha256=?1 WHERE sequence=23",
+            params!["c".repeat(64)],
+        )
+        .unwrap();
+    drop(durable);
+
+    let volatile = PersistenceEngine::initialize_volatile_at(volatile_path).unwrap();
+    volatile
+        .open_connection()
+        .unwrap()
+        .execute(
+            "INSERT INTO app_preferences (key, value, updated_at_ms, encryption_state) VALUES ('beta-recovery-record', 'recover-me', ?1, ?2)",
+            params![unix_time_ms(), get_current_encryption_state()],
+        )
+        .unwrap();
+
+    let report = volatile
+        .reconcile_volatile_store_to(durable_path.clone(), false)
+        .unwrap();
+    assert!(!report.requires_confirmation);
+    assert!(report.durable_probe_verified);
+    assert!(report.recovered_records > 0);
+
+    let restarted = PersistenceEngine::initialize_at(durable_path).unwrap();
+    let recovered_value: String = restarted
+        .open_connection()
+        .unwrap()
+        .query_row(
+            "SELECT value FROM app_preferences WHERE key='beta-recovery-record'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(recovered_value, "recover-me");
+    let _ = std::fs::remove_dir_all(temp_dir);
+}
+
+#[test]
 fn volatile_reconciliation_requires_confirmation_for_a_genuine_value_conflict() {
     let temp_dir = std::env::temp_dir().join(format!("oomu_reconcile_conflict_{}", unix_time_ms()));
     let durable_path = temp_dir.join("durable.sqlite");

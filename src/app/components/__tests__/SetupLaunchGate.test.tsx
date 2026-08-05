@@ -2,6 +2,14 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SetupLaunchGate } from "../integrations/SetupLaunchGate";
 
+vi.mock("../HomeChrome", () => ({
+  DegradedModeLanding: ({ onContinue }: { onContinue: () => void }) => (
+    <button onClick={onContinue} type="button">
+      Continue
+    </button>
+  ),
+}));
+
 vi.mock("../integrations/SetupJourney", () => ({
   SetupJourney: ({ initialState, onComplete, previewMode }: {
     initialState: { currentStep: string };
@@ -102,5 +110,30 @@ describe("SetupLaunchGate", () => {
 
     expect(screen.getByText("OOMU app")).toBeVisible();
     expect(onSetupStateChange).not.toHaveBeenCalled();
+  });
+
+  it("lets the user continue when recovery cannot complete", () => {
+    render(
+      <SetupLaunchGate
+        activeItem="chat"
+        degradedModeStatus={{
+          active: true,
+          reason: "migration recovery required",
+          hasVolatileStorage: true,
+          subsystems: [],
+        }}
+        onOpenSettings={vi.fn()}
+        onProviderConfigured={vi.fn()}
+        onSetupStateChange={vi.fn()}
+        onStatusChange={vi.fn()}
+        setupState={{ currentStep: "finished" }}
+      >
+        <p>OOMU app</p>
+      </SetupLaunchGate>,
+    );
+
+    expect(screen.queryByText("OOMU app")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByText("OOMU app")).toBeVisible();
   });
 });

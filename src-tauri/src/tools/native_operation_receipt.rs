@@ -552,11 +552,11 @@ impl ContinuationReceiptLedger {
         }
     }
 
-    fn consume(
-        &mut self,
+    fn validate(
+        &self,
         receipt_id: &str,
         parent_context: &ChatTurnPersistenceContext,
-    ) -> Result<ConsumedNativeExecutionReceipt, NativeReceiptConsumptionError> {
+    ) -> Result<(), NativeReceiptConsumptionError> {
         let normalized_receipt_id = receipt_id.trim();
         if normalized_receipt_id != receipt_id
             || normalized_receipt_id.is_empty()
@@ -570,7 +570,7 @@ impl ContinuationReceiptLedger {
         }
         let authority = self
             .entries
-            .get_mut(normalized_receipt_id)
+            .get(normalized_receipt_id)
             .ok_or(NativeReceiptConsumptionError::InvalidReceipt)?;
         let ContinuationReceiptOrigin::ChatTurn {
             session_id,
@@ -597,6 +597,19 @@ impl ContinuationReceiptLedger {
         if authority.consumed {
             return Err(NativeReceiptConsumptionError::Replayed);
         }
+        Ok(())
+    }
+
+    fn consume(
+        &mut self,
+        receipt_id: &str,
+        parent_context: &ChatTurnPersistenceContext,
+    ) -> Result<ConsumedNativeExecutionReceipt, NativeReceiptConsumptionError> {
+        self.validate(receipt_id, parent_context)?;
+        let authority = self
+            .entries
+            .get_mut(receipt_id)
+            .ok_or(NativeReceiptConsumptionError::InvalidReceipt)?;
         authority.consumed = true;
         Ok(ConsumedNativeExecutionReceipt {
             receipt_id: authority.receipt_id.clone(),
@@ -608,6 +621,17 @@ impl ContinuationReceiptLedger {
             native_result_code: authority.native_result_code.clone(),
         })
     }
+}
+
+pub(crate) fn validate_chat_turn_receipt(
+    receipt_id: &str,
+    parent_context: &ChatTurnPersistenceContext,
+) -> Result<(), NativeReceiptConsumptionError> {
+    let ledger = continuation_receipt_ledger();
+    let ledger = ledger
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    ledger.validate(receipt_id, parent_context)
 }
 
 pub(crate) fn consume_chat_turn_receipt(
@@ -1219,6 +1243,34 @@ mod tests {
         assert_eq!(consumed.execution_binding_sha256.len(), 64);
         assert_eq!(
             ledger.consume(&receipt.receipt_id, &receipt_parent_context()),
+            Err(NativeReceiptConsumptionError::Replayed)
+        );
+    }
+
+    #[test]
+    fn continuation_authority_validation_does_not_consume_the_receipt() {
+        let receipt = receipt_fixture(
+            NativeOperationOutcome::Succeeded,
+            NativePostconditionEvidence {
+                evidence_kind: "native_result",
+                operation_succeeded: true,
+                verified: true,
+                bounded_count: None,
+                truncated: None,
+                native_result_code: Some("mail_read_ok".to_string()),
+                durable_operation_binding: None,
+                capture_proof: None,
+            },
+        );
+        let mut ledger = ContinuationReceiptLedger::default();
+        ledger.register(&receipt);
+        let parent = receipt_parent_context();
+
+        assert_eq!(ledger.validate(&receipt.receipt_id, &parent), Ok(()));
+        assert_eq!(ledger.validate(&receipt.receipt_id, &parent), Ok(()));
+        assert!(ledger.consume(&receipt.receipt_id, &parent).is_ok());
+        assert_eq!(
+            ledger.validate(&receipt.receipt_id, &parent),
             Err(NativeReceiptConsumptionError::Replayed)
         );
     }

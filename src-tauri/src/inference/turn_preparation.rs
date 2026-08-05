@@ -107,11 +107,7 @@ pub(super) fn verified_native_execution_authority(
     turn_kind: &str,
     legacy_receipt_claim: bool,
 ) -> Result<bool, InferenceError> {
-    if receipt_id.is_some() && (!steering_only || parent.is_none()) {
-        return Err(InferenceError::invalid(
-            "A native execution receipt can only continue its bound parent turn.",
-        ));
-    }
+    validate_native_execution_authority_request(receipt_id, parent, steering_only)?;
     let consumed_receipt = receipt_id
         .zip(parent)
         .map(|(receipt_id, parent)| {
@@ -129,6 +125,31 @@ pub(super) fn verified_native_execution_authority(
             .as_ref()
             .is_some_and(|receipt| receipt.verified_success)
         || (turn_kind == crate::db::AUTO_TURN_KIND && legacy_receipt_claim))
+}
+
+pub(super) fn validate_native_execution_authority_request(
+    receipt_id: Option<&str>,
+    parent: Option<&ChatTurnPersistenceContext>,
+    steering_only: bool,
+) -> Result<(), InferenceError> {
+    if receipt_id.is_some() && (!steering_only || parent.is_none()) {
+        return Err(InferenceError::invalid(
+            "A native execution receipt can only continue its bound parent turn.",
+        ));
+    }
+    receipt_id
+        .zip(parent)
+        .map(|(receipt_id, parent)| {
+            crate::tools::native_operation_receipt::validate_chat_turn_receipt(receipt_id, parent)
+                .map_err(|error| {
+                    InferenceError::invalid(format!(
+                        "The native execution receipt could not be verified. ({})",
+                        error.code()
+                    ))
+                })
+        })
+        .transpose()?;
+    Ok(())
 }
 
 pub(super) async fn resolve_bound_mod_ids(

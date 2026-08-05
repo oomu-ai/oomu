@@ -60,17 +60,34 @@ const DEGRADED_SUBSYSTEM_IMPACT_KEYS: Record<string, string> = {
   workflowScheduler: "degraded.impacts.routines",
 };
 
+type DegradedModeLandingProps = {
+  status: DegradedModeStatus;
+  onContinue: () => void;
+  onOpenSettings: () => void;
+  onStatusChange?: (status: DegradedModeStatus) => void;
+};
+
+function RecoveryContinueButton({ label, onContinue }: {
+  label: string;
+  onContinue: () => void;
+}) {
+  return (
+    <button
+      className="rounded-[var(--radius-sm)] bg-[var(--inverse-background)] px-5 py-2.5 text-sm font-semibold text-[var(--inverse-foreground)] transition-colors hover:bg-[var(--accent-hover)]"
+      onClick={onContinue}
+      type="button"
+    >
+      {label}
+    </button>
+  );
+}
+
 export function DegradedModeLanding({
   status,
   onContinue,
   onOpenSettings,
   onStatusChange,
-}: {
-  status: DegradedModeStatus;
-  onContinue: () => void;
-  onOpenSettings: () => void;
-  onStatusChange?: (status: DegradedModeStatus) => void;
-}) {
+}: DegradedModeLandingProps) {
   const { t } = useI18n();
   const tRef = useRef(t);
   const [isBrowsing, setIsBrowsing] = useState(false);
@@ -386,13 +403,7 @@ export function DegradedModeLanding({
         )}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            className="rounded-[var(--radius-sm)] bg-[var(--inverse-background)] px-5 py-2.5 text-sm font-semibold text-[var(--inverse-foreground)] transition-colors hover:bg-[var(--accent-hover)]"
-            onClick={onContinue}
-            type="button"
-          >
-            {t("setup.continue")}
-          </button>
+          <RecoveryContinueButton label={t("setup.continue")} onContinue={onContinue} />
           {inferenceUnavailable && (
             <>
               <button

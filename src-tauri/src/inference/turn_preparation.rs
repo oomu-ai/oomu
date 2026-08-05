@@ -1,6 +1,7 @@
 use super::{
     clean_runtime_text, finish_prebound_chat_turn, hydrate_approved_file_receipts,
-    validate_chat_attachments, ChatAttachment, InferenceError,
+    validate_chat_attachments, ChatAttachment, InferenceError, InferenceMessage,
+    ResolvedProviderRoute,
 };
 use crate::{
     agent_manager::AgentManager,
@@ -150,6 +151,56 @@ pub(super) fn validate_native_execution_authority_request(
         })
         .transpose()?;
     Ok(())
+}
+
+/// Consume one-use native authority only after consent and attachment gates
+/// have cleared, immediately before the provider dispatch that uses it.
+pub(super) fn consume_native_execution_authority(
+    receipt_id: Option<&str>,
+    parent: Option<&ChatTurnPersistenceContext>,
+    steering_only: bool,
+    has_verified_approved_file_context: bool,
+    turn: &ChatTurnPersistenceContext,
+    legacy_receipt_claim: bool,
+) -> Result<bool, InferenceError> {
+    verified_native_execution_authority(
+        receipt_id,
+        parent,
+        steering_only,
+        has_verified_approved_file_context,
+        &turn.turn_kind,
+        legacy_receipt_claim,
+    )
+}
+
+pub(super) fn prepare_private_egress(
+    messages: &mut [InferenceMessage],
+    selected_route_is_local: bool,
+    route: &ResolvedProviderRoute,
+    model_id: &str,
+    session_id: &str,
+    turn: &ChatTurnPersistenceContext,
+    persistence: &PersistenceEngine,
+    identity: &SovereignIdentity,
+) -> Result<Option<crate::privacy::egress::PrivateEgressPermit>, InferenceError> {
+    if selected_route_is_local || !crate::privacy::egress::contains_private_data(messages) {
+        return Ok(None);
+    }
+    crate::privacy::egress::prepare_cloud_egress(
+        messages,
+        &route.route_provider_id,
+        model_id,
+        session_id,
+        &turn.turn_id,
+        &turn.generation_token,
+        persistence,
+        identity,
+    )
+    .map_err(|error| InferenceError {
+        code: error.code.to_string(),
+        boundary: "PrivateEgressBoundary".to_string(),
+        message: error.message,
+    })
 }
 
 pub(super) async fn resolve_bound_mod_ids(

@@ -103,6 +103,9 @@ describe("assistantControlProjection", () => {
       translations["chat.errors.provider_response.content"],
     );
   });
+});
+
+describe("assistantControlProjection parsing", () => {
 
   it("keeps authored assistant text after removing the control block", () => {
     const projection = assistantControlProjection(

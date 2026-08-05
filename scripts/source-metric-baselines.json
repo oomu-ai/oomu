@@ -347,7 +347,7 @@
     },
     "src-tauri/src/db.rs": {
       "owner": "persistence/core-transactions",
-      "bytes": 333775,
+      "bytes": 333700,
       "functionLines": 443,
       "complexity": 89
     },
@@ -447,10 +447,10 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 259916,
+      "bytes": 259837,
       "maxLineBytes": 2053,
-      "functionLines": 1750,
-      "complexity": 218
+      "functionLines": 1749,
+      "complexity": 217
     },
     "src-tauri/src/inference/provider_stream.rs": {
       "owner": "native/inference",
@@ -759,7 +759,7 @@
     },
     "src/app/components/HomeChrome.tsx": {
       "owner": "renderer/components",
-      "functionLines": 387
+      "functionLines": 385
     },
     "src/app/components/ImportAgentScreen.tsx": {
       "owner": "renderer/components",
@@ -826,7 +826,7 @@
     },
     "src/app/components/__tests__/DegradedModeLanding.test.tsx": {
       "owner": "renderer/components",
-      "functionLines": 309
+      "functionLines": 280
     },
     "src/app/components/__tests__/ModsScreen.test.tsx": {
       "owner": "renderer/components",

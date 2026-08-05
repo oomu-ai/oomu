@@ -341,6 +341,14 @@ describe("DegradedModeLanding local inference recovery", () => {
     await waitFor(() => expect(onStatusChange).toHaveBeenCalledWith(healthyStatus));
     expect(invokeMock).toHaveBeenCalledWith("get_degraded_mode_status");
   });
+});
+
+describe("DegradedModeLanding recovery controls", () => {
+  beforeEach(() => {
+    invokeMock.mockReset();
+  });
+
+  afterEach(cleanup);
 
   it("localizes model-folder and model-recovery failures", async () => {
     const nativeCanary = "BACKEND CANARY: local-inference worker detail";

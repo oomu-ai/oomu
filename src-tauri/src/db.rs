@@ -94,7 +94,7 @@ pub use filesystem_context::{
     AssistantContentReference, ContextualFileActionPreparation, PreparedContextualFileAction,
     VerifiedFilesystemContext,
 };
-use migration_integrity::{accepts_verified_legacy_checksum, verify_agent_execution_origin_index};
+use migration_integrity::{accepts_legacy_checksum, verify_origin_index};
 use migration_lock::MigrationFileLock;
 use rand_core::{OsRng, RngCore};
 pub(crate) use response_claim::{is_chat_turn_response_claim_conflict, AUTO_TURN_KIND};
@@ -173,7 +173,6 @@ const SECURE_REMOTE_DISPATCH_MIGRATION: &str =
     include_str!("../migrations/0021_secure_remote_dispatch.sql");
 const CAPABILITY_BUNDLES_MIGRATION: &str =
     include_str!("../migrations/0022_capability_bundles.sql");
-const ADAPTIVE_LEARNING_MIGRATION: &str = include_str!("../migrations/0023_adaptive_learning.sql");
 const SCALED_WORK_GRAPHS_ANALYSIS_MIGRATION: &str =
     include_str!("../migrations/0024_scaled_work_graphs_and_analysis.sql");
 const CHAT_TURN_RESPONSE_CLAIM_MIGRATION: &str =
@@ -334,7 +333,7 @@ const MIGRATIONS: [MigrationDescriptor; 42] = [
         SECURE_REMOTE_DISPATCH_MIGRATION,
     ),
     sql(22, "0022_capability_bundles", CAPABILITY_BUNDLES_MIGRATION),
-    sql(23, "0023_adaptive_learning", ADAPTIVE_LEARNING_MIGRATION),
+    migration_integrity::ADAPTIVE_LEARNING_DESCRIPTOR,
     sql(
         24,
         "0024_scaled_work_graphs_and_analysis",
@@ -6884,7 +6883,7 @@ fn verify_migration_ledger(connection: &Connection) -> rusqlite::Result<()> {
         }
         let expected_checksum = migration_checksum(*expected)?;
         if checksum != expected_checksum {
-            if accepts_verified_legacy_checksum(&checksum, *expected) {
+            if accepts_legacy_checksum(&checksum, *expected) {
                 verify_schema_invariants(connection, sequence)?;
                 eprintln!(
                     "OOMU_MIGRATION_CHECKSUM_COMPAT sequence={} id={} schema=verified",
@@ -7342,72 +7341,7 @@ fn verify_schema_invariants(connection: &Connection, through: i64) -> rusqlite::
             require_schema_objects(connection, "table", tables)?;
         }
     }
-    if through >= 23 {
-        require_schema_objects(
-            connection,
-            "table",
-            &["learning_offers", "saved_methods", "saved_method_versions"],
-        )?;
-        require_schema_objects(
-            connection,
-            "index",
-            &[
-                "idx_learning_offers_task",
-                "idx_learning_offers_project",
-                "idx_saved_methods_project",
-            ],
-        )?;
-        require_columns(
-            connection,
-            "learning_offers",
-            &[
-                "offer_id",
-                "project_id",
-                "task_id",
-                "task_run_id",
-                "kind",
-                "status",
-                "summary",
-                "proposed_method_json",
-                "source_evidence_json",
-                "exposure_summary",
-                "conflict_summary",
-                "created_at_ms",
-                "reviewed_at_ms",
-            ],
-        )?;
-        require_columns(
-            connection,
-            "saved_methods",
-            &[
-                "method_id",
-                "source_offer_id",
-                "project_id",
-                "name",
-                "summary",
-                "current_version",
-                "enabled",
-                "use_count",
-                "successful_use_count",
-                "intervention_count",
-                "deleted_at_ms",
-                "created_at_ms",
-                "updated_at_ms",
-            ],
-        )?;
-        require_columns(
-            connection,
-            "saved_method_versions",
-            &[
-                "method_id",
-                "version",
-                "method_json",
-                "source_task_run_id",
-                "change_summary",
-                "created_at_ms",
-            ],
-        )?;
-    }
+    migration_integrity::verify_adaptive_learning_if_applied(connection, through)?;
     if through >= 25 {
         require_columns(connection, "chat_turns", &["response_claimed_at_ms"])?;
     }
@@ -7427,7 +7361,7 @@ fn verify_schema_invariants(connection: &Connection, through: i64) -> rusqlite::
             "index",
             &["idx_agent_executions_active_plan_origin"],
         )?;
-        verify_agent_execution_origin_index(connection)?;
+        verify_origin_index(connection)?;
     }
     if through >= 32 {
         connector_scope_migration::verify(connection)?;

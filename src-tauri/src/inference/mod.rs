@@ -52,8 +52,8 @@ use provider_stream::{
 };
 use stream_text::{merge_stream_text_chunk, sanitize_stream_text};
 use turn_preparation::{
-    load_parent_turn_context, prepare_turn_attachments, resolve_bound_mod_ids,
-    validate_native_execution_authority_request, verified_native_execution_authority,
+    consume_native_execution_authority, load_parent_turn_context, prepare_private_egress,
+    prepare_turn_attachments, resolve_bound_mod_ids, validate_native_execution_authority_request,
 };
 use validated_stream::ChatEventStream;
 
@@ -2234,31 +2234,22 @@ async fn run_chat_turn(
             response_stream,
             buffer_validation_sensitive_response,
         );
-        let private_data_present = crate::privacy::egress::contains_private_data(&messages);
-        let private_egress_permit = if private_data_present && !selected_route_is_local {
-            crate::privacy::egress::prepare_cloud_egress(
-                &mut messages,
-                &selected_provider_route.route_provider_id,
-                &selected_model_id,
-                &active_session_id,
-                &turn_context.turn_id,
-                &turn_context.generation_token,
-                &persistence,
-                &identity,
-            )
-            .map_err(private_egress_inference_error)?
-        } else {
-            None
-        };
-        // Consent challenges release the accepted turn for an exact retry. Keep
-        // the one-use native receipt unconsumed until those pre-dispatch gates
-        // clear, then consume it immediately before provider execution.
-        let verified_native_execution_receipt = verified_native_execution_authority(
+        let private_egress_permit = prepare_private_egress(
+            &mut messages,
+            selected_route_is_local,
+            &selected_provider_route,
+            &selected_model_id,
+            &active_session_id,
+            &turn_context,
+            &persistence,
+            &identity,
+        )?;
+        let verified_native_execution_receipt = consume_native_execution_authority(
             native_execution_receipt_id.as_deref(),
             parent_turn_context.as_ref(),
             steering_only,
             has_verified_approved_file_context,
-            &turn_context.turn_kind,
+            &turn_context,
             legacy_native_execution_receipt_claim,
         )?;
         auto_route_execution::emit_executor_receipt(

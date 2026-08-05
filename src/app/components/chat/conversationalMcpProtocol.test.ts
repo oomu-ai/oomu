@@ -3,11 +3,16 @@ import {
   assistantControlProjection,
   conversationalMcpCapabilitiesFromServers,
   conversationalMcpToolIsAvailable,
+  sanitizeAssistantTranscriptText,
 } from "./conversationalMcpProtocol";
 
-const translate = (key: string) => key === "chat.mcp.requesting_tool"
-  ? "OOMU is using a connected tool…"
-  : key;
+const translations: Record<string, string> = {
+  "chat.errors.provider_response.content":
+    "The provider returned an empty or unusable response. Try again or choose another model.",
+  "chat.mcp.requesting_tool": "OOMU is using a connected tool…",
+  "chat.status.searching_web": "Searching the web...",
+};
+const translate = (key: string) => translations[key] ?? key;
 
 const toolRequest = [
   "```oomu_mcp_tool_call",
@@ -70,6 +75,33 @@ describe("assistantControlProjection", () => {
     expect(projection.displayText).toBe("OOMU is using a connected tool…");
     expect(projection.displayText).not.toContain("local_filesystem");
     expect(projection.displayText).not.toContain("read_file");
+  });
+
+  it("shows localized progress while a control-only search continues", () => {
+    const searchRequest = [
+      "```oomu_search_request",
+      JSON.stringify({ query: "affordable hotels in Hershey PA for Sept 15" }),
+      "```",
+    ].join("\n");
+    const projection = assistantControlProjection(searchRequest, translate);
+
+    expect(projection.searchRequest?.query).toBe(
+      "affordable hotels in Hershey PA for Sept 15",
+    );
+    expect(projection.displayText).toBe("Searching the web...");
+    expect(assistantControlProjection(
+      `I’ll check current hotel listings.\n${searchRequest}`,
+      translate,
+    ).displayText).toBe("I’ll check current hotel listings.");
+  });
+
+  it("never projects an unusable terminal response as a blank message", () => {
+    expect(assistantControlProjection("", translate).displayText).toBe(
+      translations["chat.errors.provider_response.content"],
+    );
+    expect(sanitizeAssistantTranscriptText("<|tool_call>", translate)).toBe(
+      translations["chat.errors.provider_response.content"],
+    );
   });
 
   it("keeps authored assistant text after removing the control block", () => {

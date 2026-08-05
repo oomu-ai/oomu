@@ -192,11 +192,14 @@ export function assistantControlProjection(
 ) {
   const searchRequest = allowSearch ? parseSearchContinuationRequest(text) : null;
   const mcpRequest = parseConversationalMcpToolRequest(text);
-  const displayText = canonicalAssistantDisplayText(searchRequest
+  const projectedDisplayText = canonicalAssistantDisplayText(searchRequest
     ? assistantTextForSearchContinuation(text, searchRequest)
     : mcpRequest
       ? assistantTextForMcpRequest(text, mcpRequest, translate)
       : text);
+  const displayText = projectedDisplayText || (searchRequest
+    ? translate("chat.status.searching_web")
+    : translate("chat.errors.provider_response.content"));
   return { searchRequest, mcpRequest, displayText };
 }
 

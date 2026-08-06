@@ -1,4 +1,12 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -6,6 +14,7 @@ import {
   SUPPORTED_UPDATE_LOCALES,
   buildLatestManifest,
   checksumDocument,
+  removeUpdaterExtraction,
   validateReleaseNotes,
 } from "../application-update-assets.mjs";
 import { createSanitizedChildEnvironment } from "../release-environment.mjs";
@@ -124,6 +133,17 @@ describe("application update release assets", () => {
     expect(document.split("\n").filter(Boolean)).toHaveLength(2);
     expect(document).toContain("a.txt");
     expect(readFileSync(first, "utf8")).toBe("alpha");
+  });
+
+  it("removes extracted signed bundles whose directories are read-only", () => {
+    const directory = mkdtempSync(join(tmpdir(), "oomu-update-cleanup-test-"));
+    const contents = join(directory, "OOMU.app", "Contents");
+    mkdirSync(contents, { recursive: true });
+    writeFileSync(join(contents, "Info.plist"), "verified");
+    chmodSync(contents, 0o555);
+    chmodSync(join(directory, "OOMU.app"), 0o555);
+    removeUpdaterExtraction(directory);
+    expect(existsSync(directory)).toBe(false);
   });
 
   it("requires the complete updater asset set before publication", () => {

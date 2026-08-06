@@ -139,6 +139,14 @@ function prepareOutput(path) {
   return { destination, staging };
 }
 
+export function removeUpdaterExtraction(path) {
+  run("/bin/chmod", ["-R", "u+w", path], {
+    env: createSanitizedChildEnvironment({}, {}),
+    label: "updater extraction cleanup",
+  });
+  rmSync(path, { recursive: true, force: true });
+}
+
 function archiveQualifiedApp(app, archivePath) {
   run("/usr/bin/tar", ["-czf", archivePath, "-C", dirname(app), basename(app)], {
     label: "updater archive creation",
@@ -157,7 +165,7 @@ function archiveQualifiedApp(app, archivePath) {
     run("/usr/bin/codesign", ["--verify", "--deep", "--strict", "--verbose=2", extracted], { label: "extracted app signature verification" });
     return sourceDigest;
   } finally {
-    rmSync(extraction, { recursive: true, force: true });
+    removeUpdaterExtraction(extraction);
   }
 }
 

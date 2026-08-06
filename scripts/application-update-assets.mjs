@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import {
+  chmodSync,
+  cpSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -147,16 +149,38 @@ export function removeUpdaterExtraction(path) {
   rmSync(path, { recursive: true, force: true });
 }
 
-function archiveQualifiedApp(app, archivePath) {
-  run("/usr/bin/tar", ["-czf", archivePath, "-C", dirname(app), basename(app)], {
-    label: "updater archive creation",
-    env: {
-      ...createSanitizedChildEnvironment({}, process.env),
-      COPYFILE_DISABLE: "1",
-    },
+export function prepareUpdaterArchiveTree(sourceApp, stagingRoot) {
+  const stagedApp = join(stagingRoot, "OOMU.app");
+  cpSync(sourceApp, stagedApp, {
+    recursive: true,
+    preserveTimestamps: true,
+    verbatimSymlinks: true,
   });
+  const makeDirectoriesExtractable = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const child = join(directory, entry.name);
+      makeDirectoriesExtractable(child);
+      chmodSync(child, statSync(child).mode | 0o700);
+    }
+  };
+  makeDirectoriesExtractable(stagedApp);
+  chmodSync(stagedApp, statSync(stagedApp).mode | 0o700);
+  return stagedApp;
+}
+
+function archiveQualifiedApp(app, archivePath) {
+  const archiveStaging = mkdtempSync(join(tmpdir(), "oomu-update-staging-"));
   const extraction = mkdtempSync(join(tmpdir(), "oomu-update-archive-"));
   try {
+    const stagedApp = prepareUpdaterArchiveTree(app, archiveStaging);
+    run("/usr/bin/tar", ["-czf", archivePath, "-C", dirname(stagedApp), basename(stagedApp)], {
+      label: "updater archive creation",
+      env: {
+        ...createSanitizedChildEnvironment({}, process.env),
+        COPYFILE_DISABLE: "1",
+      },
+    });
     run("/usr/bin/tar", ["-xzf", archivePath, "-C", extraction], { label: "updater archive extraction" });
     const extracted = join(extraction, "OOMU.app");
     const sourceDigest = artifactDigestForEntries(collectTreeEntries(app));
@@ -165,6 +189,7 @@ function archiveQualifiedApp(app, archivePath) {
     run("/usr/bin/codesign", ["--verify", "--deep", "--strict", "--verbose=2", extracted], { label: "extracted app signature verification" });
     return sourceDigest;
   } finally {
+    removeUpdaterExtraction(archiveStaging);
     removeUpdaterExtraction(extraction);
   }
 }

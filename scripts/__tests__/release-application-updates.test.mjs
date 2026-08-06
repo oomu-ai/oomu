@@ -4,7 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
-  rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -14,6 +14,7 @@ import {
   SUPPORTED_UPDATE_LOCALES,
   buildLatestManifest,
   checksumDocument,
+  prepareUpdaterArchiveTree,
   removeUpdaterExtraction,
   validateReleaseNotes,
 } from "../application-update-assets.mjs";
@@ -35,7 +36,9 @@ import {
 const temporaryDirectories = [];
 
 afterEach(() => {
-  temporaryDirectories.splice(0).forEach((path) => rmSync(path, { recursive: true, force: true }));
+  temporaryDirectories.splice(0).forEach((path) => {
+    if (existsSync(path)) removeUpdaterExtraction(path);
+  });
 });
 
 function notes(version = "0.1.3") {
@@ -144,6 +147,31 @@ describe("application update release assets", () => {
     chmodSync(join(directory, "OOMU.app"), 0o555);
     removeUpdaterExtraction(directory);
     expect(existsSync(directory)).toBe(false);
+  });
+
+  it("stages updater archives with writable directories without changing signed files", () => {
+    const directory = mkdtempSync(join(tmpdir(), "oomu-update-staging-test-"));
+    temporaryDirectories.push(directory);
+    const source = join(directory, "source", "OOMU.app");
+    const contents = join(source, "Contents", "Resources");
+    mkdirSync(contents, { recursive: true });
+    const plist = join(source, "Contents", "Info.plist");
+    writeFileSync(plist, "signed bytes");
+    chmodSync(plist, 0o444);
+    chmodSync(contents, 0o555);
+    chmodSync(join(source, "Contents"), 0o555);
+    chmodSync(source, 0o555);
+    const staging = join(directory, "staging");
+    mkdirSync(staging);
+
+    const staged = prepareUpdaterArchiveTree(source, staging);
+
+    expect(statSync(source).mode & 0o777).toBe(0o555);
+    expect(statSync(staged).mode & 0o700).toBe(0o700);
+    expect(statSync(join(staged, "Contents")).mode & 0o700).toBe(0o700);
+    expect(statSync(join(staged, "Contents", "Resources")).mode & 0o700).toBe(0o700);
+    expect(statSync(join(staged, "Contents", "Info.plist")).mode & 0o777).toBe(0o444);
+    expect(readFileSync(join(staged, "Contents", "Info.plist"), "utf8")).toBe("signed bytes");
   });
 
   it("requires the complete updater asset set before publication", () => {

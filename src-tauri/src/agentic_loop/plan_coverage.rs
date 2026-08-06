@@ -6,12 +6,14 @@ use regex::Regex;
 use serde_json::Value;
 use std::{collections::HashSet, path::Path, sync::OnceLock};
 mod compound_requirements;
+mod contextual_path;
 mod decision_pack_contract;
 mod evidence_artifact_contract;
 mod project_status_contract;
 mod release_recovery_contract;
 mod specialist_composition;
 mod specialist_output;
+pub(super) use contextual_path::requests_contextual_path_grounding;
 pub(super) fn matches_deterministic_decision_pack_plan(
     plan: &super::ActionPlan,
     trusted_output_directory: &str,
@@ -290,26 +292,6 @@ pub(super) fn compile_release_recovery(
 
 pub(super) fn requests_evidence_bound_decision_pack(objective: &str) -> bool {
     decision_pack_contract::requests_evidence_bound_decision_pack(objective)
-}
-
-pub(super) fn requests_decision_pack_path_grounding(objective: &str) -> bool {
-    objective.to_ascii_lowercase().contains("decision pack")
-        || requests_evidence_bound_decision_pack(objective)
-}
-
-pub(super) fn requests_contextual_path_grounding(objective: &str) -> bool {
-    requests_decision_pack_path_grounding(objective)
-        || (!objective_input_file_references(objective).is_empty()
-            && !objective_output_file_references(objective).is_empty())
-        || objective_output_file_references(objective)
-            .iter()
-            .any(|reference| {
-                let path = Path::new(&reference.path);
-                !path.is_absolute()
-                    && path
-                        .parent()
-                        .is_some_and(|parent| !parent.as_os_str().is_empty())
-            })
 }
 
 pub(super) fn resolve_and_compile_decision_pack(

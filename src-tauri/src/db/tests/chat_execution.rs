@@ -437,6 +437,149 @@ fn agent_terminal_transaction_synchronizes_receipt_plan_action_turn_and_task() {
     let _ = std::fs::remove_dir_all(temp_dir);
 }
 
+fn assert_failed_agent_replan_case(
+    engine: &PersistenceEngine,
+    suffix: &str,
+    recovery_action: Option<&str>,
+    action_status: Option<&str>,
+    expected: bool,
+) {
+    let agent_id = format!("agent-replan-{suffix}");
+    let execution_id = format!("execution-replan-{suffix}");
+    let plan_id = format!("plan-replan-{suffix}");
+    let objective = format!("Prepare the supplier decision pack ({suffix})");
+    let session = engine
+        .ensure_chat_session(CreateChatSessionRequest {
+            agent_id: agent_id.clone(),
+            provider_id: "local_model".to_string(),
+            model_id: "gemma-test".to_string(),
+            title: Some(format!("Replan {suffix}")),
+            dynamic_routing_override: None,
+            workspace_id: Some(engine.workspace_id.clone()),
+        })
+        .unwrap();
+    let session_id = session.id.clone();
+    let context = ChatTurnPersistenceContext {
+        turn_id: format!("turn-replan-{suffix}"),
+        generation_token: format!("generation-replan-{suffix}"),
+        session_id: session_id.clone(),
+        agent_id,
+        provider_id: "local_model".to_string(),
+        model_id: "gemma-test".to_string(),
+        parent_turn_id: None,
+        root_turn_id: format!("turn-replan-{suffix}"),
+        turn_kind: "root".to_string(),
+    };
+    let plan_steps = (suffix == "decision-pack-checkpoint-review").then(|| {
+        json!([
+            {"tool":{"operation":"create_decision_pack"}},
+            {"tool":{"operation":"create_conflict_free_calendar_event"}},
+            {"tool":{"operation":"draft_decision_pack_email"}}
+        ])
+    });
+    let context_json = json!({
+        "plan": {"id": plan_id, "objective": objective, "steps": plan_steps},
+        "turn_context": {"sessionId": session_id},
+    })
+    .to_string();
+    engine.begin_chat_turn(&context).unwrap();
+    engine.finish_chat_turn(&context, "completed").unwrap();
+    engine
+        .begin_agent_execution(&execution_id, &plan_id, &context, &context_json)
+        .unwrap();
+
+    let connection = engine.open_connection().unwrap();
+    connection
+        .execute(
+            "INSERT INTO plan_generation_states
+             (plan_id,plan_json,current_step_index,status,generated_text,timestamp_ms)
+             VALUES (?1,'{}',?2,'running','running',1)",
+            params![
+                plan_id,
+                i64::from(suffix == "decision-pack-checkpoint-review")
+            ],
+        )
+        .unwrap();
+    if let Some(action_status) = action_status {
+        connection
+            .execute(
+                "INSERT INTO actions (plan_id,tool,input,output,status,timestamp_ms)
+                 VALUES (?1,'create_decision_pack','{}',?2,?3,1)",
+                params![
+                    plan_id,
+                    (action_status == "completed")
+                        .then_some(r#"{"status":"completed","verified":true}"#),
+                    action_status,
+                ],
+            )
+            .unwrap();
+    }
+    if suffix == "decision-pack-checkpoint-review" {
+        connection
+            .execute(
+                "INSERT INTO actions (plan_id,tool,input,output,status,timestamp_ms)
+                 VALUES (?1,'create_conflict_free_calendar_event','{}',NULL,'prepared_effectful',2)",
+                params![plan_id],
+            )
+            .unwrap();
+    }
+    drop(connection);
+
+    let mut receipt = json!({
+        "schema": "oomu.agent_execution_recovery.v1",
+        "executionId": execution_id,
+        "planId": plan_id,
+        "code": "preflight_verification_failed",
+        "boundary": "MlcVerifier",
+        "recoverable": false,
+        "message": "Execution stopped at a safe boundary.",
+        "context": {},
+        "changedState": if suffix == "review-external" {
+            "external_changes"
+        } else if suffix == "decision-pack-checkpoint-review" {
+            "checkpoint_saved"
+        } else {
+            "none"
+        },
+    });
+    if let Some(recovery_action) = recovery_action {
+        receipt
+            .as_object_mut()
+            .unwrap()
+            .insert("recoveryAction".to_string(), json!(recovery_action));
+    }
+    let receipt = receipt.to_string();
+    engine
+        .finalize_agent_execution(
+            &execution_id,
+            &plan_id,
+            &context,
+            &context_json,
+            "failed",
+            Some(&receipt),
+            "error",
+            "failed",
+            "Execution stopped at a safe boundary.",
+            Some(&receipt),
+        )
+        .unwrap();
+
+    let prepared = engine
+        .prepare_agent_execution_replan(&execution_id, &session_id)
+        .unwrap();
+    if expected {
+        assert_eq!(prepared.as_deref(), Some(objective.as_str()));
+    } else {
+        assert_eq!(prepared, None);
+    }
+    assert_eq!(
+        engine
+            .prepare_agent_execution_replan(&execution_id, "another-session")
+            .unwrap(),
+        None
+    );
+}
+
 #[test]
 fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
     let temp_dir = std::env::temp_dir().join(format!("oomu-agent-replan-{}", unix_time_ms()));
@@ -486,140 +629,7 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
             false,
         ),
     ] {
-        let agent_id = format!("agent-replan-{suffix}");
-        let execution_id = format!("execution-replan-{suffix}");
-        let plan_id = format!("plan-replan-{suffix}");
-        let objective = format!("Prepare the supplier decision pack ({suffix})");
-        let session = engine
-            .ensure_chat_session(CreateChatSessionRequest {
-                agent_id: agent_id.clone(),
-                provider_id: "local_model".to_string(),
-                model_id: "gemma-test".to_string(),
-                title: Some(format!("Replan {suffix}")),
-                dynamic_routing_override: None,
-                workspace_id: Some(engine.workspace_id.clone()),
-            })
-            .unwrap();
-        let session_id = session.id.clone();
-        let context = ChatTurnPersistenceContext {
-            turn_id: format!("turn-replan-{suffix}"),
-            generation_token: format!("generation-replan-{suffix}"),
-            session_id: session_id.clone(),
-            agent_id,
-            provider_id: "local_model".to_string(),
-            model_id: "gemma-test".to_string(),
-            parent_turn_id: None,
-            root_turn_id: format!("turn-replan-{suffix}"),
-            turn_kind: "root".to_string(),
-        };
-        let plan_steps = (suffix == "decision-pack-checkpoint-review").then(|| {
-            json!([
-                {"tool":{"operation":"create_decision_pack"}},
-                {"tool":{"operation":"create_conflict_free_calendar_event"}},
-                {"tool":{"operation":"draft_decision_pack_email"}}
-            ])
-        });
-        let context_json = json!({
-            "plan": {"id": plan_id, "objective": objective, "steps": plan_steps},
-            "turn_context": {"sessionId": session_id},
-        })
-        .to_string();
-        engine.begin_chat_turn(&context).unwrap();
-        engine.finish_chat_turn(&context, "completed").unwrap();
-        engine
-            .begin_agent_execution(&execution_id, &plan_id, &context, &context_json)
-            .unwrap();
-
-        let connection = engine.open_connection().unwrap();
-        connection
-            .execute(
-                "INSERT INTO plan_generation_states
-                 (plan_id,plan_json,current_step_index,status,generated_text,timestamp_ms)
-                 VALUES (?1,'{}',?2,'running','running',1)",
-                params![
-                    plan_id,
-                    i64::from(suffix == "decision-pack-checkpoint-review")
-                ],
-            )
-            .unwrap();
-        if let Some(action_status) = action_status {
-            connection
-                .execute(
-                    "INSERT INTO actions (plan_id,tool,input,output,status,timestamp_ms)
-                     VALUES (?1,'create_decision_pack','{}',?2,?3,1)",
-                    params![
-                        plan_id,
-                        (action_status == "completed")
-                            .then_some(r#"{"status":"completed","verified":true}"#),
-                        action_status,
-                    ],
-                )
-                .unwrap();
-        }
-        if suffix == "decision-pack-checkpoint-review" {
-            connection
-                .execute(
-                    "INSERT INTO actions (plan_id,tool,input,output,status,timestamp_ms)
-                     VALUES (?1,'create_conflict_free_calendar_event','{}',NULL,'prepared_effectful',2)",
-                    params![plan_id],
-                )
-                .unwrap();
-        }
-        drop(connection);
-
-        let mut receipt = json!({
-            "schema": "oomu.agent_execution_recovery.v1",
-            "executionId": execution_id,
-            "planId": plan_id,
-            "code": "preflight_verification_failed",
-            "boundary": "MlcVerifier",
-            "recoverable": false,
-            "message": "Execution stopped at a safe boundary.",
-            "context": {},
-            "changedState": if suffix == "review-external" {
-                "external_changes"
-            } else if suffix == "decision-pack-checkpoint-review" {
-                "checkpoint_saved"
-            } else {
-                "none"
-            },
-        });
-        if let Some(recovery_action) = recovery_action {
-            receipt
-                .as_object_mut()
-                .unwrap()
-                .insert("recoveryAction".to_string(), json!(recovery_action));
-        }
-        let receipt = receipt.to_string();
-        engine
-            .finalize_agent_execution(
-                &execution_id,
-                &plan_id,
-                &context,
-                &context_json,
-                "failed",
-                Some(&receipt),
-                "error",
-                "failed",
-                "Execution stopped at a safe boundary.",
-                Some(&receipt),
-            )
-            .unwrap();
-
-        let prepared = engine
-            .prepare_agent_execution_replan(&execution_id, &session_id)
-            .unwrap();
-        if expected {
-            assert_eq!(prepared.as_deref(), Some(objective.as_str()));
-        } else {
-            assert_eq!(prepared, None);
-        }
-        assert_eq!(
-            engine
-                .prepare_agent_execution_replan(&execution_id, "another-session")
-                .unwrap(),
-            None
-        );
+        assert_failed_agent_replan_case(&engine, suffix, recovery_action, action_status, expected);
     }
 
     let _ = std::fs::remove_dir_all(temp_dir);

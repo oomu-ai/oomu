@@ -68,7 +68,7 @@
     },
     "src-tauri/src/agentic_loop.rs": {
       "owner": "agents/planning-execution",
-      "bytes": 199132,
+      "bytes": 199108,
       "functionLines": 789,
       "complexity": 91
     },
@@ -380,8 +380,8 @@
     },
     "src-tauri/src/db/terminal.rs": {
       "owner": "native/db",
-      "functionLines": 207,
-      "complexity": 57
+      "functionLines": 190,
+      "complexity": 48
     },
     "src-tauri/src/db/tests/agent_execution_recovery.rs": {
       "owner": "native/db",
@@ -412,7 +412,7 @@
     },
     "src-tauri/src/decision_pack/runtime.rs": {
       "owner": "native/decision_pack",
-      "functionLines": 262,
+      "functionLines": 259,
       "complexity": 50
     },
     "src-tauri/src/delegation/policy.rs": {
@@ -447,7 +447,7 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 259837,
+      "bytes": 259768,
       "maxLineBytes": 2053,
       "functionLines": 1749,
       "complexity": 217
@@ -753,7 +753,7 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 321279,
+      "bytes": 321255,
       "functionLines": 5432,
       "complexity": 136
     },
@@ -907,12 +907,12 @@
     },
     "src/app/components/chat/RecoveryReceiptCard.tsx": {
       "owner": "renderer/components",
-      "functionLines": 641,
-      "complexity": 123
+      "functionLines": 638,
+      "complexity": 122
     },
     "src/app/components/chat/RecoveryReceiptChatIntegration.test.tsx": {
       "owner": "renderer/components",
-      "functionLines": 480,
+      "functionLines": 475,
       "complexity": 27
     },
     "src/app/components/chat/ShieldApprovalDialog.test.tsx": {

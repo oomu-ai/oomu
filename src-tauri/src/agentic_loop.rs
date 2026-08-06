@@ -35,6 +35,7 @@ mod cloud_planner;
 mod completion_postcondition;
 mod contextual_route;
 mod decision_pack_postcondition;
+mod decision_pack_route;
 mod diagnostic_diff;
 mod execution_authority;
 mod execution_lease;
@@ -60,6 +61,7 @@ mod scenario_one_functional_tests;
 #[cfg(any(debug_assertions, test))]
 pub(crate) mod scenario_plan;
 mod self_healing;
+mod task_tool_error;
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 use cloud_planner::*;
 use execution_authority::*;
@@ -302,18 +304,9 @@ pub async fn classify_chat_intent_route_inner(
             status_label: "OOMU is typing...".to_string(),
         });
     }
-    if plan_coverage::requests_evidence_bound_decision_pack(prompt) {
-        return Ok(ChatIntentRouteDecision {
-            route: ChatIntentRoute::AgenticPlanner,
-            requires_local_access: true,
-            decision_source: "deterministic_decision_pack_filter".to_string(),
-            reason: "An explicit local path, attached file, or typed filename paired with a file operation requires the approval-gated planner."
-                .to_string(),
-            matched_signals: vec!["evidence-bound decision pack".to_string()],
-            status_label: "OOMU is planning local actions...".to_string(),
-        });
-    }
-    if let Some(decision) = future_schedule::future_schedule_decision(prompt) {
+    if let Some(decision) = decision_pack_route::classify(prompt)
+        .or_else(|| future_schedule::future_schedule_decision(prompt))
+    {
         return Ok(decision);
     }
     if is_explicit_external_apple_app_mutation(&normalized_prompt) {
@@ -2150,7 +2143,7 @@ pub async fn process_agent_objective(
         request.session_id.as_deref(),
         &mut planning_sections.runtime_context,
     )
-    .map_err(AgenticLoopError::from_connector)?;
+    .map_err(task_tool_error::from_connector)?;
     let service = gemma.inner().clone();
     let objective = user_objective;
     let session_project_id = request
@@ -3689,7 +3682,6 @@ async fn execute_action_plan_inner(
             Some(serde_json::json!({"nextStepIndex": resume_step_index})),
         );
     }
-
     outputs.reserve(authorized_actions.len().saturating_sub(resume_step_index));
     let mut last_action_id = checkpoint
         .as_ref()
@@ -3714,7 +3706,7 @@ async fn execute_action_plan_inner(
                 message: format!("No signed plan step exists at index {step_index}."),
                 mlc_path: None,
             })?;
-        let resolving_operation = action.operation_name().to_string();
+        let resolving_operation = action.operation_name();
         let (action, requested_action) =
             crate::tools::task_tool_runtime::resolve_authorized_action(
                 &persistence,
@@ -3723,19 +3715,7 @@ async fn execute_action_plan_inner(
                 planned_request,
                 &outputs,
             )
-            .map_err(|message| {
-                let (code, boundary) =
-                    crate::tools::task_tool_runtime::agent_error_metadata(&resolving_operation);
-                AgenticLoopError {
-                    code,
-                    boundary,
-                    message: crate::tools::task_tool_runtime::normalize_agent_error(
-                        &resolving_operation,
-                        &message,
-                    ),
-                    mlc_path: None,
-                }
-            })?;
+            .map_err(|message| task_tool_error::from_operation(resolving_operation, message))?;
         let action_json =
             serde_json::to_string(&requested_action).map_err(|error| AgenticLoopError {
                 code: "workflow_action_serialization_failed",
@@ -5669,15 +5649,6 @@ impl AgenticLoopError {
             code: error.code,
             boundary: "GemmaSchema",
             message: error.message,
-            mlc_path: None,
-        }
-    }
-
-    fn from_connector(message: String) -> Self {
-        Self {
-            code: "connector_task_execution_failed",
-            boundary: "ConnectorTaskRuntime",
-            message,
             mlc_path: None,
         }
     }

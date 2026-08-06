@@ -50,6 +50,51 @@ pub fn execute_terminal_db_audit() -> Result<(), String> {
     dump_installed_mods(&connection).map_err(|error| error.to_string())
 }
 
+const RECENT_AGENT_EXECUTIONS_SQL: &str =
+    "SELECT execution_id, plan_id, session_id, provider_id, model_id, status,
+            json_extract(context_json, '$.turn_context.automatedWebGroundingEnabled'),
+            created_at_ms, updated_at_ms,
+            (SELECT group_concat(
+                COALESCE(
+                    json_extract(step.value, '$.tool.operation'),
+                    json_extract(step.value, '$.tool.kind')
+                ),
+                ','
+            ) FROM json_each(agent_executions.context_json, '$.plan.steps') AS step)
+     FROM agent_executions
+     ORDER BY updated_at_ms DESC
+     LIMIT 10";
+
+type RecentAgentExecutionRow = (
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    Option<i64>,
+    i64,
+    i64,
+    Option<String>,
+);
+
+fn recent_agent_execution_row(
+    row: &rusqlite::Row<'_>,
+) -> rusqlite::Result<RecentAgentExecutionRow> {
+    Ok((
+        row.get(0)?,
+        row.get(1)?,
+        row.get(2)?,
+        row.get(3)?,
+        row.get(4)?,
+        row.get(5)?,
+        row.get(6)?,
+        row.get(7)?,
+        row.get(8)?,
+        row.get(9)?,
+    ))
+}
+
 fn dump_recent_agent_executions(connection: &Connection) -> rusqlite::Result<()> {
     println!("\n--- Recent Agent Executions (10) ---");
     if !table_exists(connection, "agent_executions")?
@@ -59,35 +104,8 @@ fn dump_recent_agent_executions(connection: &Connection) -> rusqlite::Result<()>
         return Ok(());
     }
 
-    let mut executions = connection.prepare(
-        "SELECT execution_id, plan_id, session_id, provider_id, model_id, status,
-                json_extract(context_json, '$.turn_context.automatedWebGroundingEnabled'),
-                created_at_ms, updated_at_ms,
-                (SELECT group_concat(
-                    COALESCE(
-                        json_extract(step.value, '$.tool.operation'),
-                        json_extract(step.value, '$.tool.kind')
-                    ),
-                    ','
-                ) FROM json_each(agent_executions.context_json, '$.plan.steps') AS step)
-         FROM agent_executions
-         ORDER BY updated_at_ms DESC
-         LIMIT 10",
-    )?;
-    let rows = executions.query_map([], |row| {
-        Ok((
-            row.get::<_, String>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, String>(2)?,
-            row.get::<_, String>(3)?,
-            row.get::<_, String>(4)?,
-            row.get::<_, String>(5)?,
-            row.get::<_, Option<i64>>(6)?,
-            row.get::<_, i64>(7)?,
-            row.get::<_, i64>(8)?,
-            row.get::<_, Option<String>>(9)?,
-        ))
-    })?;
+    let mut executions = connection.prepare(RECENT_AGENT_EXECUTIONS_SQL)?;
+    let rows = executions.query_map([], recent_agent_execution_row)?;
     let mut count = 0;
     for row in rows {
         let (

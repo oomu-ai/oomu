@@ -2,6 +2,7 @@ const CONTEXTUAL_ERROR_GROUPS: Record<string, string> = {
   contextual_filename_required: "contextual_filename",
   contextual_file_preparation_failed: "contextual_file_preparation",
   contextual_output_name_invalid: "contextual_output",
+  planner_decision_pack_calendar_required: "decision_pack_calendar_required",
   delete_target_not_found: "delete_target_not_found",
 };
 
@@ -104,8 +105,6 @@ export function chatErrorGroup(errorCode: string, detail = "") {
       return "provider_response";
     case "planner_objective_too_large":
       return "planner_too_large";
-    case "planner_decision_pack_calendar_required":
-      return "decision_pack_calendar_required";
     case "agent_objective_not_executable":
       return "local_action_unavailable";
     case "file_creation_failed":

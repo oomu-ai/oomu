@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.5",
+  "notes": {
+    "de-DE": "Verbessert komplexe mehrstufige Aufgaben: verifizierte Dateien können nach einer Unterbrechung sicher wiederverwendet werden, die Wiederherstellung läuft ohne Freigabeschleifen weiter, Mail-Ergebnisse bleiben überprüfbar und gültige PowerPoint-Präsentationen lassen sich zuverlässig anzeigen.",
+    "en-US": "Improves complex multi-step work so verified files can be safely reused after an interruption, recovery continues without approval loops, Mail results remain verifiable, and valid PowerPoint presentations preview reliably.",
+    "es-ES": "Mejora el trabajo complejo de varios pasos: los archivos verificados pueden reutilizarse de forma segura tras una interrupción, la recuperación continúa sin bucles de aprobación, los resultados de Mail siguen siendo verificables y las presentaciones de PowerPoint válidas se previsualizan de forma fiable.",
+    "fr-FR": "Améliore les tâches complexes en plusieurs étapes : les fichiers vérifiés peuvent être réutilisés en toute sécurité après une interruption, la reprise continue sans boucle d’autorisation, les résultats de Mail restent vérifiables et les présentations PowerPoint valides s’affichent correctement.",
+    "id-ID": "Meningkatkan pekerjaan kompleks bertahap agar file terverifikasi dapat digunakan kembali dengan aman setelah gangguan, pemulihan berlanjut tanpa putaran persetujuan, hasil Mail tetap dapat diverifikasi, dan presentasi PowerPoint yang valid dapat dipratinjau dengan andal.",
+    "ja-JP": "複雑な複数ステップの作業を改善しました。中断後も検証済みファイルを安全に再利用でき、承認のループなしで復旧を続行し、Mail の結果を検証可能な状態に保ち、有効な PowerPoint プレゼンテーションを確実にプレビューできます。",
+    "pt-BR": "Melhora tarefas complexas em várias etapas: arquivos verificados podem ser reutilizados com segurança após uma interrupção, a recuperação continua sem ciclos de aprovação, os resultados do Mail permanecem verificáveis e apresentações válidas do PowerPoint são visualizadas com confiabilidade.",
+    "ru-RU": "Улучшена работа со сложными многоэтапными задачами: проверенные файлы можно безопасно использовать после прерывания, восстановление продолжается без циклов подтверждения, результаты Mail остаются проверяемыми, а корректные презентации PowerPoint надёжно открываются для предварительного просмотра.",
+    "uk-UA": "Поліпшено роботу зі складними багатоетапними завданнями: перевірені файли можна безпечно використовувати після переривання, відновлення триває без циклів підтвердження, результати Mail залишаються перевірюваними, а коректні презентації PowerPoint надійно відкриваються для попереднього перегляду.",
+    "vi-VN": "Cải thiện công việc phức tạp nhiều bước để có thể tái sử dụng an toàn các tệp đã xác minh sau khi bị gián đoạn, tiếp tục khôi phục mà không lặp phê duyệt, giữ cho kết quả Mail có thể xác minh và xem trước đáng tin cậy các bản trình bày PowerPoint hợp lệ.",
+    "zh-CN": "改进复杂的多步骤任务：中断后可安全复用已验证的文件，恢复流程不会陷入重复审批，Mail 结果保持可验证，并能可靠预览有效的 PowerPoint 演示文稿。",
+    "zh-TW": "改進複雜的多步驟工作：中斷後可安全重用已驗證的檔案，復原流程不會陷入重複核准，Mail 結果保持可驗證，並能可靠預覽有效的 PowerPoint 簡報。"
+  }
+}

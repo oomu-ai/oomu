@@ -135,6 +135,23 @@ const reviewRecoveryContent = JSON.stringify({
   changedState: "external_changes",
 });
 
+function renderRecoveryChat() {
+  return render(
+    <ChatScreen
+      activeSessionId="session-1"
+      agents={agents}
+      configuredProviders={providers}
+      onCreateSession={vi.fn()}
+      onDeleteSession={vi.fn()}
+      onSelectSession={vi.fn()}
+      onSessionsChange={vi.fn()}
+      privacySettings={null}
+      sessions={sessions}
+    />,
+    { wrapper: I18nProvider },
+  );
+}
+
 describe("ChatScreen recovery receipt integration", () => {
   let displayedRecoveryContent = recoveryContent;
   let acceptedObjective: string | null = null;
@@ -567,20 +584,7 @@ describe("ChatScreen recovery receipt integration", () => {
 
   it("turns external-change review into a fresh approval-gated plan", async () => {
     displayedRecoveryContent = reviewRecoveryContent;
-    render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={providers}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    renderRecoveryChat();
 
     expect(await screen.findByText(/won’t replay an uncertain step/i)).toBeVisible();
     expect(screen.getByText(/nothing will run until you review and approve/i)).toBeVisible();

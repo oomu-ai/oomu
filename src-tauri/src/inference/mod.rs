@@ -1,10 +1,7 @@
-//! Owns provider dispatch and the turn-level routing boundary.
-//! Dynamic routing accepts and freezes each turn before classification.
-//! Classifier outcomes select one executor without implicit failover.
-//! Local generation health remains independent from classifier readiness.
-//! Worker protocol checks fail closed before any local prompt is submitted.
-//! Cancellation and cleanup keep one resident worker safely serialized.
-//! Persistence receives only the bounded routing evidence contract.
+//! Owns provider dispatch and turn-level routing.
+//! Auto-route freezes each turn before classification and selects one executor.
+//! Local readiness, worker checks, cancellation, and cleanup fail closed.
+//! Persistence receives only bounded routing evidence.
 mod anthropic;
 mod approved_file_receipts;
 mod auto_route_execution;
@@ -37,6 +34,9 @@ mod validated_stream;
 
 use approved_file_receipts::hydrate_approved_file_receipts;
 use auto_route_execution::SessionRouteSnapshot;
+use auto_route_readiness::{
+    ensure_current_classifier_assignment as ensure_classifier, inference_try,
+};
 use provider_error_diagnostics::bounded_provider_error_log_detail;
 #[cfg(test)]
 use provider_error_diagnostics::MAX_PROVIDER_ERROR_LOG_CHARS;
@@ -521,7 +521,6 @@ fn validate_inference_request_attachments(
             "attachment_text_aggregate_byte_limit_exceeded",
         ));
     }
-
     for message in &request.messages {
         validate_chat_attachments(&message.attachments).map_err(InferenceError::invalid)?;
     }
@@ -1315,7 +1314,6 @@ async fn run_chat_turn(
         &gemma,
     )
     .await?;
-
     requested_reasoning = auto_route_turn_policy::effective_reasoning(
         dynamic_routing_active,
         parent_turn_context.is_some(),
@@ -1378,10 +1376,8 @@ async fn run_chat_turn(
         &routing_tool_registrations,
         &routing_latest_turn,
     );
-    if dynamic_routing_active && parent_turn_context.is_none() {
-        auto_route_readiness::ensure_current_classifier_assignment(&app, &gemma).await?;
-    }
     let dynamic_model_route = if dynamic_routing_active && parent_turn_context.is_none() {
+        inference_try!(ensure_classifier(&app, &gemma).await);
         let (baseline_provider_id, baseline_model_id) = if let Some(policy) =
             frozen_auto_route_policy.as_ref()
         {

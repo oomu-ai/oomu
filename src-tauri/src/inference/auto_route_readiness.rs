@@ -13,6 +13,16 @@ use std::{path::Path, sync::OnceLock};
 
 static CLASSIFIER_ASSIGNMENT_RECONFIGURATION: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
 
+macro_rules! inference_try {
+    ($result:expr) => {
+        match $result {
+            Ok(value) => value,
+            Err(error) => return Err(error),
+        }
+    };
+}
+pub(super) use inference_try;
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AutoRouteSessionReadiness {

@@ -62,7 +62,9 @@ describe("Tauri development macOS permission identity", () => {
     expect(runner).toContain('launchPath = bundledExecutablePath');
     expect(runner).toContain('spawn(\n      "/usr/bin/open"');
     expect(runner).toContain('["-n", "-W", launchBundlePath');
-    expect(runner).toContain('["-f", `^${launchPath}$`]');
+    expect(runner).toContain(
+      '["-f", `^${regexLiteral(developmentExecutablePath)}([[:space:]]|$)`]',
+    );
     expect(runner).toContain('fail("An OOMU Development instance is already running.")');
   });
 

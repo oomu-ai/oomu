@@ -760,30 +760,22 @@ describe("ChatScreen request-driven tool catalog contracts", () => {
       ),
     ).toBe(true);
 
-    for (const prompt of [
-      'Create a PDF document containing "Hello World".',
-      'Create a Word doc with "Hello World".',
-      'Create a PowerPoint presentation containing "Hello World".',
-      'Create an Excel spreadsheet containing "Hello World".',
-    ]) {
+    for (const [prompt, decisionSource] of [
+      ['Create a PDF document containing "Hello World".', "native_artifact_creation_filter"],
+      ['Create a Word doc with "Hello World".', "native_artifact_creation_filter"],
+      ['Create a PowerPoint presentation containing "Hello World".', "native_artifact_creation_filter"],
+      ['Create an Excel spreadsheet containing "Hello World".', "native_artifact_creation_filter"],
+      ["Prepare the complete supplier decision pack.", "deterministic_decision_pack_filter"],
+    ] as const) {
       expect(
         shouldUseConversationalMcpBridge(
           prompt,
-          { ...routeDecision, decision_source: "native_artifact_creation_filter" },
+          { ...routeDecision, decision_source: decisionSource },
           capabilities,
         ),
         `${prompt} must stay on the verified native artifact path`,
       ).toBe(false);
     }
-
-    expect(
-      shouldUseConversationalMcpBridge(
-        "Prepare the complete supplier decision pack.",
-        { ...routeDecision, decision_source: "deterministic_decision_pack_filter" },
-        capabilities,
-      ),
-    ).toBe(false);
-
     const mailCapabilities: ConversationalMcpToolCapability[] = [{
       serverName: "macos_applescript",
       toolName: "read_system_emails",

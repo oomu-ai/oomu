@@ -1004,7 +1004,8 @@ pub fn restart_after_application_update(app: tauri::AppHandle) -> Result<(), Str
     {
         return Err("application_update_restart_not_ready".to_string());
     }
-    app.restart();
+    app.request_restart();
+    Ok(())
 }
 
 #[cfg(test)]

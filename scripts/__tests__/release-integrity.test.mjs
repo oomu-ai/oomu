@@ -530,18 +530,14 @@ describe("production release security boundaries", () => {
 });
 
 describe("deterministic native release qualification", () => {
-  it.each([
-    ["release.mjs", 'runStep("automated_cargo_test"'],
-    ["release-unsigned.mjs", '["cargo-test", ['],
-  ])("serializes the full native suite in %s", (file, marker) => {
+  it.each(["release.mjs", "release-unsigned.mjs"])(
+    "parallelizes ordinary native tests and serializes only the document engine in %s",
+    (file) => {
     const release = readFileSync(join(root, "scripts", file), "utf8");
-    const cargoTestStart = release.indexOf(marker);
-    const cargoTestEnd = release.indexOf("],", cargoTestStart);
-    const cargoTest = release.slice(cargoTestStart, cargoTestEnd);
-
-    expect(cargoTestStart).toBeGreaterThanOrEqual(0);
-    expect(cargoTest).toContain('"test", "--locked", "--target"');
-    expect(cargoTest).toContain('"--", "--test-threads=1"');
+    expect(release).toContain('"--lib", "--", "--test-threads=10", "--skip", "artifacts::"');
+    expect(release).toContain('"--lib", "artifacts::", "--", "--test-threads=1"');
+    expect(release).toContain('"--", "--test-threads=10"');
+    expect(release).toContain('"--manifest-path", "src-tauri/Cargo.toml", "--doc"');
   });
 
   it("keeps controlled compiler remapping out of source-only gates", () => {

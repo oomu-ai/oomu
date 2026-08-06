@@ -347,7 +347,7 @@
     },
     "src-tauri/src/db.rs": {
       "owner": "persistence/core-transactions",
-      "bytes": 333700,
+      "bytes": 332032,
       "functionLines": 443,
       "complexity": 89
     },
@@ -434,7 +434,7 @@
     },
     "src-tauri/src/gemma.rs": {
       "owner": "inference/local-model-lifecycle",
-      "bytes": 118033,
+      "bytes": 117970,
       "maxLineBytes": 1293
     },
     "src-tauri/src/gemma/action_plan_prompt.rs": {
@@ -447,14 +447,13 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 259768,
+      "bytes": 259230,
       "maxLineBytes": 2053,
       "functionLines": 1749,
       "complexity": 217
     },
     "src-tauri/src/inference/provider_stream.rs": {
       "owner": "native/inference",
-      "functionLines": 160,
       "complexity": 33
     },
     "src-tauri/src/knowledge.rs": {

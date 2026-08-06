@@ -75,6 +75,18 @@ const approvedRepositoryRunners = new Map();
 let immutableReleaseToolchain = null;
 const EXPECTED_RELEASE_ARCHITECTURE = "arm64";
 const EXPECTED_RELEASE_TARGET = "aarch64-apple-darwin";
+const NATIVE_INTEGRATION_TESTS = [
+  "background_runtime_profile",
+  "build_identity_policy",
+  "capability_parity",
+  "drag_drop_runtime_contract",
+  "mcp_security_tests",
+  "p1_contracts",
+  "pdf_containment",
+  "teardown_tests",
+  "workflow_jail_tests",
+  "workflow_security_tests",
+];
 const PERMISSION_LINEAGE_BOOTSTRAP_SHA256 =
   "d234d1df1ce3898cf4c3195227fab4a04a879f2feb7ab1be4a6be8d5270115da";
 const LOCAL_GATE_LABELS = [
@@ -95,6 +107,9 @@ const LOCAL_GATE_LABELS = [
   "automated_frontend",
   "automated_cargo_check",
   "automated_cargo_test",
+  "automated_cargo_test_artifacts",
+  "automated_cargo_test_integrations",
+  "automated_cargo_test_docs",
 ];
 
 const SIGNING_PREFLIGHT_ENV = [
@@ -547,7 +562,22 @@ function runRustQualification(node, releaseEnvironment) {
   runStep("automated_cargo_test", cargo, [
     "test", "--locked", "--target", EXPECTED_RELEASE_TARGET,
     "--manifest-path", "src-tauri/Cargo.toml",
-    "--", "--test-threads=1",
+    "--lib", "--", "--test-threads=10", "--skip", "artifacts::",
+  ], { env: releaseEnvironment });
+  runStep("automated_cargo_test_artifacts", cargo, [
+    "test", "--locked", "--target", EXPECTED_RELEASE_TARGET,
+    "--manifest-path", "src-tauri/Cargo.toml",
+    "--lib", "artifacts::", "--", "--test-threads=1",
+  ], { env: releaseEnvironment });
+  runStep("automated_cargo_test_integrations", cargo, [
+    "test", "--locked", "--target", EXPECTED_RELEASE_TARGET,
+    "--manifest-path", "src-tauri/Cargo.toml",
+    ...NATIVE_INTEGRATION_TESTS.flatMap((name) => ["--test", name]),
+    "--", "--test-threads=10",
+  ], { env: releaseEnvironment });
+  runStep("automated_cargo_test_docs", cargo, [
+    "test", "--locked", "--target", EXPECTED_RELEASE_TARGET,
+    "--manifest-path", "src-tauri/Cargo.toml", "--doc",
   ], { env: releaseEnvironment });
   return { pdfContainmentResult, rustDependencyAuditResult };
 }

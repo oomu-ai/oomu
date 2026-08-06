@@ -19,6 +19,15 @@ const MAX_PROVIDER_STREAM_BYTES: usize = 16 * 1024 * 1024;
 pub(super) const MAX_PROVIDER_SSE_PENDING_EVENT_BYTES: usize = 1024 * 1024;
 pub(super) const MAX_PROVIDER_RESPONSE_TEXT_BYTES: usize = 8 * 1024 * 1024;
 
+#[derive(Default)]
+struct ProviderStreamState {
+    text: String,
+    response_id: Option<String>,
+    finish_reason: Option<String>,
+    empty_response_message: Option<String>,
+    reasoning_observed: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct ProviderStreamTimeoutPolicy {
     pub(super) connect_timeout: Duration,
@@ -103,10 +112,7 @@ async fn execute_provider_streaming_inference_async(
         .map_err(InferenceError::network_from_reqwest)?;
         let mut byte_stream = response.bytes_stream();
         let mut decoder = SseEventDecoder::default();
-        let mut text = String::new();
-        let mut response_id = None;
-        let mut finish_reason = None;
-        let mut empty_response_message = None;
+        let mut state = ProviderStreamState::default();
         let mut sequence = 0usize;
         let mut received_stream_bytes = 0usize;
 
@@ -166,19 +172,13 @@ async fn execute_provider_streaming_inference_async(
                     &event_data,
                     &stream,
                     &mut sequence,
-                    &mut text,
-                    &mut response_id,
-                    &mut finish_reason,
-                    &mut empty_response_message,
+                    &mut state,
                 )? {
                     return stream_response(
                         provider.as_ref(),
                         provider_id,
                         http_request.model_id,
-                        text,
-                        response_id,
-                        finish_reason,
-                        empty_response_message,
+                        state,
                         started,
                     );
                 }
@@ -195,10 +195,7 @@ async fn execute_provider_streaming_inference_async(
                 &event_data,
                 &stream,
                 &mut sequence,
-                &mut text,
-                &mut response_id,
-                &mut finish_reason,
-                &mut empty_response_message,
+                &mut state,
             )? {
                 reached_terminal_event = true;
                 break;
@@ -213,10 +210,7 @@ async fn execute_provider_streaming_inference_async(
             provider.as_ref(),
             provider_id,
             http_request.model_id,
-            text,
-            response_id,
-            finish_reason,
-            empty_response_message,
+            state,
             started,
         )
     }
@@ -395,10 +389,7 @@ fn process_provider_stream_event(
     event_data: &str,
     stream: &ChatEventStream,
     sequence: &mut usize,
-    text: &mut String,
-    response_id: &mut Option<String>,
-    finish_reason: &mut Option<String>,
-    empty_response_message: &mut Option<String>,
+    state: &mut ProviderStreamState,
 ) -> Result<bool, InferenceError> {
     let event_data = event_data.trim();
     if event_data.is_empty() {
@@ -411,22 +402,23 @@ fn process_provider_stream_event(
     let value = serde_json::from_str::<Value>(event_data)
         .map_err(|error| InferenceError::provider(error.to_string()))?;
     let event = provider.parse_stream_event(&value);
-    if response_id.is_none() {
-        *response_id = event.response_id;
+    state.reasoning_observed |= event.reasoning_observed;
+    if state.response_id.is_none() {
+        state.response_id = event.response_id;
     }
     let should_finish = event.finish_reason.is_some();
-    if finish_reason.is_none() {
-        *finish_reason = event.finish_reason;
+    if state.finish_reason.is_none() {
+        state.finish_reason = event.finish_reason;
     }
-    if empty_response_message.is_none() {
-        *empty_response_message = event.empty_response_message;
+    if state.empty_response_message.is_none() {
+        state.empty_response_message = event.empty_response_message;
     }
 
     if let Some(token) = event.token.filter(|token| !token.is_empty()) {
-        let token = merge_stream_text_chunk(text, &token);
-        ensure_provider_response_text_capacity(text.len(), token.len())?;
+        let token = merge_stream_text_chunk(&state.text, &token);
+        ensure_provider_response_text_capacity(state.text.len(), token.len())?;
         *sequence += 1;
-        text.push_str(&token);
+        state.text.push_str(&token);
         stream.emit(LocalInferToken {
             sequence: *sequence,
             token,
@@ -455,18 +447,19 @@ fn stream_response(
     provider: &dyn ProviderPayload,
     provider_id: String,
     model_id: String,
-    text: String,
-    response_id: Option<String>,
-    finish_reason: Option<String>,
-    empty_response_message: Option<String>,
+    state: ProviderStreamState,
     started: Instant,
 ) -> Result<InferenceResponse, InferenceError> {
-    let text = text.trim().to_string();
+    let text = state.text.trim().to_string();
     if text.is_empty() {
+        if provider.provider_name() == "DeepSeek" && state.reasoning_observed {
+            return Err(InferenceError::deepseek_reasoning_without_answer());
+        }
         return Err(InferenceError::provider(
-            empty_response_message
+            state
+                .empty_response_message
                 .filter(|message| !message.trim().is_empty())
-                .unwrap_or_else(|| provider.empty_response_message(finish_reason.as_deref())),
+                .unwrap_or_else(|| provider.empty_response_message(state.finish_reason.as_deref())),
         ));
     }
     Ok(InferenceResponse {
@@ -474,8 +467,8 @@ fn stream_response(
         provider: provider.provider_name().to_string(),
         model_id,
         text,
-        response_id,
-        finish_reason,
+        response_id: state.response_id,
+        finish_reason: state.finish_reason,
         latency_ms: started.elapsed().as_millis(),
         local_usage: None,
     })

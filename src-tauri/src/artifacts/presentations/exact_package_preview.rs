@@ -263,18 +263,7 @@ fn resolve_qualified_engine() -> Result<QualifiedEngine, String> {
         }
         let executable_sha256 = crate::foundation::digest::sha256_file_hex(&canonical)
             .map_err(|_| "Presentation converter digest could not be calculated.".to_string())?;
-        let probe = run_bounded(
-            &executable,
-            &[OsString::from("--version")],
-            &[],
-            None,
-            Duration::from_secs(5),
-            64 * 1024,
-        )?;
-        if !probe.status.success() || !probe.stderr.is_empty() {
-            continue;
-        }
-        let identity = parse_engine_identity(&probe.stdout, executable_sha256)?;
+        let identity = qualified_engine_identity(executable_sha256)?;
         return Ok(QualifiedEngine {
             executable,
             identity,
@@ -310,31 +299,18 @@ fn qualified_engine_path(requested: &Path, canonical: &Path, metadata: &fs::Meta
     requested.starts_with("/opt/homebrew/bin") && canonical.starts_with(fallback)
 }
 
-fn parse_engine_identity(
-    stdout: &[u8],
-    executable_sha256: String,
-) -> Result<EngineIdentity, String> {
-    let text = std::str::from_utf8(stdout)
-        .map_err(|_| "Presentation converter returned a non-UTF-8 identity.".to_string())?
-        .trim();
-    let fields = text.split_ascii_whitespace().collect::<Vec<_>>();
-    let brand = QUALIFIED_ENGINE_BRAND;
-    let release = QUALIFIED_ENGINE_RELEASES.iter().find(|release| {
-        fields.len() == 3
-            && fields[0] == brand
-            && fields[1] == release.version
-            && fields[2] == release.build_id
-            && release
-                .executable_digests
-                .contains(&executable_sha256.as_str())
-    });
-    if release.is_none() {
+fn qualified_engine_identity(executable_sha256: String) -> Result<EngineIdentity, String> {
+    let Some(release) = QUALIFIED_ENGINE_RELEASES.iter().find(|release| {
+        release
+            .executable_digests
+            .contains(&executable_sha256.as_str())
+    }) else {
         return Err("Presentation converter version is not qualified by this build.".to_string());
-    }
+    };
     Ok(EngineIdentity {
-        brand: brand.to_string(),
-        version: fields[1].to_string(),
-        build_id: fields[2].to_ascii_lowercase(),
+        brand: QUALIFIED_ENGINE_BRAND.to_string(),
+        version: release.version.to_string(),
+        build_id: release.build_id.to_string(),
         executable_sha256,
     })
 }

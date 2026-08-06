@@ -10,6 +10,7 @@ mod auto_route_turn_policy;
 pub(crate) mod chat_turn_ipc;
 mod chat_turn_persistence;
 mod context_compaction;
+mod deepseek_recovery;
 pub(crate) mod dynamic_routing;
 mod error_contract;
 mod executable_intent_gate;
@@ -98,6 +99,7 @@ use anthropic::AnthropicPayload;
 use base64::{engine::general_purpose, Engine as _};
 use chat_turn_persistence::{project_assistant_turn_metadata, ChatTurnPersistenceGuard};
 use context_compaction::maybe_compact_standard_chat_history;
+use deepseek_recovery::{execute_provider_inference_with_retry, execute_remote_chat_inference};
 use dynamic_routing::DynamicModelRouteDecision;
 #[cfg(test)]
 use error_contract::provider_http_status_message;
@@ -563,6 +565,10 @@ pub struct ProviderResponse {
 #[derive(Debug, Clone, Default)]
 pub struct ProviderStreamEvent {
     pub token: Option<String>,
+    /// True when the provider emitted hidden reasoning for this event. OOMU
+    /// never renders or persists this content; the flag only distinguishes a
+    /// reasoning-only response from a genuinely empty provider response.
+    pub reasoning_observed: bool,
     pub response_id: Option<String>,
     pub finish_reason: Option<String>,
     pub empty_response_message: Option<String>,
@@ -607,6 +613,10 @@ fn classify_inference_failure(code: &str, boundary: &str, message: &str) -> Infe
     let boundary = boundary.trim().to_ascii_lowercase();
     let message = message.trim().to_ascii_lowercase();
     let combined = format!("{code} {boundary} {message}");
+
+    if code == "deepseek_reasoning_without_answer" {
+        return InferenceFailureClass::Transient;
+    }
 
     if code == "provider_response_error"
         && contains_any(
@@ -3607,24 +3617,7 @@ fn execute_single_chat_inference(
         api_key_label: provider_route.overrides.api_key_label.clone(),
         api_key: provider_route.overrides.api_key.clone(),
     };
-    validate_inference_request_attachments(&request)?;
-    let retry_stream = stream.clone();
-    execute_with_transient_inference_retry(
-        "chat_provider_inference",
-        || {
-            if let Some(stream) = stream.as_ref() {
-                stream.reset_emitted_token_count();
-            }
-            let mut response = if let Some(stream) = stream.clone() {
-                execute_provider_streaming_inference(request.clone(), stream)?
-            } else {
-                execute_provider_inference(request.clone())?
-            };
-            response.provider_id = provider_route.route_provider_id.clone();
-            Ok(response)
-        },
-        |error| retry_allowed_for_stream(error, retry_stream.as_ref()),
-    )
+    execute_remote_chat_inference(provider_route, request, stream)
 }
 
 fn load_fallback_route(persistence: &PersistenceEngine) -> Option<(String, String)> {
@@ -5723,18 +5716,6 @@ fn estimate_text_tokens(value: &str) -> usize {
     let char_estimate = trimmed.chars().count().div_ceil(4);
     let word_estimate = trimmed.split_whitespace().count();
     char_estimate.max(word_estimate).max(1)
-}
-
-fn execute_provider_inference_with_retry(
-    request: InferenceRequest,
-    operation_name: &str,
-) -> Result<InferenceResponse, InferenceError> {
-    validate_inference_request_attachments(&request)?;
-    execute_with_transient_inference_retry(
-        operation_name,
-        || execute_provider_inference(request.clone()),
-        |_| true,
-    )
 }
 
 fn hardened_provider_blocking_client_builder() -> reqwest::blocking::ClientBuilder {

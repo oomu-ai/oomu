@@ -107,6 +107,7 @@ fn persistence_engine_keeps_its_initial_workspace_namespace() {
         write_lock: Arc::new(Mutex::new(())),
         workspace_id: workspace_id.clone(),
         storage_class: Arc::new(RwLock::new(BackingStoreClass::Persistent)),
+        ops_path: None,
     };
     engine.run_migrations().unwrap();
 

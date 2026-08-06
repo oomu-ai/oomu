@@ -220,6 +220,9 @@ impl ProviderPayload for OpenAiPayload {
             .trim()
             .to_string();
         if text.is_empty() {
+            if self.provider_name == "DeepSeek" && deepseek_reasoning_observed(&value) {
+                return Err(InferenceError::deepseek_reasoning_without_answer());
+            }
             return Err(InferenceError::provider(format!(
                 "{} returned an empty response.",
                 self.provider_name
@@ -246,6 +249,8 @@ impl ProviderPayload for OpenAiPayload {
                 .or_else(|| value.pointer("/choices/0/message/content"))
                 .and_then(Value::as_str)
                 .map(ToString::to_string),
+            reasoning_observed: self.provider_name == "DeepSeek"
+                && deepseek_reasoning_observed(value),
             response_id: value
                 .get("id")
                 .and_then(Value::as_str)
@@ -257,6 +262,14 @@ impl ProviderPayload for OpenAiPayload {
             empty_response_message: None,
         }
     }
+}
+
+fn deepseek_reasoning_observed(value: &Value) -> bool {
+    value
+        .pointer("/choices/0/delta/reasoning_content")
+        .or_else(|| value.pointer("/choices/0/message/reasoning_content"))
+        .and_then(Value::as_str)
+        .is_some_and(|reasoning| !reasoning.trim().is_empty())
 }
 
 fn openai_body(
@@ -791,5 +804,50 @@ mod tests {
             let body = openai_body(&request, ReasoningProtocol::None, provider).unwrap();
             assert_eq!(body.pointer("/model").unwrap(), expected);
         }
+    }
+
+    #[test]
+    fn deepseek_reasoning_is_detected_without_exposing_hidden_reasoning_as_text() {
+        let provider = OpenAiPayload::deepseek();
+        let event = provider.parse_stream_event(&json!({
+            "choices": [{
+                "delta": { "reasoning_content": "private reasoning" },
+                "finish_reason": null
+            }]
+        }));
+
+        assert!(event.reasoning_observed);
+        assert_eq!(event.token, None);
+
+        let error = provider
+            .parse_response(json!({
+                "choices": [{
+                    "message": {
+                        "reasoning_content": "private reasoning",
+                        "content": ""
+                    },
+                    "finish_reason": "length"
+                }]
+            }))
+            .unwrap_err();
+        assert_eq!(error.code, "deepseek_reasoning_without_answer");
+    }
+
+    #[test]
+    fn deepseek_visible_answer_remains_authoritative_when_reasoning_is_present() {
+        let provider = OpenAiPayload::deepseek();
+        let response = provider
+            .parse_response(json!({
+                "choices": [{
+                    "message": {
+                        "reasoning_content": "private reasoning",
+                        "content": "Hello from DeepSeek."
+                    },
+                    "finish_reason": "stop"
+                }]
+            }))
+            .unwrap();
+
+        assert_eq!(response.text, "Hello from DeepSeek.");
     }
 }

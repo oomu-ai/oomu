@@ -73,6 +73,7 @@ fn workflow_schedule_claim_and_result_lifecycle_is_transactional() {
         write_lock: Arc::new(Mutex::new(())),
         workspace_id: default_workspace_id(),
         storage_class: Arc::new(RwLock::new(BackingStoreClass::Persistent)),
+        ops_path: None,
     };
     engine.run_migrations().unwrap();
 
@@ -214,9 +215,9 @@ fn workflow_compilation_lifecycle_publishes_atomically() {
         write_lock: Arc::new(Mutex::new(())),
         workspace_id: default_workspace_id(),
         storage_class: Arc::new(RwLock::new(BackingStoreClass::Persistent)),
+        ops_path: None,
     };
     engine.run_migrations().unwrap();
-
     let workflow = SavedWorkflowRecord {
         id: "wf-compile".to_string(),
         name: "Compile".to_string(),
@@ -449,6 +450,7 @@ fn scheduled_knowledge_sync_helper_creates_compiled_workflow_and_schedule() {
         write_lock: Arc::new(Mutex::new(())),
         workspace_id: default_workspace_id(),
         storage_class: Arc::new(RwLock::new(BackingStoreClass::Persistent)),
+        ops_path: None,
     };
     engine.run_migrations().unwrap();
 

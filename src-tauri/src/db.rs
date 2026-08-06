@@ -41,6 +41,8 @@ mod commands;
 mod connector_scope_migration;
 mod database_key;
 mod filesystem_context;
+#[cfg(any(test, debug_assertions))]
+mod integration_test;
 #[cfg(test)]
 mod ledger_tests;
 mod local_inference_audit;
@@ -85,11 +87,6 @@ pub use commands::*;
 use database_key::derive_legacy_bound_database_key;
 use database_key::{clear_cached_database_key, get_legacy_database_key_for_migration};
 pub use database_key::{database_key_error, get_current_encryption_state, get_database_key};
-#[cfg(any(test, debug_assertions))]
-use database_key::{
-    derive_memory_hard_database_key, install_database_key_for_integration_test,
-    resolve_database_secret_with_keychain_mode,
-};
 pub use filesystem_context::{
     AssistantContentReference, ContextualFileActionPreparation, PreparedContextualFileAction,
     VerifiedFilesystemContext,
@@ -397,8 +394,9 @@ pub struct PersistenceEngine {
     write_lock: Arc<Mutex<()>>,
     workspace_id: String,
     storage_class: Arc<RwLock<BackingStoreClass>>,
+    #[cfg(debug_assertions)]
+    ops_path: Option<PathBuf>,
 }
-
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistenceRecoveryReport {
@@ -1142,66 +1140,22 @@ impl PersistenceEngine {
     }
 
     fn initialize_at_with_storage_class(
-        db_path: PathBuf,
-        storage_class: BackingStoreClass,
+        path: PathBuf,
+        class: BackingStoreClass,
     ) -> Result<Self, String> {
-        if let Some(parent) = db_path.parent() {
+        if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).map_err(|error| error.to_string())?;
         }
-        let engine = Self {
-            db_path: Arc::new(RwLock::new(db_path)),
+        let db = Self {
+            #[cfg(debug_assertions)]
+            ops_path: integration_test::test_ops_path(&path),
+            db_path: Arc::new(RwLock::new(path)),
             write_lock: Arc::new(Mutex::new(())),
             workspace_id: default_workspace_id(),
-            storage_class: Arc::new(RwLock::new(storage_class)),
+            storage_class: Arc::new(RwLock::new(class)),
         };
-        engine.run_migrations().map_err(|error| error.to_string())?;
-        Ok(engine)
-    }
-
-    #[cfg(any(test, debug_assertions))]
-    fn initialize_at_with_database_key_loader<F>(
-        db_path: PathBuf,
-        keychain_loader: F,
-        allow_insecure_test_fallback: bool,
-    ) -> Result<Self, String>
-    where
-        F: FnOnce() -> Result<String, String>,
-    {
-        if let Some(parent) = db_path.parent() {
-            fs::create_dir_all(parent).map_err(|error| error.to_string())?;
-        }
-        let mut database_secret = resolve_database_secret_with_keychain_mode(
-            keychain_loader,
-            allow_insecure_test_fallback,
-        )?;
-        let database_key = derive_memory_hard_database_key(&database_secret)?;
-        database_secret.zeroize();
-        let engine = Self {
-            db_path: Arc::new(RwLock::new(db_path)),
-            write_lock: Arc::new(Mutex::new(())),
-            workspace_id: default_workspace_id(),
-            storage_class: Arc::new(RwLock::new(BackingStoreClass::Persistent)),
-        };
-        engine
-            .run_migrations_with_database_key(&database_key)
-            .map_err(|error| error.to_string())?;
-        Ok(engine)
-    }
-
-    /// Creates an isolated encrypted store for integration tests without
-    /// depending on the interactive OS keychain. This API is absent from
-    /// optimized release builds.
-    #[cfg(debug_assertions)]
-    #[doc(hidden)]
-    pub fn initialize_for_integration_test(db_path: PathBuf) -> Result<Self, String> {
-        const TEST_SECRET: &str = "default_secure_test_key";
-        let engine = Self::initialize_at_with_database_key_loader(
-            db_path,
-            || Ok(TEST_SECRET.to_string()),
-            false,
-        )?;
-        install_database_key_for_integration_test(derive_memory_hard_database_key(TEST_SECRET)?);
-        Ok(engine)
+        db.run_migrations().map_err(|error| error.to_string())?;
+        Ok(db)
     }
 
     pub fn db_path(&self) -> String {
@@ -5754,6 +5708,10 @@ impl PersistenceEngine {
     }
 
     fn ops_db_path(&self) -> PathBuf {
+        #[cfg(debug_assertions)]
+        if let Some(path) = &self.ops_path {
+            return path.clone();
+        }
         self.db_path
             .read()
             .unwrap_or_else(|poisoned| poisoned.into_inner())

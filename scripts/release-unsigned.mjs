@@ -135,7 +135,33 @@ function runSourceQualification(toolchain, sourceEnvironment, nativeEnvironment)
     ["cargo-test", [
       "test", "--locked", "--target", toolchain.policy.target,
       "--manifest-path", "src-tauri/Cargo.toml",
-      "--", "--test-threads=1",
+      "--lib", "--", "--test-threads=10", "--skip", "artifacts::",
+    ]],
+    ["cargo-test-artifacts", [
+      "test", "--locked", "--target", toolchain.policy.target,
+      "--manifest-path", "src-tauri/Cargo.toml",
+      "--lib", "artifacts::", "--", "--test-threads=1",
+    ]],
+    ["cargo-test-integrations", [
+      "test", "--locked", "--target", toolchain.policy.target,
+      "--manifest-path", "src-tauri/Cargo.toml",
+      ...[
+        "background_runtime_profile",
+        "build_identity_policy",
+        "capability_parity",
+        "drag_drop_runtime_contract",
+        "mcp_security_tests",
+        "p1_contracts",
+        "pdf_containment",
+        "teardown_tests",
+        "workflow_jail_tests",
+        "workflow_security_tests",
+      ].flatMap((name) => ["--test", name]),
+      "--", "--test-threads=10",
+    ]],
+    ["cargo-test-docs", [
+      "test", "--locked", "--target", toolchain.policy.target,
+      "--manifest-path", "src-tauri/Cargo.toml", "--doc",
     ]],
   ];
   results.push(...cargoSteps.map(([label, args]) =>

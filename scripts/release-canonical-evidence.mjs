@@ -86,6 +86,9 @@ function materializeBuildEvidence(context, dependencies, common) {
     "automated_frontend",
     "automated_cargo_check",
     "automated_cargo_test",
+    "automated_cargo_test_artifacts",
+    "automated_cargo_test_integrations",
+    "automated_cargo_test_docs",
   ], context.npm), {
     passed: true,
     source_revision: context.sourceRevision,
@@ -98,7 +101,9 @@ function materializeBuildEvidence(context, dependencies, common) {
       "check:p1-contracts", "check:novice-ui", "check:module-cycles",
       "check:unused-exports", "check:repository-hygiene", "native path-remap preflight",
       "test:release-integrity",
-      "check:i18n", "typecheck", "test:frontend", "cargo check", "cargo test",
+      "check:i18n", "typecheck", "test:frontend", "cargo check",
+      "cargo test parallel unit", "cargo test serial artifacts",
+      "cargo test integrations", "cargo test docs",
     ],
   });
   materializeEvidence(common, "release_extension_gates", {

@@ -242,18 +242,7 @@ fn resolve_qualified_engine() -> Result<QualifiedEngine, String> {
         }
         let executable_sha256 = crate::foundation::digest::sha256_file_hex(&canonical)
             .map_err(|_| "Workbook converter digest could not be calculated.".to_string())?;
-        let probe = run_bounded(
-            &canonical,
-            &[OsString::from("--version")],
-            &[],
-            None,
-            Duration::from_secs(5),
-            64 * 1024,
-        )?;
-        if !probe.status.success() || !probe.stderr.is_empty() {
-            continue;
-        }
-        let identity = parse_engine_identity(&probe.stdout, executable_sha256)?;
+        let identity = qualified_engine_identity(executable_sha256)?;
         return Ok(QualifiedEngine {
             executable: canonical,
             identity,
@@ -284,30 +273,18 @@ fn qualified_engine_path(requested: &Path, canonical: &Path, metadata: &fs::Meta
     false
 }
 
-fn parse_engine_identity(
-    stdout: &[u8],
-    executable_sha256: String,
-) -> Result<EngineIdentity, String> {
-    let text = std::str::from_utf8(stdout)
-        .map_err(|_| "Workbook converter returned a non-UTF-8 identity.".to_string())?
-        .trim();
-    let fields = text.split_ascii_whitespace().collect::<Vec<_>>();
-    let release = QUALIFIED_ENGINE_RELEASES.iter().find(|release| {
-        fields.len() == 3
-            && fields[0] == QUALIFIED_ENGINE_BRAND
-            && fields[1] == release.version
-            && fields[2] == release.build_id
-            && release
-                .executable_digests
-                .contains(&executable_sha256.as_str())
-    });
-    if release.is_none() {
+fn qualified_engine_identity(executable_sha256: String) -> Result<EngineIdentity, String> {
+    let Some(release) = QUALIFIED_ENGINE_RELEASES.iter().find(|release| {
+        release
+            .executable_digests
+            .contains(&executable_sha256.as_str())
+    }) else {
         return Err("Workbook converter version is not qualified by this build.".to_string());
-    }
+    };
     Ok(EngineIdentity {
         brand: QUALIFIED_ENGINE_BRAND.to_string(),
-        version: fields[1].to_string(),
-        build_id: fields[2].to_ascii_lowercase(),
+        version: release.version.to_string(),
+        build_id: release.build_id.to_string(),
         executable_sha256,
     })
 }
@@ -562,23 +539,13 @@ mod tests {
 
     #[test]
     fn engine_identity_requires_the_exact_qualified_build_and_digest() {
-        let accepted = format!(
-            "{QUALIFIED_ENGINE_BRAND} 26.2.4.2 {}\n",
-            QUALIFIED_ENGINE_RELEASES[0].build_id
-        );
-        let identity = parse_engine_identity(
-            accepted.as_bytes(),
+        let identity = qualified_engine_identity(
             QUALIFIED_ENGINE_RELEASES[0].executable_digests[0].to_string(),
         )
         .unwrap();
         assert_eq!(identity.version, "26.2.4.2");
-        let current = format!(
-            "{QUALIFIED_ENGINE_BRAND} 26.2.5.2 {}\n",
-            QUALIFIED_ENGINE_RELEASES[1].build_id
-        );
         assert_eq!(
-            parse_engine_identity(
-                current.as_bytes(),
+            qualified_engine_identity(
                 QUALIFIED_ENGINE_RELEASES[1].executable_digests[0].to_string(),
             )
             .expect("current qualified engine"),
@@ -589,15 +556,6 @@ mod tests {
                 executable_sha256: QUALIFIED_ENGINE_RELEASES[1].executable_digests[0].to_string(),
             }
         );
-        let mixed = format!(
-            "{QUALIFIED_ENGINE_BRAND} 26.2.4.2 {}\n",
-            QUALIFIED_ENGINE_RELEASES[1].build_id
-        );
-        assert!(parse_engine_identity(
-            mixed.as_bytes(),
-            QUALIFIED_ENGINE_RELEASES[1].executable_digests[0].to_string(),
-        )
-        .is_err());
-        assert!(parse_engine_identity(accepted.as_bytes(), "0".repeat(64)).is_err());
+        assert!(qualified_engine_identity("0".repeat(64)).is_err());
     }
 }

@@ -124,7 +124,9 @@ describe("application update release assets", () => {
       fallbackNote: "A reviewed update.",
     })).toThrow(/semantic/u);
   });
+});
 
+describe("application updater archive safety", () => {
   it("writes deterministic SHA-256 entries for measured bytes", () => {
     const directory = mkdtempSync(join(tmpdir(), "oomu-update-assets-test-"));
     temporaryDirectories.push(directory);

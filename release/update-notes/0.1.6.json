@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.6",
+  "notes": {
+    "de-DE": "Verbessert die Zuverlässigkeit der ersten Nutzung: Auto-Route verwendet ein bereits geladenes kompatibles lokales Modell sicher weiter, und DeepSeek wiederholt eine Antwort einmal ohne erweitertes Schlussfolgern, wenn sonst kein sichtbarer Text zurückgegeben wird.",
+    "en-US": "Improves first-use reliability: Auto-route safely reuses an already loaded compatible local model, and DeepSeek retries once without extended reasoning when a response would otherwise contain no visible answer.",
+    "es-ES": "Mejora la fiabilidad del primer uso: Auto-route reutiliza de forma segura un modelo local compatible ya cargado, y DeepSeek vuelve a intentarlo una vez sin razonamiento ampliado cuando, de otro modo, la respuesta no mostraría texto visible.",
+    "fr-FR": "Améliore la fiabilité dès la première utilisation : Auto-route réutilise en toute sécurité un modèle local compatible déjà chargé, et DeepSeek réessaie une fois sans raisonnement approfondi lorsqu’une réponse ne contiendrait autrement aucun texte visible.",
+    "id-ID": "Meningkatkan keandalan penggunaan awal: Auto-route menggunakan kembali model lokal kompatibel yang sudah dimuat dengan aman, dan DeepSeek mencoba sekali lagi tanpa penalaran lanjutan saat respons seharusnya tidak menampilkan jawaban apa pun.",
+    "ja-JP": "初回利用時の信頼性を改善しました。Auto-route は読み込み済みの互換ローカルモデルを安全に再利用し、DeepSeek が表示可能な回答を返さない場合は、拡張推論をオフにして一度だけ再試行します。",
+    "pt-BR": "Melhora a confiabilidade no primeiro uso: o Auto-route reutiliza com segurança um modelo local compatível já carregado, e o DeepSeek tenta novamente uma vez sem raciocínio estendido quando a resposta não apresentaria texto visível.",
+    "ru-RU": "Повышена надёжность при первом использовании: Auto-route безопасно использует уже загруженную совместимую локальную модель, а DeepSeek один раз повторяет запрос без расширенного рассуждения, если иначе ответ не содержит видимого текста.",
+    "uk-UA": "Підвищено надійність під час першого використання: Auto-route безпечно використовує вже завантажену сумісну локальну модель, а DeepSeek один раз повторює запит без розширеного міркування, якщо інакше відповідь не містить видимого тексту.",
+    "vi-VN": "Cải thiện độ tin cậy khi sử dụng lần đầu: Auto-route tái sử dụng an toàn mô hình cục bộ tương thích đã được tải, và DeepSeek thử lại một lần mà không dùng suy luận mở rộng khi phản hồi không có câu trả lời hiển thị.",
+    "zh-CN": "提升首次使用的可靠性：Auto-route 会安全复用已加载的兼容本地模型；当 DeepSeek 的响应没有可见答案时，OOMU 会关闭扩展推理并重试一次。",
+    "zh-TW": "提升首次使用的可靠性：Auto-route 會安全重用已載入的相容本機模型；當 DeepSeek 的回應沒有可見答案時，OOMU 會關閉延伸推理並重試一次。"
+  }
+}

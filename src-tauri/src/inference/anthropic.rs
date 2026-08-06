@@ -88,6 +88,7 @@ impl ProviderPayload for AnthropicPayload {
                 .pointer("/delta/text")
                 .and_then(Value::as_str)
                 .map(ToString::to_string),
+            reasoning_observed: false,
             response_id: value
                 .get("id")
                 .or_else(|| value.pointer("/message/id"))

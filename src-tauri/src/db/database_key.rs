@@ -6,9 +6,15 @@ use std::{
 };
 use zeroize::Zeroize;
 
+#[cfg(not(test))]
 const DATABASE_KEY_MEMORY_KIB: u32 = 19 * 1024;
+#[cfg(not(test))]
 const DATABASE_KEY_ITERATIONS: u32 = 3;
 const DATABASE_KEY_PARALLELISM: u32 = 1;
+#[cfg(test)]
+const INTEGRATION_TEST_KEY_MEMORY_KIB: u32 = 64;
+#[cfg(test)]
+const INTEGRATION_TEST_KEY_ITERATIONS: u32 = 1;
 
 static CACHED_DB_KEY: OnceLock<Mutex<CachedDatabaseKey>> = OnceLock::new();
 
@@ -69,15 +75,6 @@ pub(super) fn clear_cached_database_key() {
             .unwrap_or_else(|poisoned| poisoned.into_inner());
         *cache = CachedDatabaseKey::Empty;
     }
-}
-
-#[cfg(any(test, debug_assertions))]
-pub(super) fn install_database_key_for_integration_test(key: String) {
-    let cache = CACHED_DB_KEY.get_or_init(|| Mutex::new(CachedDatabaseKey::Empty));
-    *cache
-        .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner()) =
-        CachedDatabaseKey::Ready(DatabaseKeyMaterial::new(key));
 }
 
 pub fn database_key_error(message: String) -> rusqlite::Error {
@@ -198,7 +195,12 @@ fn test_database_secret_fallback(allow: bool) -> Option<String> {
     }
 }
 
-#[cfg(any(test, debug_assertions))]
+#[cfg(test)]
+pub(super) fn derive_memory_hard_database_key(database_secret: &str) -> Result<String, String> {
+    derive_integration_test_database_key(database_secret)
+}
+
+#[cfg(all(not(test), debug_assertions))]
 pub(super) fn derive_memory_hard_database_key(database_secret: &str) -> Result<String, String> {
     derive_memory_hard_database_key_inner(database_secret)
 }
@@ -208,7 +210,31 @@ fn derive_memory_hard_database_key(database_secret: &str) -> Result<String, Stri
     derive_memory_hard_database_key_inner(database_secret)
 }
 
+#[cfg(not(test))]
 fn derive_memory_hard_database_key_inner(database_secret: &str) -> Result<String, String> {
+    derive_database_key_with_params(
+        database_secret,
+        DATABASE_KEY_MEMORY_KIB,
+        DATABASE_KEY_ITERATIONS,
+    )
+}
+
+#[cfg(test)]
+pub(super) fn derive_integration_test_database_key(
+    database_secret: &str,
+) -> Result<String, String> {
+    derive_database_key_with_params(
+        database_secret,
+        INTEGRATION_TEST_KEY_MEMORY_KIB,
+        INTEGRATION_TEST_KEY_ITERATIONS,
+    )
+}
+
+fn derive_database_key_with_params(
+    database_secret: &str,
+    memory_kib: u32,
+    iterations: u32,
+) -> Result<String, String> {
     let mut key = [0_u8; 32];
     let salt = format!(
         "oomu-sqlcipher-database-key-v1:{}:{}",
@@ -216,8 +242,8 @@ fn derive_memory_hard_database_key_inner(database_secret: &str) -> Result<String
         std::env::consts::ARCH
     );
     let params = Params::new(
-        DATABASE_KEY_MEMORY_KIB,
-        DATABASE_KEY_ITERATIONS,
+        memory_kib,
+        iterations,
         DATABASE_KEY_PARALLELISM,
         Some(key.len()),
     )

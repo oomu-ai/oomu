@@ -119,6 +119,7 @@ struct GemmaServiceState {
     classifier_recovery_epoch: u64,
 }
 
+#[derive(Clone)]
 struct LoadedGemmaModel {
     model_dir: PathBuf,
     tokenizer_path: PathBuf,
@@ -127,7 +128,7 @@ struct LoadedGemmaModel {
     tokenizer_bytes: u64,
     inference_config: GemmaInferenceConfig,
     profile: NativeModelProfile,
-    runtime_handle: NativeModelHandle,
+    runtime_handle: Arc<NativeModelHandle>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -512,7 +513,7 @@ impl GemmaService {
             tokenizer_bytes,
             inference_config: GemmaInferenceConfig::low_latency(),
             profile,
-            runtime_handle,
+            runtime_handle: Arc::new(runtime_handle),
         };
 
         let mut state = self.lock_state();
@@ -1407,10 +1408,9 @@ fn inspect_local_model_directory(
 pub fn format_gemma4_chat_prompt(system_prompt: &str, messages: &[(String, String)]) -> String {
     // Thinking mode is intentionally NOT enabled from the system prompt text. The previous
     // heuristic (`system_prompt.contains("<|think|>")`) misfired on personas that merely *mention*
-    // the token in documentation prose (e.g. the OOMU persona's "Never disable `<|think|>`" rule),
-    // silently forcing the model into a hidden reasoning channel. On these gemma4 QAT checkpoints
-    // that channel is unreliable: the model frequently reasons to the end of the turn without ever
-    // opening the visible `<|channel>text` channel, so the streaming sanitizer suppresses 100% of
+    // the token in documentation prose (e.g. the OOMU persona's "Never disable `<|think|>`" rule).
+    // On these checkpoints, that channel often reaches the end without a visible answer,
+    // without opening the visible `<|channel>text` channel, so the sanitizer suppresses 100% of
     // the output and chat surfaces an empty response (local_infer_empty_response). We instead always
     // prime the visible text channel at the end of this function. Any literal `<|think|>` in the
     // persona prose is stripped so it cannot be parsed as a control token.

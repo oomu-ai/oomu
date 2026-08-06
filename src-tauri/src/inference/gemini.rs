@@ -76,6 +76,7 @@ impl ProviderPayload for GeminiPayload {
             .then(|| gemini_empty_response_message(Some(value), finish_reason.as_deref()));
         ProviderStreamEvent {
             token: (!token.is_empty()).then_some(token),
+            reasoning_observed: false,
             response_id: None,
             finish_reason,
             empty_response_message,

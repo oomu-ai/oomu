@@ -47,7 +47,7 @@ impl GemmaService {
         &self,
         assignment: &StartupModelAssignment,
     ) -> Result<(), GemmaError> {
-        let lane = Self::prepare_classifier_lane(assignment)?;
+        let lane = self.prepare_classifier_lane(assignment)?;
         self.commit_classifier_lane(assignment, lane, None)
     }
 
@@ -68,7 +68,7 @@ impl GemmaService {
                     .to_string(),
             })?
         };
-        let lane = Self::prepare_classifier_lane(&assignment)?;
+        let lane = self.prepare_classifier_lane(&assignment)?;
         self.commit_classifier_lane(&assignment, lane, Some(recovery_epoch))
     }
 
@@ -77,7 +77,7 @@ impl GemmaService {
         assignment: StartupModelAssignment,
         recovery_epoch: u64,
     ) -> Result<(), GemmaError> {
-        let lane = Self::prepare_classifier_lane(&assignment)?;
+        let lane = self.prepare_classifier_lane(&assignment)?;
         {
             let state = self.lock_state();
             if state.classifier_recovery_epoch != recovery_epoch
@@ -130,11 +130,59 @@ impl GemmaService {
     }
 
     fn prepare_classifier_lane(
+        &self,
         assignment: &StartupModelAssignment,
     ) -> Result<GemmaService, GemmaError> {
+        if let Some(lane) = self.reusable_main_model_lane(assignment) {
+            eprintln!(
+                "AUTO_ROUTE_CLASSIFIER_REUSED_RESIDENT_MODEL model_id={}",
+                crate::redaction::redacted_log_text(&assignment.resolved_model_id),
+            );
+            return Ok(lane);
+        }
         let lane = GemmaService::new_loading();
         lane.load_model_from_dir(assignment.resolved_directory.clone())?;
         Ok(lane)
+    }
+
+    fn reusable_main_model_lane(
+        &self,
+        assignment: &StartupModelAssignment,
+    ) -> Option<GemmaService> {
+        let classifier_already_exists = self
+            .classifier_lane
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .is_some();
+        let resident_model = {
+            let state = self.lock_state();
+            state
+                .model
+                .as_ref()
+                .filter(|model| {
+                    classifier_can_reuse_model_directory(
+                        Some(&model.model_dir),
+                        &assignment.resolved_directory,
+                        classifier_already_exists,
+                    )
+                })
+                .cloned()
+        }?;
+        Some(GemmaService {
+            state: Arc::new(Mutex::new(GemmaServiceState {
+                status: GemmaStatus::Ready,
+                model: Some(resident_model),
+                startup_assignment: None,
+                keep_resident: true,
+                degraded_reason: None,
+                classifier_health: AutoRouteClassifierHealth::loading(),
+                classifier_recovery_epoch: 0,
+            })),
+            model_load: Arc::new(Mutex::new(())),
+            runtime: self.runtime.clone(),
+            audit_persistence: Arc::clone(&self.audit_persistence),
+            classifier_lane: Arc::new(Mutex::new(None)),
+        })
     }
 
     fn commit_classifier_lane(
@@ -143,6 +191,9 @@ impl GemmaService {
         lane: GemmaService,
         recovery_epoch: Option<u64>,
     ) -> Result<(), GemmaError> {
+        let lane_shares_main_model = resident_model_handle(&self.state)
+            .zip(resident_model_handle(&lane.state))
+            .is_some_and(|(main, classifier)| Arc::ptr_eq(&main, &classifier));
         let mut classifier_lane = self
             .classifier_lane
             .lock()
@@ -154,6 +205,15 @@ impl GemmaService {
         }) {
             return Err(classifier_recovery_superseded());
         }
+        let retired_main_model = if classifier_should_retire_main_model(
+            state.model.as_ref().map(|model| model.model_dir.as_path()),
+            &assignment.resolved_directory,
+            lane_shares_main_model,
+        ) {
+            state.model.take()
+        } else {
+            None
+        };
         *classifier_lane = Some(lane);
         state.classifier_health.residency_generation = state
             .classifier_health
@@ -167,6 +227,12 @@ impl GemmaService {
         state.classifier_health.last_error_code = None;
         state.classifier_health.last_error_boundary = None;
         state.classifier_health.redacted_recovery_hint = None;
+        drop(state);
+        drop(classifier_lane);
+        // A recovery may replace a previously shared lane with a freshly loaded lane. Once the
+        // replacement is committed, release the now-redundant main copy outside both locks so its
+        // native worker can join without blocking classifier state access.
+        drop(retired_main_model);
         Ok(())
     }
 
@@ -187,6 +253,41 @@ impl GemmaService {
     }
 }
 
+fn same_model_directory(left: &Path, right: &Path) -> bool {
+    left == right
+        || fs::canonicalize(left)
+            .ok()
+            .zip(fs::canonicalize(right).ok())
+            .is_some_and(|(left, right)| left == right)
+}
+
+fn resident_model_handle(state: &Arc<Mutex<GemmaServiceState>>) -> Option<Arc<NativeModelHandle>> {
+    state
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .model
+        .as_ref()
+        .map(|model| Arc::clone(&model.runtime_handle))
+}
+
+fn classifier_can_reuse_model_directory(
+    main_model_directory: Option<&Path>,
+    classifier_directory: &Path,
+    classifier_already_exists: bool,
+) -> bool {
+    !classifier_already_exists
+        && main_model_directory.is_some_and(|main| same_model_directory(main, classifier_directory))
+}
+
+fn classifier_should_retire_main_model(
+    main_model_directory: Option<&Path>,
+    classifier_directory: &Path,
+    classifier_shares_main_state: bool,
+) -> bool {
+    !classifier_shares_main_state
+        && main_model_directory.is_some_and(|main| same_model_directory(main, classifier_directory))
+}
+
 fn classifier_recovery_superseded() -> GemmaError {
     GemmaError {
         code: "classifier_recovery_superseded",
@@ -197,6 +298,62 @@ fn classifier_recovery_superseded() -> GemmaError {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn first_classifier_activation_reuses_any_identical_resident_model() {
+        for model in ["custom", "gemma-e2b", "gemma-e4b", "gemma-12b"] {
+            let directory = PathBuf::from(format!("/private/tmp/oomu-{model}-model"));
+            assert!(classifier_can_reuse_model_directory(
+                Some(&directory),
+                &directory,
+                false
+            ));
+        }
+    }
+
+    #[test]
+    fn different_models_and_existing_classifier_lanes_remain_isolated() {
+        let local_chat = PathBuf::from("/private/tmp/oomu-local-chat-model");
+        let classifier = PathBuf::from("/private/tmp/oomu-classifier-model");
+
+        assert!(!classifier_can_reuse_model_directory(
+            Some(&local_chat),
+            &classifier,
+            false
+        ));
+        assert!(!classifier_can_reuse_model_directory(
+            Some(&classifier),
+            &classifier,
+            true
+        ));
+        assert!(!classifier_can_reuse_model_directory(
+            None,
+            &classifier,
+            false
+        ));
+    }
+
+    #[test]
+    fn replacement_lane_retires_only_a_redundant_matching_main_model() {
+        let main = PathBuf::from("/private/tmp/oomu-main-model");
+        let different = PathBuf::from("/private/tmp/oomu-different-classifier");
+
+        assert!(classifier_should_retire_main_model(
+            Some(&main),
+            &main,
+            false
+        ));
+        assert!(!classifier_should_retire_main_model(
+            Some(&main),
+            &main,
+            true
+        ));
+        assert!(!classifier_should_retire_main_model(
+            Some(&main),
+            &different,
+            false
+        ));
+    }
 
     #[test]
     fn stale_classifier_recovery_cannot_commit_after_timeout() {

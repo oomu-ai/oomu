@@ -114,6 +114,15 @@ impl InferenceError {
         }
     }
 
+    pub(super) fn deepseek_reasoning_without_answer() -> Self {
+        Self {
+            code: "deepseek_reasoning_without_answer".to_string(),
+            boundary: "provider_api".to_string(),
+            message: "DeepSeek completed its hidden reasoning without returning an answer."
+                .to_string(),
+        }
+    }
+
     pub(super) fn provider_stream_interrupted_after_tokens(message: impl Into<String>) -> Self {
         Self {
             code: "provider_stream_interrupted_after_tokens".to_string(),

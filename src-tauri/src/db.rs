@@ -41,7 +41,6 @@ mod commands;
 mod connector_scope_migration;
 mod database_key;
 mod filesystem_context;
-#[cfg(any(test, debug_assertions))]
 mod integration_test;
 #[cfg(test)]
 mod ledger_tests;
@@ -1767,7 +1766,7 @@ impl PersistenceEngine {
         }
         remove_sqlite_sidecars(&replacement);
 
-        // Remove sidecars from the database being replaced before the main-file rename.
+        // Remove source sidecars before the main-file rename.
         // The active write lock prevents application writers during this boundary.
         remove_sqlite_sidecars(&durable_path);
         if let Err(error) = fs::rename(&replacement, &durable_path) {
@@ -5674,7 +5673,7 @@ impl PersistenceEngine {
     }
 
     pub(crate) fn open_connection(&self) -> rusqlite::Result<Connection> {
-        let key = get_database_key().map_err(database_key_error)?;
+        let key = integration_test::key(self).map_err(database_key_error)?;
         self.open_connection_with_key(&key)
     }
 
@@ -5694,7 +5693,7 @@ impl PersistenceEngine {
     fn open_ops_connection(&self) -> rusqlite::Result<Connection> {
         self.require_durable_store("operations and audit database access")
             .map_err(database_key_error)?;
-        let key = get_database_key().map_err(database_key_error)?;
+        let key = integration_test::key(self).map_err(database_key_error)?;
         self.open_ops_connection_with_key(&key)
     }
 

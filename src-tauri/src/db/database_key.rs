@@ -11,9 +11,9 @@ const DATABASE_KEY_MEMORY_KIB: u32 = 19 * 1024;
 #[cfg(not(test))]
 const DATABASE_KEY_ITERATIONS: u32 = 3;
 const DATABASE_KEY_PARALLELISM: u32 = 1;
-#[cfg(test)]
+#[cfg(any(test, debug_assertions))]
 const INTEGRATION_TEST_KEY_MEMORY_KIB: u32 = 64;
-#[cfg(test)]
+#[cfg(any(test, debug_assertions))]
 const INTEGRATION_TEST_KEY_ITERATIONS: u32 = 1;
 
 static CACHED_DB_KEY: OnceLock<Mutex<CachedDatabaseKey>> = OnceLock::new();
@@ -219,7 +219,7 @@ fn derive_memory_hard_database_key_inner(database_secret: &str) -> Result<String
     )
 }
 
-#[cfg(test)]
+#[cfg(any(test, debug_assertions))]
 pub(super) fn derive_integration_test_database_key(
     database_secret: &str,
 ) -> Result<String, String> {

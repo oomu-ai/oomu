@@ -347,7 +347,7 @@
     },
     "src-tauri/src/db.rs": {
       "owner": "persistence/core-transactions",
-      "bytes": 332032,
+      "bytes": 331988,
       "functionLines": 443,
       "complexity": 89
     },

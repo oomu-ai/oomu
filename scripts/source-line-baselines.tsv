@@ -1,7 +1,7 @@
 # path	maximum_lines	domain_owner
 src-tauri/src/agent_manager.rs	4751	agents/profile-persistence
 src-tauri/src/agentic_loop.rs	5692	agents/planning-execution
-src-tauri/src/db.rs	9159	persistence/core-transactions
+src-tauri/src/db.rs	9158	persistence/core-transactions
 src-tauri/src/dom_streaming.rs	1578	native/dom_streaming
 src-tauri/src/gateway.rs	2287	channels/gateway-workers
 src-tauri/src/gemma.rs	3301	inference/local-model-lifecycle

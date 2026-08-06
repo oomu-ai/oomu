@@ -2096,6 +2096,10 @@
         "status": "Chat request failed",
         "content": "The chat request failed before OOMU could finish the response."
       },
+      "decision_pack_calendar_required": {
+        "status": "Which calendar should OOMU use?",
+        "content": "Name the calendar for “Supplier Decision Review,” then send the request again. OOMU has not changed anything yet."
+      },
       "final_verification": {
         "status": "Couldn’t confirm the result",
         "content": "OOMU couldn’t safely confirm the result, so it stopped. Check the file, then try again."
@@ -2534,8 +2538,11 @@
       "generic_title": "This work paused safely",
       "generic_body": "OOMU reached a step it couldn’t verify. Review the details, then try again.",
       "start_new_plan_body": "This execution can’t safely resume. Start a new plan from the original goal so OOMU can reassess it before taking action.",
-      "review_body": "OOMU won’t replay this execution because work may already exist outside OOMU. Review the details and affected apps or files before deciding what to do next.",
-      "review_required": "Inspect the affected work, then tell OOMU in chat what to keep or redo.",
+      "review_title": "Review what’s already there",
+      "review_body": "OOMU won’t replay an uncertain step. Review the details, then prepare a fresh plan from the original request.",
+      "review_required": "Nothing will run until you review and approve the new plan.",
+      "review_and_continue": "Review and continue",
+      "reviewing_existing": "Preparing a safe plan…",
       "checkpoint_saved": "Your verified progress is saved. Retry continues from the stopped step.",
       "external_changes": "Some work was completed before OOMU stopped. Review the details before retrying.",
       "nothing_changed": "Nothing new was created.",

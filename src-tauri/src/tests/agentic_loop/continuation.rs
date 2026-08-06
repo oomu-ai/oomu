@@ -18,6 +18,24 @@ async fn classifier_routes_standard_user_folder_references_to_agentic_planner() 
 }
 
 #[tokio::test]
+async fn classifier_routes_ship_readiness_decision_pack_to_deterministic_planner() {
+    let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {
+        prompt: SHIP_READINESS_SCENARIO_ONE_OBJECTIVE.to_string(),
+        automated_web_grounding_enabled: Some(true),
+        attachments: Vec::new(),
+    })
+    .await
+    .expect("ship-readiness route");
+
+    assert!(matches!(decision.route, ChatIntentRoute::AgenticPlanner));
+    assert!(decision.requires_local_access);
+    assert_eq!(
+        decision.decision_source,
+        "deterministic_decision_pack_filter"
+    );
+}
+
+#[tokio::test]
 async fn classifier_keeps_direct_command_wording_approval_gated_with_hydrated_context() {
     let request = ChatIntentRouteRequest {
         prompt: "Try to run a command directly. List the contents of the Downloads folder."

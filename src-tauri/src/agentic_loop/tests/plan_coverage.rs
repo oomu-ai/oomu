@@ -533,6 +533,17 @@ fn scenario_input_path_drift_has_an_actionable_typed_error() {
 }
 
 #[test]
+fn scenario_without_a_calendar_name_requests_that_one_human_detail() {
+    let objective = SCENARIO_OBJECTIVE.replace("my `OOMU Test` calendar", "my calendar");
+
+    let error = validate_objective_coverage(&objective, &evidence_bound_scenario_draft())
+        .expect_err("an unnamed Calendar must remain a recoverable clarification");
+
+    assert_eq!(error.code(), "planner_decision_pack_calendar_required");
+    assert!(error.message().contains("Choose the Calendar"));
+}
+
+#[test]
 fn an_ungrounded_typo_cannot_be_silently_substituted_by_the_planner() {
     for typo in [
         SCENARIO_OBJECTIVE.replace("mock_data/", "mocked_data/"),

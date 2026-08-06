@@ -1140,7 +1140,7 @@ describe("RecoveryReceiptCard durable outcomes", () => {
     },
   );
 
-  it("shows review guidance for external changes and never offers replay", () => {
+  it("offers an approval-gated new plan for external changes without replaying", async () => {
     const onRetry = vi.fn(async () => undefined);
     const onStartNewPlan = vi.fn(async () => undefined);
     render(
@@ -1156,11 +1156,11 @@ describe("RecoveryReceiptCard durable outcomes", () => {
       { wrapper: I18nProvider },
     );
 
-    expect(screen.getByText(/won’t replay this execution/i)).toBeVisible();
-    expect(screen.getByText(/tell OOMU in chat what to keep or redo/i)).toBeVisible();
+    expect(screen.getByText(/won’t replay an uncertain step/i)).toBeVisible();
+    expect(screen.getByText(/nothing will run until you review and approve/i)).toBeVisible();
     expect(screen.getByText("Decision pack research")).toBeVisible();
-    expect(screen.queryByRole("button")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Review and continue" }));
+    await waitFor(() => expect(onStartNewPlan).toHaveBeenCalledWith("agent-exec-test-6"));
     expect(onRetry).not.toHaveBeenCalled();
-    expect(onStartNewPlan).not.toHaveBeenCalled();
   });
 });

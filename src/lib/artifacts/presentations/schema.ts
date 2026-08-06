@@ -190,7 +190,7 @@ export const presentationIrSchema = z.object({
   const masters = uniqueIndex(deck.masters, (item) => item.masterId, context, ["masters"]);
   const layouts = uniqueIndex(deck.layouts, (item) => item.layoutId, context, ["layouts"]);
   const slides = uniqueIndex(deck.slides, (item) => item.slideId, context, ["slides"]);
-  const objects = new Map<string, string>();
+  const objectsBySlide = new Map<string, Set<string>>();
 
   deck.masters.forEach((master, index) => {
     if (master.themeId !== deck.theme.themeId) issue(context, ["masters", index, "themeId"], "Master must use the deck theme.");
@@ -205,10 +205,12 @@ export const presentationIrSchema = z.object({
   });
   deck.slides.forEach((slide, slideIndex) => {
     if (!layouts.has(slide.layoutId)) issue(context, ["slides", slideIndex, "layoutId"], "Slide contains an unknown layout.");
+    const slideObjects = new Set<string>();
+    objectsBySlide.set(slide.slideId, slideObjects);
     slide.elements.forEach((element, elementIndex) => {
       frameWithin(element.frame, size, context, ["slides", slideIndex, "elements", elementIndex, "frame"]);
-      if (objects.has(element.objectId)) issue(context, ["slides", slideIndex, "elements", elementIndex, "objectId"], "Object identifiers must be unique across the deck.");
-      objects.set(element.objectId, slide.slideId);
+      if (slideObjects.has(element.objectId)) issue(context, ["slides", slideIndex, "elements", elementIndex, "objectId"], "Object identifiers must be unique on each slide.");
+      slideObjects.add(element.objectId);
       if (element.content.kind === "chart") {
         const count = element.content.chart.categories.length;
         element.content.chart.series.forEach((series, seriesIndex) => {
@@ -217,12 +219,12 @@ export const presentationIrSchema = z.object({
       }
     });
     slide.animations.forEach((animation, animationIndex) => {
-      if (objects.get(animation.objectId) !== slide.slideId) issue(context, ["slides", slideIndex, "animations", animationIndex, "objectId"], "Animation target must be on the same slide.");
+      if (!slideObjects.has(animation.objectId)) issue(context, ["slides", slideIndex, "animations", animationIndex, "objectId"], "Animation target must be on the same slide.");
     });
   });
   deck.citations.forEach((citation, index) => {
     if (!slides.has(citation.slideId)) issue(context, ["citations", index, "slideId"], "Citation contains an unknown slide.");
-    if (citation.objectId && objects.get(citation.objectId) !== citation.slideId) issue(context, ["citations", index, "objectId"], "Citation target must be on its slide.");
+    if (citation.objectId && !objectsBySlide.get(citation.slideId)?.has(citation.objectId)) issue(context, ["citations", index, "objectId"], "Citation target must be on its slide.");
   });
 });
 

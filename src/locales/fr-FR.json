@@ -1182,6 +1182,10 @@
         "content": "La requête de chat a échoué avant qu'OOMU puisse terminer la réponse.",
         "status": "La requête de chat a échoué"
       },
+      "decision_pack_calendar_required": {
+        "content": "Indiquez le calendrier pour « Supplier Decision Review », puis renvoyez la demande. OOMU n’a encore rien modifié.",
+        "status": "Quel calendrier OOMU doit-il utiliser ?"
+      },
       "delete_target_not_found": {
         "content": "Ce fichier n'est pas là, il n'y a donc rien à supprimer. Vérifiez le chemin et réessayez.",
         "status": "Fichier introuvable"
@@ -1708,8 +1712,11 @@
       "retry_failed": "OOMU n'a pas pu reprendre ce travail. Le point de contrôle enregistré est inchangé.",
       "retry_research": "Relancer la recherche",
       "retrying": "Nouvelle tentative…",
-      "review_body": "OOMU ne rejouera pas cette exécution car du travail peut déjà exister en dehors d'OOMU. Vérifiez les détails et les apps ou fichiers concernés avant de décider de la suite.",
-      "review_required": "Inspectez le travail concerné, puis indiquez à OOMU dans le chat ce qu'il faut conserver ou refaire.",
+      "review_title": "Vérifier ce qui existe déjà",
+      "review_body": "OOMU ne rejouera pas une étape incertaine. Vérifiez les détails, puis préparez un nouveau plan à partir de la demande initiale.",
+      "review_required": "Rien ne sera exécuté tant que vous n’aurez pas vérifié et approuvé le nouveau plan.",
+      "review_and_continue": "Vérifier et continuer",
+      "reviewing_existing": "Préparation d’un plan sûr…",
       "start_new_plan": "Démarrer un nouveau plan",
       "start_new_plan_body": "Cette exécution ne peut pas reprendre en toute sécurité. Démarrez un nouveau plan à partir de l'objectif d'origine pour qu'OOMU puisse le réévaluer avant d'agir.",
       "start_new_plan_failed": "OOMU n'a pas pu démarrer un nouveau plan. L'exécution arrêtée reste inchangée.",

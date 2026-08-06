@@ -54,7 +54,7 @@ pub(super) fn compile(
     let research_policy =
         crate::decision_research_policy::compile_research_policy(objective).map_err(contract)?;
     let calendar_name = objective_calendar_name(objective)
-        .ok_or_else(|| contract("The requested Calendar name was not explicit."))?;
+        .ok_or_else(PlanCoverageDeficit::decision_pack_calendar_required)?;
     let event_title = objective_event_title(objective)
         .ok_or_else(|| contract("The requested Calendar event title was not explicit."))?;
     let recipient = objective_email(objective)
@@ -452,17 +452,17 @@ fn validate_calendar_arguments(
             "create_conflict_free_calendar_event.durationMinutes must be 30.",
         ));
     }
-    if let Some(expected) = objective_calendar_name(objective) {
-        let actual = require_string(
-            arguments,
-            "calendarName",
-            "create_conflict_free_calendar_event",
-        )?;
-        if actual != expected {
-            return Err(contract(format!(
-                "create_conflict_free_calendar_event.calendarName must preserve '{expected}'."
-            )));
-        }
+    let expected = objective_calendar_name(objective)
+        .ok_or_else(PlanCoverageDeficit::decision_pack_calendar_required)?;
+    let actual = require_string(
+        arguments,
+        "calendarName",
+        "create_conflict_free_calendar_event",
+    )?;
+    if actual != expected {
+        return Err(contract(format!(
+            "create_conflict_free_calendar_event.calendarName must preserve '{expected}'."
+        )));
     }
     if let Some(expected) = objective_event_title(objective) {
         let actual = require_string(arguments, "title", "create_conflict_free_calendar_event")?;

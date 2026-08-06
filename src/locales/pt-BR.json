@@ -1182,6 +1182,10 @@
         "content": "A solicitação de chat falhou antes que o OOMU pudesse concluir a resposta.",
         "status": "A solicitação de chat falhou"
       },
+      "decision_pack_calendar_required": {
+        "content": "Informe o calendário para “Supplier Decision Review” e envie a solicitação novamente. O OOMU ainda não alterou nada.",
+        "status": "Qual calendário o OOMU deve usar?"
+      },
       "delete_target_not_found": {
         "content": "Esse arquivo não está lá, então não há nada para excluir. Verifique o caminho e tente novamente.",
         "status": "Arquivo não encontrado"
@@ -1708,8 +1712,11 @@
       "retry_failed": "O OOMU não pôde retomar este trabalho. O checkpoint salvo permanece inalterado.",
       "retry_research": "Repetir pesquisa",
       "retrying": "Tentando novamente…",
-      "review_body": "O OOMU não repetirá esta execução porque o trabalho pode já existir fora do OOMU. Revise os detalhes e os apps ou arquivos afetados antes de decidir o que fazer a seguir.",
-      "review_required": "Inspecione o trabalho afetado e diga ao OOMU no chat o que manter ou refazer.",
+      "review_title": "Revisar o que já existe",
+      "review_body": "O OOMU não repetirá uma etapa incerta. Revise os detalhes e depois prepare um novo plano com base no pedido original.",
+      "review_required": "Nada será executado até você revisar e aprovar o novo plano.",
+      "review_and_continue": "Revisar e continuar",
+      "reviewing_existing": "Preparando um plano seguro…",
       "start_new_plan": "Começar um novo plano",
       "start_new_plan_body": "Esta execução não pode ser retomada com segurança. Comece um novo plano a partir do objetivo original para que o OOMU possa reavaliá-lo antes de agir.",
       "start_new_plan_failed": "O OOMU não pôde começar um novo plano. A execução interrompida permanece inalterada.",

@@ -1182,6 +1182,10 @@
         "content": "Yêu cầu trò chuyện thất bại trước khi OOMU hoàn tất phản hồi.",
         "status": "Yêu cầu trò chuyện thất bại"
       },
+      "decision_pack_calendar_required": {
+        "content": "Hãy cho biết lịch dành cho “Supplier Decision Review”, rồi gửi lại yêu cầu. OOMU chưa thay đổi gì.",
+        "status": "OOMU nên dùng lịch nào?"
+      },
       "delete_target_not_found": {
         "content": "Tệp đó không có ở đó nên không có gì để xóa. Hãy kiểm tra đường dẫn và thử lại.",
         "status": "Không tìm thấy tệp"
@@ -1708,8 +1712,11 @@
       "retry_failed": "OOMU không thể tiếp tục công việc này. Điểm kiểm tra đã lưu không thay đổi.",
       "retry_research": "Thử lại nghiên cứu",
       "retrying": "Đang thử lại…",
-      "review_body": "OOMU sẽ không phát lại lần thực thi này vì công việc có thể đã tồn tại bên ngoài OOMU. Hãy xem lại chi tiết và các ứng dụng hoặc tệp bị ảnh hưởng trước khi quyết định làm gì tiếp theo.",
-      "review_required": "Kiểm tra công việc bị ảnh hưởng, rồi cho OOMU biết trong chat những gì cần giữ hoặc làm lại.",
+      "review_title": "Xem lại phần việc hiện có",
+      "review_body": "OOMU sẽ không lặp lại một bước có kết quả chưa chắc chắn. Hãy xem chi tiết, rồi chuẩn bị kế hoạch mới từ yêu cầu ban đầu.",
+      "review_required": "Sẽ không có gì được chạy cho đến khi bạn xem lại và phê duyệt kế hoạch mới.",
+      "review_and_continue": "Xem lại và tiếp tục",
+      "reviewing_existing": "Đang chuẩn bị kế hoạch an toàn…",
       "start_new_plan": "Bắt đầu kế hoạch mới",
       "start_new_plan_body": "Lần thực thi này không thể tiếp tục an toàn. Hãy bắt đầu một kế hoạch mới từ mục tiêu ban đầu để OOMU có thể đánh giá lại trước khi hành động.",
       "start_new_plan_failed": "OOMU không thể bắt đầu một kế hoạch mới. Lần thực thi đã dừng vẫn không thay đổi.",

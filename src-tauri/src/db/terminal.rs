@@ -62,7 +62,14 @@ fn dump_recent_agent_executions(connection: &Connection) -> rusqlite::Result<()>
     let mut executions = connection.prepare(
         "SELECT execution_id, plan_id, session_id, provider_id, model_id, status,
                 json_extract(context_json, '$.turn_context.automatedWebGroundingEnabled'),
-                created_at_ms, updated_at_ms
+                created_at_ms, updated_at_ms,
+                (SELECT group_concat(
+                    COALESCE(
+                        json_extract(step.value, '$.tool.operation'),
+                        json_extract(step.value, '$.tool.kind')
+                    ),
+                    ','
+                ) FROM json_each(agent_executions.context_json, '$.plan.steps') AS step)
          FROM agent_executions
          ORDER BY updated_at_ms DESC
          LIMIT 10",
@@ -78,6 +85,7 @@ fn dump_recent_agent_executions(connection: &Connection) -> rusqlite::Result<()>
             row.get::<_, Option<i64>>(6)?,
             row.get::<_, i64>(7)?,
             row.get::<_, i64>(8)?,
+            row.get::<_, Option<String>>(9)?,
         ))
     })?;
     let mut count = 0;
@@ -92,10 +100,11 @@ fn dump_recent_agent_executions(connection: &Connection) -> rusqlite::Result<()>
             web_grounding,
             created_at_ms,
             updated_at_ms,
+            plan_operations,
         ) = row?;
         count += 1;
         println!(
-            "#{count} execution={} plan={} session={} route={}/{} web_grounding={} status={} created_at_ms={} updated_at_ms={}",
+            "#{count} execution={} plan={} session={} route={}/{} web_grounding={} status={} steps={} created_at_ms={} updated_at_ms={}",
             execution_id,
             plan_id,
             session_id,
@@ -103,6 +112,7 @@ fn dump_recent_agent_executions(connection: &Connection) -> rusqlite::Result<()>
             model_id,
             terminal_optional_bool(web_grounding),
             status,
+            terminal_empty_placeholder(plan_operations.as_deref().unwrap_or("")),
             created_at_ms,
             updated_at_ms
         );

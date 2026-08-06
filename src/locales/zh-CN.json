@@ -1182,6 +1182,10 @@
         "content": "在 OOMU 完成回复之前，聊天请求失败了。",
         "status": "聊天请求失败"
       },
+      "decision_pack_calendar_required": {
+        "content": "请指定用于“Supplier Decision Review”的日历，然后重新发送请求。OOMU 尚未进行任何更改。",
+        "status": "OOMU 应使用哪个日历？"
+      },
       "delete_target_not_found": {
         "content": "该文件不存在，因此没有可删除的内容。请检查路径并重试。",
         "status": "未找到文件"
@@ -1708,8 +1712,11 @@
       "retry_failed": "OOMU 无法恢复此工作。已保存的检查点未更改。",
       "retry_research": "重试研究",
       "retrying": "正在重试…",
-      "review_body": "OOMU 不会重放此执行，因为工作可能已存在于 OOMU 之外。在决定下一步之前，请查看详情以及受影响的应用或文件。",
-      "review_required": "检查受影响的工作，然后在聊天中告诉 OOMU 要保留或重做什么。",
+      "review_title": "检查已有工作",
+      "review_body": "OOMU 不会重放结果不确定的步骤。请查看详情，然后根据原始请求准备一个新计划。",
+      "review_required": "在您查看并批准新计划之前，不会执行任何操作。",
+      "review_and_continue": "检查并继续",
+      "reviewing_existing": "正在准备安全计划…",
       "start_new_plan": "开始新计划",
       "start_new_plan_body": "此执行无法安全恢复。请从原始目标开始一个新计划，以便 OOMU 在采取行动前重新评估。",
       "start_new_plan_failed": "OOMU 无法开始新计划。已停止的执行保持不变。",

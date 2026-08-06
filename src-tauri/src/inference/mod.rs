@@ -1378,6 +1378,9 @@ async fn run_chat_turn(
         &routing_tool_registrations,
         &routing_latest_turn,
     );
+    if dynamic_routing_active && parent_turn_context.is_none() {
+        auto_route_readiness::ensure_current_classifier_assignment(&app, &gemma).await?;
+    }
     let dynamic_model_route = if dynamic_routing_active && parent_turn_context.is_none() {
         let (baseline_provider_id, baseline_model_id) = if let Some(policy) =
             frozen_auto_route_policy.as_ref()

@@ -2,13 +2,17 @@
 
 import { spawn, spawnSync } from "node:child_process";
 import {
+  closeSync,
   copyFileSync,
   cpSync,
   existsSync,
   chmodSync,
   mkdirSync,
+  openSync,
   readFileSync,
   realpathSync,
+  unlinkSync,
+  writeFileSync,
 } from "node:fs";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,6 +21,9 @@ const DEVELOPMENT_IDENTIFIER = "ai.eldris.oomu.gpd.development";
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
 const targetRoot = join(repositoryRoot, "src-tauri", "target");
+const developmentAppPath = join(targetRoot, "development-bundle", "OOMU Development.app");
+const developmentExecutablePath = join(developmentAppPath, "Contents", "MacOS", "oomu");
+const developmentLaunchLockPath = join(targetRoot, ".oomu-tauri-dev-launch.lock");
 const entitlementsPath = join(repositoryRoot, "src-tauri", "entitlements.plist");
 const sourceInfoPlistPath = join(repositoryRoot, "src-tauri", "Info.plist");
 const sourceLocalizationsPath = join(repositoryRoot, "src-tauri", "macos-localizations");
@@ -78,11 +85,99 @@ function developmentSigningIdentity() {
   return identities.length === 1 ? identities[0] : "-";
 }
 
+function regexLiteral(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+}
+
+function exactDevelopmentPids() {
+  const result = spawnSync(
+    "/usr/bin/pgrep",
+    ["-f", `^${regexLiteral(developmentExecutablePath)}([[:space:]]|$)`],
+    { encoding: "utf8" },
+  );
+  if (result.status !== 0) return [];
+  return result.stdout
+    .trim()
+    .split(/\s+/u)
+    .map((value) => Number.parseInt(value, 10))
+    .filter((pid) => Number.isSafeInteger(pid) && pid > 1);
+}
+
+function processExists(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error?.code === "EPERM";
+  }
+}
+
+function acquireDevelopmentLaunchLock(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  const sleeper = new Int32Array(new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT));
+  while (Date.now() < deadline) {
+    try {
+      const descriptor = openSync(developmentLaunchLockPath, "wx", 0o600);
+      writeFileSync(descriptor, `${process.pid}\n`, "utf8");
+      return () => {
+        closeSync(descriptor);
+        try {
+          unlinkSync(developmentLaunchLockPath);
+        } catch (error) {
+          if (error?.code !== "ENOENT") throw error;
+        }
+      };
+    } catch (error) {
+      if (error?.code !== "EEXIST") throw error;
+      let owner = Number.NaN;
+      try {
+        owner = Number.parseInt(readFileSync(developmentLaunchLockPath, "utf8").trim(), 10);
+      } catch {
+        // A writer may still be recording its PID. Wait before treating it as stale.
+      }
+      if (Number.isSafeInteger(owner) && owner > 1 && !processExists(owner)) {
+        try {
+          unlinkSync(developmentLaunchLockPath);
+        } catch (unlinkError) {
+          if (unlinkError?.code !== "ENOENT") throw unlinkError;
+        }
+        continue;
+      }
+      Atomics.wait(sleeper, 0, 0, 50);
+    }
+  }
+  fail("Another OOMU development launch did not finish in time.");
+}
+
+function waitForDevelopmentExit(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  const sleeper = new Int32Array(new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT));
+  while (Date.now() < deadline) {
+    if (exactDevelopmentPids().length === 0) return true;
+    Atomics.wait(sleeper, 0, 0, 50);
+  }
+  return exactDevelopmentPids().length === 0;
+}
+
+function stopDevelopmentAppBeforeReplacement() {
+  const existing = exactDevelopmentPids();
+  if (existing.length === 0) return;
+  for (const pid of existing) process.kill(pid, "SIGTERM");
+  if (waitForDevelopmentExit(3_000)) return;
+  for (const pid of exactDevelopmentPids()) process.kill(pid, "SIGKILL");
+  if (!waitForDevelopmentExit(1_000)) {
+    fail("The previous OOMU Development process did not exit before replacement.");
+  }
+}
+
 const runnerArgs = process.argv.slice(2);
 if (runnerArgs[0] !== "run") fail("Tauri did not request the reviewed Cargo run operation.");
 const separatorIndex = runnerArgs.indexOf("--");
 const cargoRunArgs = separatorIndex >= 0 ? runnerArgs.slice(0, separatorIndex) : runnerArgs;
 const applicationArgs = separatorIndex >= 0 ? runnerArgs.slice(separatorIndex + 1) : [];
+const diagnosticLaunch = applicationArgs.some((value) =>
+  ["--audit-db", "--dump-db", "--help", "-h"].includes(value)
+);
 const cargoBuildArgs = ["build", ...cargoRunArgs.slice(1)];
 run("cargo", cargoBuildArgs, "Building the OOMU development executable");
 
@@ -98,17 +193,22 @@ if (!binaryPath.startsWith(`${realpathSync(targetRoot)}${sep}`) || basename(bina
 
 let launchPath = binaryPath;
 let launchBundlePath = null;
+let releaseDevelopmentLaunchLock = null;
 if (process.platform === "darwin") {
   if (!existsSync(entitlementsPath) || !existsSync(sourceInfoPlistPath)) {
     fail("The reviewed macOS permission metadata is missing.");
   }
-  const appPath = join(targetRoot, "development-bundle", "OOMU Development.app");
+  const appPath = developmentAppPath;
   const contentsPath = join(appPath, "Contents");
   const macosPath = join(contentsPath, "MacOS");
   const resourcesPath = join(contentsPath, "Resources");
   const bundledExecutablePath = join(macosPath, "oomu");
   const bundledInfoPlistPath = join(contentsPath, "Info.plist");
   const signingIdentity = developmentSigningIdentity();
+  // Never replace a signed executable while macOS is still executing it. Doing so
+  // invalidates resident code pages and causes a CODESIGNING/Invalid Page kill.
+  releaseDevelopmentLaunchLock = acquireDevelopmentLaunchLock(120_000);
+  stopDevelopmentAppBeforeReplacement();
   mkdirSync(macosPath, { recursive: true });
   mkdirSync(resourcesPath, { recursive: true });
   copyFileSync(binaryPath, bundledExecutablePath);
@@ -201,13 +301,12 @@ if (process.platform === "darwin") {
 }
 
 if (launchBundlePath) {
-  const existing = spawnSync("/usr/bin/pgrep", ["-f", `^${launchPath}$`], { encoding: "utf8" });
-  if (existing.status === 0 && existing.stdout.trim()) {
+  if (exactDevelopmentPids().length > 0) {
     fail("An OOMU Development instance is already running.");
   }
 }
 
-const child = launchBundlePath
+const child = launchBundlePath && !diagnosticLaunch
   ? spawn(
       "/usr/bin/open",
       ["-n", "-W", launchBundlePath, ...(applicationArgs.length ? ["--args", ...applicationArgs] : [])],
@@ -218,14 +317,27 @@ const child = launchBundlePath
   stdio: "inherit",
   });
 
+if (launchBundlePath && !diagnosticLaunch) {
+  const started = (() => {
+    const deadline = Date.now() + 30_000;
+    const sleeper = new Int32Array(new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT));
+    while (Date.now() < deadline) {
+      if (exactDevelopmentPids().length > 0) return true;
+      Atomics.wait(sleeper, 0, 0, 50);
+    }
+    return exactDevelopmentPids().length > 0;
+  })();
+  releaseDevelopmentLaunchLock?.();
+  releaseDevelopmentLaunchLock = null;
+  if (!started) fail("The signed OOMU development app did not start.");
+} else if (launchBundlePath) {
+  releaseDevelopmentLaunchLock?.();
+  releaseDevelopmentLaunchLock = null;
+}
+
 function stopExactDevelopmentApp(signal) {
   if (!launchBundlePath) return;
-  const result = spawnSync("/usr/bin/pgrep", ["-f", `^${launchPath}$`], { encoding: "utf8" });
-  if (result.status !== 0) return;
-  for (const value of result.stdout.trim().split(/\s+/u)) {
-    const pid = Number.parseInt(value, 10);
-    if (Number.isSafeInteger(pid) && pid > 1) process.kill(pid, signal);
-  }
+  for (const pid of exactDevelopmentPids()) process.kill(pid, signal);
 }
 
 let forwardedSignal = null;

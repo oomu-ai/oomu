@@ -1182,6 +1182,10 @@
         "content": "Die Chat-Anfrage schlug fehl, bevor OOMU die Antwort abschließen konnte.",
         "status": "Chat-Anfrage fehlgeschlagen"
       },
+      "decision_pack_calendar_required": {
+        "content": "Nennen Sie den Kalender für „Supplier Decision Review“ und senden Sie die Anfrage dann erneut. OOMU hat noch nichts geändert.",
+        "status": "Welchen Kalender soll OOMU verwenden?"
+      },
       "delete_target_not_found": {
         "content": "Diese Datei ist nicht vorhanden, es gibt also nichts zu löschen. Prüfe den Pfad und versuche es erneut.",
         "status": "Datei nicht gefunden"
@@ -1708,8 +1712,11 @@
       "retry_failed": "OOMU konnte diese Arbeit nicht fortsetzen. Der gespeicherte Checkpoint ist unverändert.",
       "retry_research": "Recherche erneut versuchen",
       "retrying": "Wird erneut versucht…",
-      "review_body": "OOMU wird diese Ausführung nicht erneut ausführen, da außerhalb von OOMU möglicherweise bereits Arbeit vorhanden ist. Prüfe die Details und die betroffenen Apps oder Dateien, bevor du entscheidest, wie es weitergeht.",
-      "review_required": "Prüfe die betroffene Arbeit und sag OOMU im Chat, was behalten oder erneut gemacht werden soll.",
+      "review_title": "Vorhandene Arbeit prüfen",
+      "review_body": "OOMU wiederholt keinen unsicheren Schritt. Prüfe die Details und erstelle dann einen neuen Plan aus der ursprünglichen Anfrage.",
+      "review_required": "Nichts wird ausgeführt, bis du den neuen Plan geprüft und genehmigt hast.",
+      "review_and_continue": "Prüfen und fortfahren",
+      "reviewing_existing": "Sicherer Plan wird vorbereitet…",
       "start_new_plan": "Neuen Plan starten",
       "start_new_plan_body": "Diese Ausführung kann nicht sicher fortgesetzt werden. Starte einen neuen Plan vom ursprünglichen Ziel, damit OOMU ihn vor dem Handeln neu bewerten kann.",
       "start_new_plan_failed": "OOMU konnte keinen neuen Plan starten. Die gestoppte Ausführung bleibt unverändert.",

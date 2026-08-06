@@ -26,6 +26,22 @@ describe("presentation IR", () => {
     expect(() => presentationIrSchema.parse({ ...valid, citations: [{ citationId: "bad", slideId: "cover", objectId: "findings_body", sourceRef: "source", evidenceRef: "evidence", label: "Source" }] })).toThrow();
   });
 
+  it("accepts reusable object names across slides while keeping each slide exact", () => {
+    const valid = createTaskSummaryPresentation({
+      title: "Review", summary: "A checked result.", locale: "en-US",
+      coverLabel: "Project brief", findingsTitle: "What OOMU found", sources: [],
+    });
+    const repeatedAcrossSlides = structuredClone(valid);
+    repeatedAcrossSlides.slides[1].elements[0].objectId =
+      repeatedAcrossSlides.slides[0].elements[0].objectId;
+    expect(() => presentationIrSchema.parse(repeatedAcrossSlides)).not.toThrow();
+
+    const duplicateOnOneSlide = structuredClone(valid);
+    duplicateOnOneSlide.slides[0].elements[1].objectId =
+      duplicateOnOneSlide.slides[0].elements[0].objectId;
+    expect(() => presentationIrSchema.parse(duplicateOnOneSlide)).toThrow();
+  });
+
   it("rejects hidden executable behavior, unlicensed images, and chart mismatch at the strict boundary", () => {
     const valid = createTaskSummaryPresentation({
       title: "Review", summary: "A checked result.", locale: "en-US",

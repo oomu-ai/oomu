@@ -17,6 +17,8 @@ pub struct PlanExecutionCheckpoint {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ReceiptCompatibility {
     Explicit,
+    ExternalReview,
+    CheckpointReview,
     Legacy,
 }
 
@@ -102,18 +104,23 @@ fn recovery_receipt_authorizes_new_plan(
         || receipt.get("executionId").and_then(Value::as_str) != Some(execution_id)
         || receipt.get("planId").and_then(Value::as_str) != Some(plan_id)
         || receipt.get("recoverable").and_then(Value::as_bool) != Some(false)
-        || !matches!(
-            receipt.get("changedState").and_then(Value::as_str),
-            Some("none" | "checkpoint_saved")
-        )
     {
         return None;
     }
-    match receipt.get("recoveryAction") {
-        Some(Value::String(action)) if action == "start_new_plan" => {
+    match (
+        receipt.get("recoveryAction").and_then(Value::as_str),
+        receipt.get("changedState").and_then(Value::as_str),
+    ) {
+        (Some("start_new_plan"), Some("none" | "checkpoint_saved")) => {
             Some(ReceiptCompatibility::Explicit)
         }
-        None => Some(ReceiptCompatibility::Legacy),
+        (Some("review_external_changes"), Some("external_changes")) => {
+            Some(ReceiptCompatibility::ExternalReview)
+        }
+        (Some("review_external_changes"), Some("checkpoint_saved")) => {
+            Some(ReceiptCompatibility::CheckpointReview)
+        }
+        (None, Some("none" | "checkpoint_saved")) => Some(ReceiptCompatibility::Legacy),
         _ => None,
     }
 }
@@ -173,7 +180,82 @@ fn durable_replan_objective(
     (!objective.trim().is_empty()).then(|| objective.to_string())
 }
 
+fn decision_pack_checkpoint_replan_is_idempotent(
+    context_json: &str,
+    completed_count: usize,
+) -> bool {
+    const OPERATIONS: [&str; 3] = [
+        "create_decision_pack",
+        "create_conflict_free_calendar_event",
+        "draft_decision_pack_email",
+    ];
+    if completed_count == 0 || completed_count >= OPERATIONS.len() {
+        return false;
+    }
+    let Ok(context) = serde_json::from_str::<Value>(context_json) else {
+        return false;
+    };
+    let Some(steps) = context.pointer("/plan/steps").and_then(Value::as_array) else {
+        return false;
+    };
+    steps.len() == OPERATIONS.len()
+        && steps.iter().zip(OPERATIONS).all(|(step, expected)| {
+            step.pointer("/tool/operation")
+                .or_else(|| step.pointer("/tool/kind"))
+                .and_then(Value::as_str)
+                == Some(expected)
+        })
+}
+
 impl PersistenceEngine {
+    pub(crate) fn completed_agent_action_outputs_for_objective(
+        &self,
+        operation: &str,
+        objective: &str,
+    ) -> Result<Vec<String>, String> {
+        let operation = operation.trim();
+        let objective = objective.trim();
+        if operation.is_empty() || objective.is_empty() {
+            return Ok(Vec::new());
+        }
+        let connection = self.open_connection().map_err(|error| error.to_string())?;
+        let mut statement = connection
+            .prepare(
+                "SELECT actions.output, executions.context_json
+                 FROM actions
+                 JOIN agent_executions executions
+                   ON executions.plan_id=actions.plan_id
+                 WHERE actions.tool=?1
+                   AND actions.status='completed'
+                   AND actions.output IS NOT NULL
+                 ORDER BY actions.timestamp_ms DESC
+                 LIMIT 32",
+            )
+            .map_err(|error| error.to_string())?;
+        let rows = statement
+            .query_map(params![operation], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })
+            .map_err(|error| error.to_string())?;
+        let mut outputs = Vec::new();
+        for row in rows {
+            let (output, context_json) = row.map_err(|error| error.to_string())?;
+            let matches_objective = serde_json::from_str::<Value>(&context_json)
+                .ok()
+                .and_then(|context| {
+                    context
+                        .pointer("/plan/objective")
+                        .and_then(Value::as_str)
+                        .map(|candidate| candidate.trim() == objective)
+                })
+                .unwrap_or(false);
+            if matches_objective && !outputs.contains(&output) {
+                outputs.push(output);
+            }
+        }
+        Ok(outputs)
+    }
+
     pub async fn complete_agent_action_checkpoint(
         &self,
         action_id: i64,
@@ -1121,17 +1203,7 @@ impl PersistenceEngine {
                   AND sessions.agent_id=executions.agent_id
                  WHERE executions.execution_id=?1
                    AND executions.session_id=?2
-                   AND executions.status='failed'
-                   AND NOT EXISTS (
-                       SELECT 1 FROM actions completed
-                       WHERE completed.plan_id=executions.plan_id
-                         AND completed.status='completed'
-                   )
-                   AND NOT EXISTS (
-                       SELECT 1 FROM plan_generation_states state
-                       WHERE state.plan_id=executions.plan_id
-                         AND state.current_step_index<>0
-                   )",
+                   AND executions.status='failed'",
                 params![execution_id, session_id],
                 |row| {
                     Ok((
@@ -1151,10 +1223,25 @@ impl PersistenceEngine {
             return Ok(None);
         };
         let evidence = agent_action_recovery_evidence(&connection, &plan_id)?;
-        if evidence.completed_count != 0
-            || evidence.has_uncertain_effect
-            || (compatibility == ReceiptCompatibility::Legacy && evidence.action_count != 0)
-        {
+        let safe_to_replan = match compatibility {
+            ReceiptCompatibility::Explicit => {
+                evidence.completed_count == 0 && !evidence.has_uncertain_effect
+            }
+            ReceiptCompatibility::ExternalReview => evidence.completed_count == 0,
+            ReceiptCompatibility::CheckpointReview => {
+                !evidence.has_uncertain_effect
+                    && decision_pack_checkpoint_replan_is_idempotent(
+                        &context_json,
+                        evidence.completed_count,
+                    )
+            }
+            ReceiptCompatibility::Legacy => {
+                evidence.completed_count == 0
+                    && evidence.action_count == 0
+                    && !evidence.has_uncertain_effect
+            }
+        };
+        if !safe_to_replan {
             return Ok(None);
         }
         Ok(durable_replan_objective(

@@ -104,6 +104,8 @@ export function chatErrorGroup(errorCode: string, detail = "") {
       return "provider_response";
     case "planner_objective_too_large":
       return "planner_too_large";
+    case "planner_decision_pack_calendar_required":
+      return "decision_pack_calendar_required";
     case "agent_objective_not_executable":
       return "local_action_unavailable";
     case "file_creation_failed":

@@ -11,10 +11,12 @@ pub(super) fn requires_agentic_escalation(
     matches!(
         decision.route,
         crate::agentic_loop::ChatIntentRoute::AgenticPlanner
-    ) && (decision.decision_source == "native_artifact_creation_filter"
-        || !capabilities.iter().any(|capability| {
-            !capability.server_name.trim().is_empty() && !capability.tool_name.trim().is_empty()
-        }))
+    ) && (matches!(
+        decision.decision_source.as_str(),
+        "native_artifact_creation_filter" | "deterministic_decision_pack_filter"
+    ) || !capabilities.iter().any(|capability| {
+        !capability.server_name.trim().is_empty() && !capability.tool_name.trim().is_empty()
+    }))
 }
 
 pub(super) fn filter_conversational_mcp_tool_capabilities_for_turn(

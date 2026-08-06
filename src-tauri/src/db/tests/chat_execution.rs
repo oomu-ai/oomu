@@ -468,6 +468,18 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
         ("legacy-failed", None, Some("failed"), false),
         ("review", Some("review_external_changes"), None, false),
         (
+            "review-external",
+            Some("review_external_changes"),
+            Some("started_effectful"),
+            true,
+        ),
+        (
+            "decision-pack-checkpoint-review",
+            Some("review_external_changes"),
+            Some("completed"),
+            true,
+        ),
+        (
             "completed",
             Some("start_new_plan"),
             Some("completed"),
@@ -500,8 +512,15 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
             root_turn_id: format!("turn-replan-{suffix}"),
             turn_kind: "root".to_string(),
         };
+        let plan_steps = (suffix == "decision-pack-checkpoint-review").then(|| {
+            json!([
+                {"tool":{"operation":"create_decision_pack"}},
+                {"tool":{"operation":"create_conflict_free_calendar_event"}},
+                {"tool":{"operation":"draft_decision_pack_email"}}
+            ])
+        });
         let context_json = json!({
-            "plan": {"id": plan_id, "objective": objective},
+            "plan": {"id": plan_id, "objective": objective, "steps": plan_steps},
             "turn_context": {"sessionId": session_id},
         })
         .to_string();
@@ -516,8 +535,11 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
             .execute(
                 "INSERT INTO plan_generation_states
                  (plan_id,plan_json,current_step_index,status,generated_text,timestamp_ms)
-                 VALUES (?1,'{}',0,'running','running',1)",
-                params![plan_id],
+                 VALUES (?1,'{}',?2,'running','running',1)",
+                params![
+                    plan_id,
+                    i64::from(suffix == "decision-pack-checkpoint-review")
+                ],
             )
             .unwrap();
         if let Some(action_status) = action_status {
@@ -534,6 +556,15 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
                 )
                 .unwrap();
         }
+        if suffix == "decision-pack-checkpoint-review" {
+            connection
+                .execute(
+                    "INSERT INTO actions (plan_id,tool,input,output,status,timestamp_ms)
+                     VALUES (?1,'create_conflict_free_calendar_event','{}',NULL,'prepared_effectful',2)",
+                    params![plan_id],
+                )
+                .unwrap();
+        }
         drop(connection);
 
         let mut receipt = json!({
@@ -545,7 +576,13 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
             "recoverable": false,
             "message": "Execution stopped at a safe boundary.",
             "context": {},
-            "changedState": "none",
+            "changedState": if suffix == "review-external" {
+                "external_changes"
+            } else if suffix == "decision-pack-checkpoint-review" {
+                "checkpoint_saved"
+            } else {
+                "none"
+            },
         });
         if let Some(recovery_action) = recovery_action {
             receipt
@@ -585,5 +622,71 @@ fn failed_agent_replan_requires_safe_receipt_and_no_uncertain_action_effect() {
         );
     }
 
+    let _ = std::fs::remove_dir_all(temp_dir);
+}
+
+#[test]
+fn completed_agent_action_receipt_reuse_is_bound_to_the_exact_objective() {
+    let temp_dir =
+        std::env::temp_dir().join(format!("oomu-agent-receipt-reuse-{}", unix_time_ms()));
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    let engine = PersistenceEngine::initialize_at(temp_dir.join("chat.sqlite")).unwrap();
+    let objective = "Prepare the exact supplier decision pack";
+    let plan_id = "plan-receipt-reuse";
+    let execution_id = "execution-receipt-reuse";
+    let session = engine
+        .ensure_chat_session(CreateChatSessionRequest {
+            agent_id: "agent-receipt-reuse".to_string(),
+            provider_id: "local_model".to_string(),
+            model_id: "gemma-test".to_string(),
+            title: Some("Receipt reuse".to_string()),
+            dynamic_routing_override: None,
+            workspace_id: Some(engine.workspace_id.clone()),
+        })
+        .unwrap();
+    let context = ChatTurnPersistenceContext {
+        turn_id: "turn-receipt-reuse".to_string(),
+        generation_token: "generation-receipt-reuse".to_string(),
+        session_id: session.id,
+        agent_id: "agent-receipt-reuse".to_string(),
+        provider_id: "local_model".to_string(),
+        model_id: "gemma-test".to_string(),
+        parent_turn_id: None,
+        root_turn_id: "turn-receipt-reuse".to_string(),
+        turn_kind: "root".to_string(),
+    };
+    let context_json = json!({
+        "plan": {"id": plan_id, "objective": objective},
+        "turn_context": {"sessionId": context.session_id},
+    })
+    .to_string();
+    engine.begin_chat_turn(&context).unwrap();
+    engine
+        .begin_agent_execution(execution_id, plan_id, &context, &context_json)
+        .unwrap();
+    let output = r#"{"operation":"create_decision_pack","status":"completed","message":"{}","metrics":null,"claims":[],"verified":true,"model_used":null}"#;
+    engine
+        .open_connection()
+        .unwrap()
+        .execute(
+            "INSERT INTO actions (plan_id,tool,input,output,status,timestamp_ms)
+             VALUES (?1,'create_decision_pack','{}',?2,'completed',1)",
+            params![plan_id, output],
+        )
+        .unwrap();
+
+    assert_eq!(
+        engine
+            .completed_agent_action_outputs_for_objective("create_decision_pack", objective)
+            .unwrap(),
+        vec![output.to_string()]
+    );
+    assert!(engine
+        .completed_agent_action_outputs_for_objective(
+            "create_decision_pack",
+            "Prepare another supplier decision pack",
+        )
+        .unwrap()
+        .is_empty());
     let _ = std::fs::remove_dir_all(temp_dir);
 }

@@ -19,6 +19,7 @@ const DIRECT_NOTICE_KEYS: Record<string, [string, string]> = {
   approved_file_limit: ["permissions.approved_file_limit_content", "permissions.approved_file_limit_status"],
   contextual_file_preparation: ["permissions.contextual_file_preparation_content", "permissions.contextual_file_preparation_status"],
   private_egress: ["chat.private_egress_error.content", "chat.private_egress_error.status"],
+  decision_pack_calendar_required: ["chat.errors.decision_pack_calendar_required.content", "chat.errors.decision_pack_calendar_required.status"],
 };
 
 // Resolve bundled English copy for test callers and non-hook code. Component

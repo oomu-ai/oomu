@@ -64,6 +64,7 @@ pub(super) struct PlanCoverageDeficit {
 enum PlanCoverageDeficitKind {
     MissingRequirements,
     DecisionPackContract,
+    DecisionPackCalendarRequired,
     DecisionPackInputPath,
     ReleaseRecoveryContract,
 }
@@ -80,6 +81,13 @@ impl PlanCoverageDeficit {
         Self {
             missing: vec![problem.into()],
             kind: PlanCoverageDeficitKind::DecisionPackContract,
+        }
+    }
+
+    fn decision_pack_calendar_required() -> Self {
+        Self {
+            missing: vec!["The requested Calendar name was not explicit.".to_string()],
+            kind: PlanCoverageDeficitKind::DecisionPackCalendarRequired,
         }
     }
 
@@ -103,6 +111,9 @@ impl PlanCoverageDeficit {
             PlanCoverageDeficitKind::DecisionPackContract => {
                 "planner_decision_pack_contract_invalid"
             }
+            PlanCoverageDeficitKind::DecisionPackCalendarRequired => {
+                "planner_decision_pack_calendar_required"
+            }
             PlanCoverageDeficitKind::DecisionPackInputPath => {
                 "planner_decision_pack_input_path_invalid"
             }
@@ -122,6 +133,9 @@ impl PlanCoverageDeficit {
                 "OOMU rejected the generated plan because it did not match the requested decision-pack, conflict-free Calendar, and unsent Mail contract. {} No action was executed.",
                 self.missing.join("; ")
             ),
+            PlanCoverageDeficitKind::DecisionPackCalendarRequired =>
+                "Choose the Calendar that should hold the Supplier Decision Review event. No action was executed."
+                    .to_string(),
             PlanCoverageDeficitKind::DecisionPackInputPath => format!(
                 "OOMU could not safely bind the requested decision-pack input files. {} Check the path spelling and try again. No action was executed.",
                 self.missing.join("; ")

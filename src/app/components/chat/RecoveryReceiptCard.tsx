@@ -419,6 +419,9 @@ export function RecoveryReceiptCard({
   const calendarTargetRecovery = receipt.recoveryAction === "resolve_calendar_target"
     || calendarTargetResolved
     || receipt.recoveryAction === "calendar_recovery_cancelled";
+  const externalReviewRecovery = receipt.recoveryAction === "review_external_changes";
+  const newPlanRecovery = receipt.recoveryAction === "start_new_plan"
+    || externalReviewRecovery;
   const remainingWorkCancellationReceipt = receipt.recoveryAction === "remaining_work_cancelled";
   const calendarPermissionRecovery = isCalendarPermissionRecoveryCode(receipt.code);
   const calendarActionNeedsFullAccess = calendarTargetRecovery
@@ -475,11 +478,12 @@ export function RecoveryReceiptCard({
   const remainingWorkCancelled = (calendarPermissionRecovery || mailAutomationRecovery) && Boolean(completedActionKeys?.has(
     agentRecoveryActionKey(receipt.executionId, "cancel_remaining_work"),
   ));
-  const actionKey = receipt.recoveryAction === "review_external_changes"
-    || receipt.recoveryAction === "calendar_recovery_cancelled"
+  const actionKey = receipt.recoveryAction === "calendar_recovery_cancelled"
     || receipt.recoveryAction === "remaining_work_cancelled"
     ? null
-    : agentRecoveryActionKey(receipt.executionId, receipt.recoveryAction);
+    : receipt.recoveryAction === "review_external_changes"
+      ? agentRecoveryActionKey(receipt.executionId, "start_new_plan")
+      : agentRecoveryActionKey(receipt.executionId, receipt.recoveryAction);
   const actionCompleted = receipt.recoveryAction === "calendar_recovery_cancelled"
     || remainingWorkCancellationReceipt
     || actionState === "completed"
@@ -535,6 +539,8 @@ export function RecoveryReceiptCard({
       : "chat.recovery.calendar_title")
     : finalVerificationRecovery
     ? t("chat.recovery.verification_title")
+    : externalReviewRecovery
+    ? t("chat.recovery.review_title")
     : researchRecovery
     ? t("chat.recovery.research_title", { subject })
     : t("chat.recovery.generic_title");
@@ -615,10 +621,10 @@ export function RecoveryReceiptCard({
       ? receipt.recoveryAction === "calendar_recovery_cancelled" || calendarOutcome === "cancelled" || cancelledActionCompleted
         ? "chat.recovery.calendar_cancelled"
         : "chat.recovery.resumed"
-      : receipt.recoveryAction === "start_new_plan"
+      : newPlanRecovery
       ? "chat.recovery.plan_ready"
       : "chat.recovery.resumed"
-    : receipt.recoveryAction === "review_external_changes"
+    : externalReviewRecovery
     ? "chat.recovery.review_required"
     : finalVerificationRecovery
     ? "chat.recovery.verification_ready"
@@ -643,11 +649,13 @@ export function RecoveryReceiptCard({
     ? undefined
     : receipt.recoveryAction === "resume_same_execution"
     ? onRetry
-    : receipt.recoveryAction === "start_new_plan"
+    : newPlanRecovery
       ? onStartNewPlan
       : undefined;
   const actionLabel = interruptedMailApproval
     ? t("chat.recovery.interrupted_mail_restore")
+    : externalReviewRecovery
+    ? t("chat.recovery.review_and_continue")
     : receipt.recoveryAction === "start_new_plan"
     ? t("chat.recovery.start_new_plan")
     : calendarTargetResolved
@@ -659,6 +667,8 @@ export function RecoveryReceiptCard({
     : t("chat.recovery.retry");
   const runningLabel = interruptedMailApproval
     ? t("chat.recovery.interrupted_mail_restoring")
+    : externalReviewRecovery
+    ? t("chat.recovery.reviewing_existing")
     : receipt.recoveryAction === "start_new_plan"
     ? t("chat.recovery.starting_new_plan")
     : calendarTargetResolved
@@ -1014,7 +1024,7 @@ export function RecoveryReceiptCard({
                   })
                 : t(mailAutomationRecovery
                 ? "chat.recovery.mail_automation_action_failed"
-                : receipt.recoveryAction === "start_new_plan"
+                : newPlanRecovery
                 ? "chat.recovery.start_new_plan_failed"
                 : calendarPermissionRecovery
                   ? "chat.recovery.calendar_permission_action_failed"

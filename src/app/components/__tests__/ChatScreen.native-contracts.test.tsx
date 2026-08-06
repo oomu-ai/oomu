@@ -776,6 +776,14 @@ describe("ChatScreen request-driven tool catalog contracts", () => {
       ).toBe(false);
     }
 
+    expect(
+      shouldUseConversationalMcpBridge(
+        "Prepare the complete supplier decision pack.",
+        { ...routeDecision, decision_source: "deterministic_decision_pack_filter" },
+        capabilities,
+      ),
+    ).toBe(false);
+
     const mailCapabilities: ConversationalMcpToolCapability[] = [{
       serverName: "macos_applescript",
       toolName: "read_system_emails",

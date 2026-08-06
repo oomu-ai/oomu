@@ -565,7 +565,7 @@ describe("ChatScreen recovery receipt integration", () => {
     expect(invokeMock.mock.calls.some(([command]) => command === "resume_agent_execution")).toBe(false);
   });
 
-  it("shows external-change review guidance without invoking any replay path", async () => {
+  it("turns external-change review into a fresh approval-gated plan", async () => {
     displayedRecoveryContent = reviewRecoveryContent;
     render(
       <ChatScreen
@@ -582,14 +582,22 @@ describe("ChatScreen recovery receipt integration", () => {
       { wrapper: I18nProvider },
     );
 
-    expect(await screen.findByText(/won’t replay this execution/i)).toBeVisible();
-    expect(screen.getByText(/tell OOMU in chat what to keep or redo/i)).toBeVisible();
+    expect(await screen.findByText(/won’t replay an uncertain step/i)).toBeVisible();
+    expect(screen.getByText(/nothing will run until you review and approve/i)).toBeVisible();
     expect(screen.getByText("Decision pack research")).toBeVisible();
     expect(screen.getByText("Review external changes before continuing.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: /retry|start a new plan/i })).toBeNull();
-    expect(invokeMock.mock.calls.some(([command]) =>
-      command === "resume_agent_execution" || command === "prepare_agent_execution_replan"
-    )).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Review and continue" }));
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith(
+      "prepare_agent_execution_replan",
+      { request: {
+        executionId: "agent-exec-external-changes",
+        sessionId: "session-1",
+      } },
+    ));
+    expect(await screen.findByRole("button", { name: "Approve & execute" })).toBeVisible();
+    expect(screen.getByText(/new plan is ready/i)).toBeVisible();
+    expect(invokeMock.mock.calls.some(([command]) => command === "resume_agent_execution"))
+      .toBe(false);
   });
 
   it("persists the recovered plan summary through English fallback", async () => {

@@ -9,7 +9,9 @@ use crate::{
     settings,
 };
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::{path::Path, sync::OnceLock};
+
+static CLASSIFIER_ASSIGNMENT_RECONFIGURATION: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -175,6 +177,28 @@ pub async fn repair_auto_route_session_baseline(
     ))
 }
 
+fn current_classifier_assignment(
+    app: &tauri::AppHandle,
+    model_root: &Path,
+) -> Result<StartupModelAssignment, InferenceError> {
+    let preference = settings::resolved_startup_model_preference(app).map_err(|message| {
+        repair_error(
+            "auto_route_startup_assignment_unavailable",
+            "auto_route_classifier_assignment",
+            message,
+        )
+    })?;
+    crate::gemma::resolve_verified_startup_model_assignment(model_root, &preference).map_err(
+        |error| {
+            repair_error(
+                error.code,
+                "auto_route_classifier_assignment",
+                error.message,
+            )
+        },
+    )
+}
+
 fn require_current_classifier_assignment(
     app: &tauri::AppHandle,
     gemma: &GemmaService,
@@ -186,23 +210,7 @@ fn require_current_classifier_assignment(
             message,
         )
     })?;
-    let preference = settings::resolved_startup_model_preference(app).map_err(|message| {
-        repair_error(
-            "auto_route_startup_assignment_unavailable",
-            "auto_route_classifier_assignment",
-            message,
-        )
-    })?;
-    let assignment =
-        crate::gemma::resolve_verified_startup_model_assignment(&model_root, &preference).map_err(
-            |error| {
-                repair_error(
-                    error.code,
-                    "auto_route_classifier_assignment",
-                    error.message,
-                )
-            },
-        )?;
+    let assignment = current_classifier_assignment(app, &model_root)?;
     if gemma
         .classifier_health()
         .matches_startup_assignment(&assignment)
@@ -214,6 +222,59 @@ fn require_current_classifier_assignment(
         "auto_route_classifier_assignment",
         "The selected on-device model changed. OOMU must finish preparing it before Auto-route can continue.",
     ))
+}
+
+pub(super) async fn ensure_current_classifier_assignment(
+    app: &tauri::AppHandle,
+    gemma: &GemmaService,
+) -> Result<(), InferenceError> {
+    let model_root = settings::resolved_local_model_directory(app).map_err(|message| {
+        repair_error(
+            "local_model_directory_unavailable",
+            "local_model_store",
+            message,
+        )
+    })?;
+    let assignment = current_classifier_assignment(app, &model_root)?;
+    if gemma
+        .classifier_health()
+        .matches_startup_assignment(&assignment)
+    {
+        return Ok(());
+    }
+
+    let gate = CLASSIFIER_ASSIGNMENT_RECONFIGURATION.get_or_init(|| tokio::sync::Mutex::new(()));
+    let _guard = gate.lock().await;
+    let assignment = current_classifier_assignment(app, &model_root)?;
+    if gemma
+        .classifier_health()
+        .matches_startup_assignment(&assignment)
+    {
+        return Ok(());
+    }
+
+    let recovery_epoch = gemma.mark_classifier_recovering();
+    let service = gemma.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        service.reconfigure_startup_model_assignment_for_recovery(assignment, recovery_epoch)?;
+        service.verify_classifier_readiness_for_recovery_sync(recovery_epoch)
+    })
+    .await
+    .map_err(|error| {
+        repair_error(
+            "classifier_reconfiguration_worker_failed",
+            "auto_route_classifier_assignment",
+            error.to_string(),
+        )
+    })?
+    .map(|_| ())
+    .map_err(|error| {
+        repair_error(
+            error.code,
+            "auto_route_classifier_assignment",
+            error.message,
+        )
+    })
 }
 
 pub(super) fn source<'a>(

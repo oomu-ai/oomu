@@ -12,6 +12,7 @@ describe("cause-specific Auto-route recovery", () => {
     ["auto_route_session_context_invalid", "choose_model"],
     ["classifier_recovering", "preparing"],
     ["auto_route_classifier_not_ready", "preparing"],
+    ["auto_route_classifier_assignment_changed", "preparing"],
     ["classifier_inference_timeout", "timeout"],
     ["auto_route_cloud_target_missing", "cloud_setup"],
     ["dynamic_routing_audit_persistence_failed", "saved_work_check"],

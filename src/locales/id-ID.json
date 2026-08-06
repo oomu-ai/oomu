@@ -1182,6 +1182,10 @@
         "content": "Permintaan chat gagal sebelum OOMU dapat menyelesaikan respons.",
         "status": "Permintaan chat gagal"
       },
+      "decision_pack_calendar_required": {
+        "content": "Sebutkan kalender untuk “Supplier Decision Review”, lalu kirim permintaan lagi. OOMU belum mengubah apa pun.",
+        "status": "Kalender mana yang harus digunakan OOMU?"
+      },
       "delete_target_not_found": {
         "content": "Berkas itu tidak ada, jadi tidak ada yang bisa dihapus. Periksa jalurnya dan coba lagi.",
         "status": "Berkas tidak ditemukan"
@@ -1708,8 +1712,11 @@
       "retry_failed": "OOMU tidak dapat melanjutkan pekerjaan ini. Checkpoint yang disimpan tidak berubah.",
       "retry_research": "Coba lagi riset",
       "retrying": "Mencoba lagi…",
-      "review_body": "OOMU tidak akan memutar ulang eksekusi ini karena pekerjaan mungkin sudah ada di luar OOMU. Tinjau detail dan aplikasi atau berkas yang terpengaruh sebelum memutuskan langkah selanjutnya.",
-      "review_required": "Periksa pekerjaan yang terpengaruh, lalu beri tahu OOMU di chat apa yang harus disimpan atau diulang.",
+      "review_title": "Tinjau yang sudah ada",
+      "review_body": "OOMU tidak akan mengulang langkah yang belum pasti. Tinjau detailnya, lalu siapkan rencana baru dari permintaan awal.",
+      "review_required": "Tidak ada yang akan dijalankan sampai Anda meninjau dan menyetujui rencana baru.",
+      "review_and_continue": "Tinjau dan lanjutkan",
+      "reviewing_existing": "Menyiapkan rencana aman…",
       "start_new_plan": "Mulai rencana baru",
       "start_new_plan_body": "Eksekusi ini tidak dapat dilanjutkan dengan aman. Mulai rencana baru dari tujuan awal agar OOMU dapat menilainya ulang sebelum bertindak.",
       "start_new_plan_failed": "OOMU tidak dapat memulai rencana baru. Eksekusi yang dihentikan tetap tidak berubah.",

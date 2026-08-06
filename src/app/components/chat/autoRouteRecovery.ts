@@ -72,6 +72,7 @@ export function autoRouteRecoveryKindForCode(codeValue: string): AutoRouteRecove
     || code === "classifier_cold"
     || code === "classifier_not_ready"
     || code === "auto_route_classifier_not_ready"
+    || code === "auto_route_classifier_assignment_changed"
   ) {
     return "preparing";
   }

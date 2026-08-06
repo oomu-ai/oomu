@@ -302,6 +302,17 @@ pub async fn classify_chat_intent_route_inner(
             status_label: "OOMU is typing...".to_string(),
         });
     }
+    if plan_coverage::requests_evidence_bound_decision_pack(prompt) {
+        return Ok(ChatIntentRouteDecision {
+            route: ChatIntentRoute::AgenticPlanner,
+            requires_local_access: true,
+            decision_source: "deterministic_decision_pack_filter".to_string(),
+            reason: "An explicit local path, attached file, or typed filename paired with a file operation requires the approval-gated planner."
+                .to_string(),
+            matched_signals: vec!["evidence-bound decision pack".to_string()],
+            status_label: "OOMU is planning local actions...".to_string(),
+        });
+    }
     if let Some(decision) = future_schedule::future_schedule_decision(prompt) {
         return Ok(decision);
     }
@@ -3703,6 +3714,7 @@ async fn execute_action_plan_inner(
                 message: format!("No signed plan step exists at index {step_index}."),
                 mlc_path: None,
             })?;
+        let resolving_operation = action.operation_name().to_string();
         let (action, requested_action) =
             crate::tools::task_tool_runtime::resolve_authorized_action(
                 &persistence,
@@ -3711,7 +3723,19 @@ async fn execute_action_plan_inner(
                 planned_request,
                 &outputs,
             )
-            .map_err(AgenticLoopError::from_connector)?;
+            .map_err(|message| {
+                let (code, boundary) =
+                    crate::tools::task_tool_runtime::agent_error_metadata(&resolving_operation);
+                AgenticLoopError {
+                    code,
+                    boundary,
+                    message: crate::tools::task_tool_runtime::normalize_agent_error(
+                        &resolving_operation,
+                        &message,
+                    ),
+                    mlc_path: None,
+                }
+            })?;
         let action_json =
             serde_json::to_string(&requested_action).map_err(|error| AgenticLoopError {
                 code: "workflow_action_serialization_failed",

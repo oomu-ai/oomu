@@ -33,3 +33,27 @@ fn connected_text_tools_cannot_intercept_native_rich_artifact_creation() {
         );
     }
 }
+
+#[test]
+fn connected_catalog_cannot_intercept_deterministic_decision_pack() {
+    let decision = crate::agentic_loop::ChatIntentRouteDecision {
+        route: crate::agentic_loop::ChatIntentRoute::AgenticPlanner,
+        requires_local_access: true,
+        decision_source: "deterministic_decision_pack_filter".to_string(),
+        reason: "deterministic decision pack".to_string(),
+        matched_signals: vec!["evidence-bound decision pack".to_string()],
+        status_label: "Planning".to_string(),
+    };
+    let arbitrary_capability = ConversationalMcpToolCapability {
+        server_name: "connected_customer_service".to_string(),
+        tool_name: "lookup_customer".to_string(),
+        description: String::new(),
+        input_schema: serde_json::json!({}),
+    };
+
+    assert!(executable_intent_gate::requires_agentic_escalation(
+        &decision,
+        "Prepare the complete supplier decision pack.",
+        &[arbitrary_capability],
+    ));
+}

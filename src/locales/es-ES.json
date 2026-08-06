@@ -1206,6 +1206,10 @@
         "content": "La solicitud de chat falló antes de que OOMU pudiera terminar la respuesta.",
         "status": "La solicitud de chat falló"
       },
+      "decision_pack_calendar_required": {
+        "content": "Indica el calendario para «Supplier Decision Review» y vuelve a enviar la solicitud. OOMU aún no ha cambiado nada.",
+        "status": "¿Qué calendario debe usar OOMU?"
+      },
       "details_line": "Detalles: {detail}",
       "external_file_write": {
         "content": "OOMU no pudo terminar de forma segura este cambio de archivo. Se conservó el archivo original o el más reciente. Revisa el archivo e inténtalo de nuevo.",
@@ -1756,8 +1760,11 @@
       "retry_failed": "OOMU no pudo reanudar este trabajo. El punto de control guardado no ha cambiado.",
       "retry_research": "Reintentar investigación",
       "retrying": "Reintentando…",
-      "review_body": "OOMU no repetirá esta ejecución porque puede que ya exista trabajo fuera de OOMU. Revisa los detalles y las apps o archivos afectados antes de decidir qué hacer a continuación.",
-      "review_required": "Inspecciona el trabajo afectado y dile a OOMU en el chat qué conservar o rehacer.",
+      "review_title": "Revisar lo que ya existe",
+      "review_body": "OOMU no repetirá un paso incierto. Revisa los detalles y luego prepara un plan nuevo a partir de la solicitud original.",
+      "review_required": "Nada se ejecutará hasta que revises y apruebes el plan nuevo.",
+      "review_and_continue": "Revisar y continuar",
+      "reviewing_existing": "Preparando un plan seguro…",
       "start_new_plan": "Empezar un plan nuevo",
       "start_new_plan_body": "Esta ejecución no puede reanudarse de forma segura. Empieza un plan nuevo desde el objetivo original para que OOMU pueda reevaluarlo antes de actuar.",
       "start_new_plan_failed": "OOMU no pudo empezar un plan nuevo. La ejecución detenida permanece sin cambios.",

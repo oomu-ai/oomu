@@ -31,6 +31,21 @@ describe("chatFailureNotice", () => {
     expect(notice.content).not.toContain("/private/path");
   });
 
+  it("asks for the missing Calendar name without leaking planner internals", () => {
+    const notice = chatFailureNotice({
+      code: "planner_decision_pack_calendar_required",
+      message: "OOMU rejected the generated plan because its internal contract was invalid.",
+    });
+
+    expect(notice).toEqual({
+      status: "Which calendar should OOMU use?",
+      content:
+        "Name the calendar for “Supplier Decision Review,” then send the request again. OOMU has not changed anything yet.",
+    });
+    expect(notice.content).not.toContain("planner");
+    expect(notice.content).not.toContain("contract");
+  });
+
   it.each([
     "private_egress_destination_changed",
     "private_egress_payload_changed",

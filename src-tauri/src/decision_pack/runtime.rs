@@ -23,7 +23,8 @@ use crate::{
     },
 };
 use rand_core::{OsRng, RngCore};
-use serde::Serialize;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 #[cfg(target_os = "macos")]
 use std::{ffi::CString, os::unix::ffi::OsStrExt};
@@ -42,6 +43,25 @@ const EVIDENCE_EVENT: &str = "decision_pack.evidence_bound";
 #[serde(rename_all = "camelCase")]
 struct VerifiedOutput {
     kind: &'static str,
+    path: String,
+    sha256: String,
+    byte_count: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ExistingDecisionPackReceipt {
+    schema_version: u32,
+    analysis_sha256: String,
+    recommendation: String,
+    email_summary: String,
+    files: Vec<ExistingDecisionPackFileReceipt>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ExistingDecisionPackFileReceipt {
+    kind: String,
     path: String,
     sha256: String,
     byte_count: u64,
@@ -257,12 +277,6 @@ pub(super) async fn execute(
     let output_binding = request.output_binding.as_ref().ok_or_else(|| {
         "Decision-pack output approval binding is unavailable. Nothing was changed.".to_string()
     })?;
-    if output_binding.existed_when_bound() {
-        return Err(
-            "The requested decision-pack output folder already exists. Choose a new empty folder so stale files cannot be mistaken for this run."
-                .to_string(),
-        );
-    }
     if request.locale != "en-US" {
         return Err(
             "The native decision-pack builder currently requires locale en-US. Nothing was changed."
@@ -277,6 +291,9 @@ pub(super) async fn execute(
     }
 
     let inputs = read_verified_inputs(&request)?;
+    if output_binding.existed_when_bound() {
+        return reuse_existing_decision_pack(&request, objective, &inputs, context.persistence);
+    }
     for input in &inputs {
         crate::tasks::record_domain_event(
             context.persistence,
@@ -498,6 +515,388 @@ pub(super) async fn execute(
         verified: true,
         model_used: None,
     })
+}
+
+fn reuse_existing_decision_pack(
+    request: &DecisionPackToolRequest,
+    objective: &str,
+    inputs: &[VerifiedInput],
+    persistence: &crate::db::PersistenceEngine,
+) -> Result<ExecuteCommandResponse, String> {
+    let candidates = persistence
+        .completed_agent_action_outputs_for_objective("create_decision_pack", objective)?;
+    for candidate in candidates {
+        let Ok(mut output) = serde_json::from_str::<ExecuteCommandResponse>(&candidate) else {
+            continue;
+        };
+        if output.operation != "create_decision_pack"
+            || !output.verified
+            || !matches!(output.status, CommandStatus::Completed)
+        {
+            continue;
+        }
+        let Ok(receipt) = serde_json::from_str::<ExistingDecisionPackReceipt>(&output.message)
+        else {
+            continue;
+        };
+        if verify_existing_decision_pack_receipt(request, inputs, &receipt).is_err() {
+            continue;
+        }
+        output.claims =
+            existing_decision_pack_claims(&receipt, "decision_pack_existing_receipt_reverified");
+        output.model_used = None;
+        return Ok(output);
+    }
+    if let Ok(receipt) = reconstruct_existing_decision_pack_receipt(request, inputs) {
+        return Ok(ExecuteCommandResponse {
+            operation: "create_decision_pack".to_string(),
+            status: CommandStatus::Completed,
+            message: serde_json::to_string(&receipt).map_err(|error| error.to_string())?,
+            metrics: None,
+            claims: existing_decision_pack_claims(
+                &receipt,
+                "decision_pack_existing_artifacts_reverified",
+            ),
+            verified: true,
+            model_used: None,
+        });
+    }
+    Err(existing_output_unverified_error())
+}
+
+fn existing_decision_pack_claims(
+    receipt: &ExistingDecisionPackReceipt,
+    recovery_claim: &str,
+) -> Vec<String> {
+    receipt
+        .files
+        .iter()
+        .map(|file| {
+            format!(
+                "CLAIM decision_pack_file_verified=true kind={} path_sha256={} sha256={} byte_count={}",
+                file.kind,
+                sha256_hex(file.path.as_bytes()),
+                file.sha256,
+                file.byte_count
+            )
+        })
+        .chain([
+            format!(
+                "CLAIM decision_pack_analysis_verified=true analysis_sha256={} reused_existing=true",
+                receipt.analysis_sha256
+            ),
+            format!("CLAIM {recovery_claim}=true file_count=4"),
+        ])
+        .collect()
+}
+
+fn reconstruct_existing_decision_pack_receipt(
+    request: &DecisionPackToolRequest,
+    inputs: &[VerifiedInput],
+) -> Result<ExistingDecisionPackReceipt, String> {
+    let output_directory = Path::new(&request.output_directory);
+    let workbook_path = output_directory.join(&request.outputs.workbook);
+    let presentation_path = output_directory.join(&request.outputs.presentation);
+    let pdf_path = output_directory.join(&request.outputs.pdf);
+    let sources_path = output_directory.join(&request.outputs.sources);
+    let sources = fs::read_to_string(&sources_path)
+        .map_err(|_| "The existing source ledger could not be reopened.".to_string())?;
+    let recorded_analysis_sha256 = sources
+        .lines()
+        .find_map(|line| {
+            line.strip_prefix("Canonical analysis SHA-256: `")
+                .and_then(|value| value.strip_suffix('`'))
+        })
+        .filter(|value| is_sha256(value))
+        .ok_or_else(|| "The existing source ledger has no valid analysis digest.".to_string())?;
+    let (web_claims, research_gaps) = parse_existing_research_evidence(&sources)?;
+    let analysis = build_analysis(&request.title, inputs, web_claims, research_gaps)?;
+    let analysis_sha256 =
+        sha256_hex(&serde_json::to_vec(&analysis).map_err(|error| error.to_string())?);
+    if analysis_sha256 != recorded_analysis_sha256 {
+        return Err(
+            "The existing source ledger does not reproduce its canonical analysis.".to_string(),
+        );
+    }
+    let expected_sources = local_source_preamble(inputs, &analysis_sha256)
+        + &build_decision_pack(&analysis)?.sources_markdown;
+    if sources != expected_sources {
+        return Err("The existing source ledger changed after OOMU created it.".to_string());
+    }
+    verify_cross_format_semantics(
+        &analysis,
+        &workbook_path,
+        &presentation_path,
+        &pdf_path,
+        &sources_path,
+    )?;
+    let files = [
+        verify_output("workbook", &workbook_path, None, b"PK")?,
+        verify_output("presentation", &presentation_path, None, b"PK")?,
+        verify_output("pdf", &pdf_path, None, b"%PDF-")?,
+        verify_output("sources", &sources_path, None, b"# Approved local inputs")?,
+    ]
+    .into_iter()
+    .map(|file| ExistingDecisionPackFileReceipt {
+        kind: file.kind.to_string(),
+        path: file.path,
+        sha256: file.sha256,
+        byte_count: file.byte_count,
+    })
+    .collect();
+    Ok(ExistingDecisionPackReceipt {
+        schema_version: RECEIPT_SCHEMA_VERSION,
+        analysis_sha256,
+        recommendation: analysis.recommendation,
+        email_summary: analysis.email_summary,
+        files,
+    })
+}
+
+fn parse_existing_research_evidence(
+    sources: &str,
+) -> Result<
+    (
+        Vec<crate::artifacts::decision_pack::WebClaim>,
+        Vec<crate::artifacts::decision_pack::ResearchGap>,
+    ),
+    String,
+> {
+    use crate::{
+        artifacts::decision_pack::{
+            web_claim_evidence_digest, DateEvidenceType, ResearchGap, ResearchGapReason,
+            SourceAuthority, SourceAuthorityClass, WebClaim,
+        },
+        decision_research_policy::{authority_profile_for_url, AuthorityClass},
+    };
+
+    let web_section = sources
+        .split_once("## Current web sources\n\n")
+        .and_then(|(_, remainder)| remainder.split_once("\n\n## Research gaps\n\n"))
+        .ok_or_else(|| {
+            "The existing source ledger is missing its research evidence.".to_string()
+        })?;
+    if web_section.0 == "No web claims were included in the canonical analysis.\n" {
+        return Err("The existing source ledger has no verified web evidence.".to_string());
+    }
+    let claim_pattern = Regex::new(
+        r"(?s)^\d+\. \*\*(.+?)\*\* — (.+?)  \n   Authority: (.+?) \((government|intergovernmental|registered first-party)\)  \n   Source: \[(.+?)\]\((.+?)\)  \n   Effective date: `([^`]+)` \((publication date|release date|observation date|updated date)\)  \n   Accessed: `([^`]+)`  \n   Evidence digest: `([0-9a-f]{64})`  \n   Canonical source: `decision-pack-web-claim-\d+`  \n   Canonical evidence: `canonical-analysis-web-claim-\d+`$",
+    )
+    .map_err(|error| error.to_string())?;
+    let web_claims = web_section
+        .0
+        .trim_end()
+        .split("\n\n")
+        .map(|block| {
+            let captures = claim_pattern.captures(block).ok_or_else(|| {
+                "The existing web evidence is not in OOMU’s canonical format.".to_string()
+            })?;
+            let decoded = |index| decode_markdown_line(&captures[index]);
+            let subject = decoded(1);
+            let claim = decoded(2);
+            let organization = decoded(3);
+            let source_title = decoded(5);
+            let url = captures[6].to_string();
+            let profile = authority_profile_for_url(&url).ok_or_else(|| {
+                "The existing web evidence no longer uses an approved official source.".to_string()
+            })?;
+            let class = match &captures[4] {
+                "government" => SourceAuthorityClass::Government,
+                "intergovernmental" => SourceAuthorityClass::Intergovernmental,
+                "registered first-party" => SourceAuthorityClass::RegisteredFirstParty,
+                _ => unreachable!("regex restricts authority class"),
+            };
+            let profile_class = match profile.class {
+                AuthorityClass::Government => SourceAuthorityClass::Government,
+                AuthorityClass::Intergovernmental => SourceAuthorityClass::Intergovernmental,
+                AuthorityClass::RegisteredFirstParty => SourceAuthorityClass::RegisteredFirstParty,
+            };
+            if organization != profile.organization || class != profile_class {
+                return Err(
+                    "The existing web evidence authority no longer matches its official source."
+                        .to_string(),
+                );
+            }
+            let date_evidence_type = match &captures[8] {
+                "publication date" => DateEvidenceType::PublicationDate,
+                "release date" => DateEvidenceType::ReleaseDate,
+                "observation date" => DateEvidenceType::ObservationDate,
+                "updated date" => DateEvidenceType::UpdatedDate,
+                _ => unreachable!("regex restricts date evidence type"),
+            };
+            let authority = SourceAuthority {
+                profile_id: profile.id.to_string(),
+                organization,
+                class,
+            };
+            let effective_date = captures[7].to_string();
+            let evidence_digest = captures[10].to_string();
+            if evidence_digest
+                != web_claim_evidence_digest(
+                    &subject,
+                    &claim,
+                    &source_title,
+                    &authority,
+                    &effective_date,
+                    date_evidence_type,
+                    &url,
+                )
+            {
+                return Err(
+                    "The existing web evidence digest does not match its claim.".to_string()
+                );
+            }
+            Ok(WebClaim {
+                subject,
+                claim,
+                source_title,
+                authority,
+                effective_date,
+                date_evidence_type,
+                url,
+                accessed_at: captures[9].to_string(),
+                evidence_digest,
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+
+    let gap_text = web_section.1.trim_end();
+    let research_gaps = if gap_text == "Every required research subject was qualified." {
+        Vec::new()
+    } else {
+        let gap_pattern = Regex::new(
+            r"^- \*\*(.+?):\*\* (evidence unavailable|network unavailable) after (\d+) bounded attempt\(s\) and (\d+) fetched page\(s\)\. No claim from this subject informed the recommendation\.$",
+        )
+        .map_err(|error| error.to_string())?;
+        gap_text
+            .lines()
+            .map(|line| {
+                let captures = gap_pattern.captures(line).ok_or_else(|| {
+                    "The existing research gap is not in OOMU’s canonical format.".to_string()
+                })?;
+                Ok(ResearchGap {
+                    subject: decode_markdown_line(&captures[1]),
+                    reason: match &captures[2] {
+                        "evidence unavailable" => ResearchGapReason::EvidenceUnavailable,
+                        "network unavailable" => ResearchGapReason::NetworkUnavailable,
+                        _ => unreachable!("regex restricts research gap reason"),
+                    },
+                    attempt_count: captures[3].parse().map_err(|_| {
+                        "The existing research attempt count is invalid.".to_string()
+                    })?,
+                    page_count: captures[4]
+                        .parse()
+                        .map_err(|_| "The existing research page count is invalid.".to_string())?,
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?
+    };
+    Ok((web_claims, research_gaps))
+}
+
+fn decode_markdown_line(value: &str) -> String {
+    let mut decoded = String::with_capacity(value.len());
+    let mut characters = value.chars().peekable();
+    while let Some(character) = characters.next() {
+        if character == '\\' && matches!(characters.peek(), Some('\\' | '*' | '_')) {
+            decoded.push(characters.next().expect("peeked Markdown escape"));
+        } else {
+            decoded.push(character);
+        }
+    }
+    decoded
+}
+
+fn verify_existing_decision_pack_receipt(
+    request: &DecisionPackToolRequest,
+    inputs: &[VerifiedInput],
+    receipt: &ExistingDecisionPackReceipt,
+) -> Result<(), String> {
+    if receipt.schema_version != RECEIPT_SCHEMA_VERSION
+        || !is_sha256(&receipt.analysis_sha256)
+        || receipt.recommendation.trim().is_empty()
+        || receipt.email_summary.trim().is_empty()
+        || receipt.files.len() != 4
+    {
+        return Err("The existing decision-pack receipt is incomplete.".to_string());
+    }
+    let output_directory = Path::new(&request.output_directory);
+    let expected = [
+        ("workbook", &request.outputs.workbook, b"PK".as_slice()),
+        (
+            "presentation",
+            &request.outputs.presentation,
+            b"PK".as_slice(),
+        ),
+        ("pdf", &request.outputs.pdf, b"%PDF-".as_slice()),
+        (
+            "sources",
+            &request.outputs.sources,
+            b"# Approved local inputs".as_slice(),
+        ),
+    ];
+    let mut seen_kinds = std::collections::HashSet::new();
+    for (kind, filename, magic) in expected {
+        let expected_path = path_text(&output_directory.join(filename))?;
+        let candidates = receipt
+            .files
+            .iter()
+            .filter(|file| file.kind == kind && file.path == expected_path)
+            .collect::<Vec<_>>();
+        let [file] = candidates.as_slice() else {
+            return Err(
+                "The existing decision-pack receipt does not match the requested files."
+                    .to_string(),
+            );
+        };
+        if !seen_kinds.insert(kind) || file.byte_count == 0 || !is_sha256(&file.sha256) {
+            return Err("The existing decision-pack receipt is invalid.".to_string());
+        }
+        let verified = verify_output(kind, Path::new(&file.path), Some(&file.sha256), magic)?;
+        if verified.byte_count != file.byte_count {
+            return Err("An existing decision-pack file changed after verification.".to_string());
+        }
+    }
+    let sources_path = output_directory.join(&request.outputs.sources);
+    let sources = fs::read_to_string(&sources_path)
+        .map_err(|_| "The existing source ledger could not be reopened.".to_string())?;
+    if !sources.contains(&format!(
+        "Canonical analysis SHA-256: `{}`",
+        receipt.analysis_sha256
+    )) {
+        return Err("The existing source ledger does not match its analysis receipt.".to_string());
+    }
+    for input in inputs {
+        let expected_line = format!(
+            "| `{}` | `{}` |",
+            input.path.replace('|', "\\|"),
+            input.sha256
+        );
+        if !sources.contains(&expected_line) {
+            return Err(
+                "An approved decision-pack input changed after the files were created.".to_string(),
+            );
+        }
+    }
+    Ok(())
+}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn existing_output_unverified_error() -> String {
+    serde_json::json!({
+        "taskToolError": {
+            "code": "decision_pack_existing_output_unverified",
+            "message": "That folder already contains files, but OOMU couldn’t prove they are the unchanged results of this exact request. Choose a new empty folder so nothing is overwritten.",
+            "context": { "changedState": false }
+        }
+    })
+    .to_string()
 }
 
 fn verify_cross_format_semantics(
@@ -815,8 +1214,8 @@ mod tests {
     use super::*;
     use crate::artifacts::{
         decision_pack::{
-            build_decision_pack, DecisionPackAnalysis, MarginAssessment, RateReconciliation,
-            WebClaim,
+            build_decision_pack, web_claim_evidence_digest, DateEvidenceType, DecisionPackAnalysis,
+            MarginAssessment, RateReconciliation, SourceAuthority, SourceAuthorityClass, WebClaim,
         },
         helper::write_pdf,
         presentations::build_presentation,
@@ -837,6 +1236,171 @@ mod tests {
             "Reconcile every amount and margin; identify all exceptions."
         ));
         assert!(!analysis_scope_is_supported("Summarize the files."));
+    }
+
+    #[test]
+    fn existing_pack_reuse_requires_matching_receipt_hashes_and_input_evidence() {
+        let root = transaction_root("existing-receipt");
+        fs::create_dir_all(&root).unwrap();
+        let workbook = root.join("decision.xlsx");
+        let presentation = root.join("decision.pptx");
+        let pdf = root.join("decision.pdf");
+        let sources = root.join("sources.md");
+        fs::write(&workbook, b"PK verified workbook").unwrap();
+        fs::write(&presentation, b"PK verified presentation").unwrap();
+        fs::write(&pdf, b"%PDF- verified document").unwrap();
+        let input = VerifiedInput::test("/tmp/source|input.json", "{}");
+        let analysis_sha256 = "a".repeat(64);
+        fs::write(
+            &sources,
+            format!(
+                "{}# Sources\n\nVerified.\n",
+                local_source_preamble(std::slice::from_ref(&input), &analysis_sha256)
+            ),
+        )
+        .unwrap();
+        let request = DecisionPackToolRequest {
+            title: "Supplier decision".to_string(),
+            locale: "en-US".to_string(),
+            input_paths: vec![input.path.clone()],
+            research_queries: vec!["official fuel conditions".to_string()],
+            research_policy: None,
+            analysis_instructions: "Reconcile amounts, assess margins, and identify exceptions."
+                .to_string(),
+            output_directory: root.display().to_string(),
+            outputs: super::super::DecisionPackOutputs {
+                workbook: "decision.xlsx".to_string(),
+                presentation: "decision.pptx".to_string(),
+                pdf: "decision.pdf".to_string(),
+                sources: "sources.md".to_string(),
+            },
+            input_bindings: Vec::new(),
+            output_binding: None,
+        };
+        let file_receipt = |kind: &str, path: &Path| ExistingDecisionPackFileReceipt {
+            kind: kind.to_string(),
+            path: path.display().to_string(),
+            sha256: sha256_file_hex(path).unwrap(),
+            byte_count: fs::metadata(path).unwrap().len(),
+        };
+        let receipt = ExistingDecisionPackReceipt {
+            schema_version: RECEIPT_SCHEMA_VERSION,
+            analysis_sha256,
+            recommendation: "Proceed after closing the listed exceptions.".to_string(),
+            email_summary: "The verified supplier decision pack is ready for review.".to_string(),
+            files: vec![
+                file_receipt("workbook", &workbook),
+                file_receipt("presentation", &presentation),
+                file_receipt("pdf", &pdf),
+                file_receipt("sources", &sources),
+            ],
+        };
+
+        verify_existing_decision_pack_receipt(&request, &[input], &receipt).unwrap();
+        fs::write(&pdf, b"%PDF- changed document").unwrap();
+        assert!(verify_existing_decision_pack_receipt(&request, &[], &receipt).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn existing_pack_without_a_saved_receipt_is_reconstructed_only_from_canonical_evidence() {
+        let root = transaction_root("reconstructed-receipt");
+        fs::create_dir_all(&root).unwrap();
+        let inputs = vec![
+            VerifiedInput::test(
+                "/approved/supplier_proposals.json",
+                r#"{"audit_year":2026,"quarter":"Q2","suppliers":[{"name":"Apex","historical_settled_rate":45000,"active_quote":46500,"status":"PENDING"}]}"#,
+            ),
+            VerifiedInput::test(
+                "/approved/vendor_proposals.txt",
+                "Document ID: RFP-2026-Q3-LOG\nTarget Margin Threshold: 65%\n--- VENDOR A: MATRIX SHIPPING ---\nRaw Estimated Cost: $38,000.00\nCost of Goods Sold (COGS) Allocation: $11,020.00\nGross Projected Margin: 71.0%\nCompliance Status: Fully certified.",
+            ),
+        ];
+        let authority = SourceAuthority {
+            profile_id: "usBureauTransportationStatistics".to_string(),
+            organization: "U.S. Bureau of Transportation Statistics".to_string(),
+            class: SourceAuthorityClass::Government,
+        };
+        let subject = "freight";
+        let claim_text = "Official freight conditions [source date 2026-07-15] were reviewed.";
+        let source_title = "Official freight update";
+        let effective_date = "2026-07-15";
+        let url = "https://www.bts.gov/freight-indicators";
+        let claim = WebClaim {
+            subject: subject.to_string(),
+            claim: claim_text.to_string(),
+            source_title: source_title.to_string(),
+            authority: authority.clone(),
+            effective_date: effective_date.to_string(),
+            date_evidence_type: DateEvidenceType::PublicationDate,
+            url: url.to_string(),
+            accessed_at: "2026-08-05T12:00:00Z".to_string(),
+            evidence_digest: web_claim_evidence_digest(
+                subject,
+                claim_text,
+                source_title,
+                &authority,
+                effective_date,
+                DateEvidenceType::PublicationDate,
+                url,
+            ),
+        };
+        let analysis =
+            build_analysis("Supplier Decision Pack", &inputs, vec![claim], Vec::new()).unwrap();
+        let analysis_sha256 =
+            sha256_hex(&serde_json::to_vec(&analysis).expect("serialize analysis"));
+        let artifacts = build_decision_pack(&analysis).unwrap();
+        let workbook_path = root.join("decision.xlsx");
+        let presentation_path = root.join("decision.pptx");
+        let pdf_path = root.join("decision.pdf");
+        let sources_path = root.join("sources.md");
+        fs::write(
+            &workbook_path,
+            build_workbook(&artifacts.workbook).unwrap().bytes,
+        )
+        .unwrap();
+        fs::write(
+            &presentation_path,
+            build_presentation(&artifacts.presentation).unwrap().bytes,
+        )
+        .unwrap();
+        write_pdf(&artifacts.document, &pdf_path).unwrap();
+        fs::write(
+            &sources_path,
+            local_source_preamble(&inputs, &analysis_sha256) + &artifacts.sources_markdown,
+        )
+        .unwrap();
+        let request = DecisionPackToolRequest {
+            title: "Supplier Decision Pack".to_string(),
+            locale: "en-US".to_string(),
+            input_paths: inputs.iter().map(|input| input.path.clone()).collect(),
+            research_queries: vec!["official freight conditions".to_string()],
+            research_policy: None,
+            analysis_instructions: "Reconcile amounts, assess margins, and identify exceptions."
+                .to_string(),
+            output_directory: root.display().to_string(),
+            outputs: super::super::DecisionPackOutputs {
+                workbook: "decision.xlsx".to_string(),
+                presentation: "decision.pptx".to_string(),
+                pdf: "decision.pdf".to_string(),
+                sources: "sources.md".to_string(),
+            },
+            input_bindings: Vec::new(),
+            output_binding: None,
+        };
+
+        let receipt = reconstruct_existing_decision_pack_receipt(&request, &inputs).unwrap();
+        assert_eq!(receipt.analysis_sha256, analysis_sha256);
+        assert_eq!(receipt.files.len(), 4);
+        let receipt_json = serde_json::to_value(&receipt).unwrap();
+        assert_eq!(
+            receipt_json["files"][0]["byteCount"].as_u64(),
+            Some(receipt.files[0].byte_count)
+        );
+        assert!(receipt_json["files"][0].get("byte_count").is_none());
+        fs::write(&presentation_path, b"PK changed presentation").unwrap();
+        assert!(reconstruct_existing_decision_pack_receipt(&request, &inputs).is_err());
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

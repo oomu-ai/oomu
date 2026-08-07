@@ -17,13 +17,13 @@ use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet},
     fs,
-    io::{Read, Seek, SeekFrom},
     path::{Component, Path, PathBuf},
     sync::{Arc, Mutex, OnceLock},
     time::{Duration, Instant},
 };
 mod project_purge;
 mod source_text;
+pub(crate) use source_text::extract_file_text as extract_supported_file_text;
 const VAULT_DIR: &str = ".oomu/vault";
 const KNOWLEDGE_DB: &str = "knowledge.db";
 const OPS_DB_FILE: &str = "oomu_ops.db";
@@ -1316,7 +1316,7 @@ fn issue_knowledge_ingest_grant(
                 "A selected knowledge file changed during grant issuance.",
             ));
         }
-        if metadata.len() > knowledge_source_byte_limit(&candidate.path) {
+        if metadata.len() > source_text::knowledge_source_byte_limit(&candidate.path) {
             continue;
         }
         let canonical_path = fs::canonicalize(&candidate.path).map_err(KnowledgeError::io)?;
@@ -1329,8 +1329,10 @@ fn issue_knowledge_ingest_grant(
         let handle_metadata = handle.metadata().map_err(KnowledgeError::io)?;
         let identity = KnowledgeFileIdentity::from_metadata(&handle_metadata);
         revalidate_knowledge_path(&canonical_path, &handle, &identity, false)?;
-        let bytes =
-            read_bounded_granted_file(&mut handle, knowledge_source_byte_limit(&canonical_path))?;
+        let bytes = source_text::read_bounded_granted_file(
+            &mut handle,
+            source_text::knowledge_source_byte_limit(&canonical_path),
+        )?;
         if total_bytes.saturating_add(bytes.len() as u64) > MAX_KNOWLEDGE_AGGREGATE_BYTES {
             break;
         }
@@ -1445,8 +1447,10 @@ fn consume_knowledge_ingest_grant(
             ));
         }
         revalidate_knowledge_path(&file.path, &file.handle, &file.identity, false)?;
-        let bytes =
-            read_bounded_granted_file(&mut file.handle, knowledge_source_byte_limit(&file.path))?;
+        let bytes = source_text::read_bounded_granted_file(
+            &mut file.handle,
+            source_text::knowledge_source_byte_limit(&file.path),
+        )?;
         if sha256(&bytes).as_bytes() != &file.content_sha256 {
             return Err(KnowledgeError::grant(
                 "Knowledge grant file contents changed after selection.",
@@ -1562,7 +1566,7 @@ fn visit_grant_directory(
         if !metadata.is_file() || !is_supported_knowledge_file(&canonical_path) {
             continue;
         }
-        if metadata.len() > knowledge_source_byte_limit(&canonical_path) {
+        if metadata.len() > source_text::knowledge_source_byte_limit(&canonical_path) {
             continue;
         }
         let modified_ms = metadata
@@ -1617,45 +1621,6 @@ fn revalidate_knowledge_path(
         ));
     }
     Ok(())
-}
-
-fn read_bounded_granted_file(
-    handle: &mut fs::File,
-    max_bytes: u64,
-) -> Result<Vec<u8>, KnowledgeError> {
-    handle
-        .seek(SeekFrom::Start(0))
-        .map_err(KnowledgeError::io)?;
-    let mut bytes = Vec::new();
-    handle
-        .take(max_bytes.saturating_add(1))
-        .read_to_end(&mut bytes)
-        .map_err(KnowledgeError::io)?;
-    handle
-        .seek(SeekFrom::Start(0))
-        .map_err(KnowledgeError::io)?;
-    if bytes.len() as u64 > max_bytes {
-        return Err(KnowledgeError::grant(
-            "Knowledge file exceeded the per-file byte limit.",
-        ));
-    }
-    Ok(bytes)
-}
-
-fn knowledge_source_byte_limit(path: &Path) -> u64 {
-    match path
-        .extension()
-        .and_then(|value| value.to_str())
-        .map(str::to_ascii_lowercase)
-        .as_deref()
-    {
-        Some("pdf" | "xlsx") => MAX_BINARY_SOURCE_BYTES,
-        _ => MAX_FILE_BYTES,
-    }
-}
-
-pub(crate) fn extract_supported_file_text(path: &Path, bytes: &[u8]) -> Result<String, String> {
-    source_text::extract_file_text(path, bytes)
 }
 
 fn validate_grant_scope(session_id: &str, turn_id: &str) -> Result<(), KnowledgeError> {
@@ -1717,48 +1682,13 @@ fn sliding_chunks(content: &str) -> Vec<(usize, usize, String)> {
     let overlap_lines = ((CHUNK_LINES * CHUNK_OVERLAP_PERCENT) / 100).max(1);
     while start < lines.len() {
         let end = (start + CHUNK_LINES).min(lines.len());
-        push_token_bounded_line_chunks(&mut chunks, &lines, start, end);
+        source_text::push_token_bounded_line_chunks(&mut chunks, &lines, start, end);
         if end == lines.len() {
             break;
         }
         start += CHUNK_LINES.saturating_sub(overlap_lines).max(1);
     }
     chunks
-}
-
-fn push_token_bounded_line_chunks(
-    chunks: &mut Vec<(usize, usize, String)>,
-    lines: &[&str],
-    start: usize,
-    end: usize,
-) {
-    let max_chars = MAX_CHUNK_TOKENS.saturating_mul(4).max(1);
-    let mut cursor = start;
-    while cursor < end {
-        let line_chars = lines[cursor].chars().count();
-        if line_chars > max_chars {
-            let characters = lines[cursor].chars().collect::<Vec<_>>();
-            for part in characters.chunks(max_chars) {
-                chunks.push((cursor + 1, cursor + 1, part.iter().collect()));
-            }
-            cursor += 1;
-            continue;
-        }
-
-        let mut chunk_end = cursor;
-        let mut used_chars = 0;
-        while chunk_end < end {
-            let separator_chars = usize::from(chunk_end > cursor);
-            let next_chars = lines[chunk_end].chars().count();
-            if chunk_end > cursor && used_chars + separator_chars + next_chars > max_chars {
-                break;
-            }
-            used_chars += separator_chars + next_chars;
-            chunk_end += 1;
-        }
-        chunks.push((cursor + 1, chunk_end, lines[cursor..chunk_end].join("\n")));
-        cursor = chunk_end;
-    }
 }
 
 struct IgnoreRules {

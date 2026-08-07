@@ -3,6 +3,8 @@ use crate::{
     agentic_loop::{ChatIntentRoute, ChatIntentRouteDecision},
     db::PersistenceEngine,
     foundation::digest::sha256_hex,
+    gemma::GemmaService,
+    knowledge::{self, KnowledgeStore},
 };
 use std::{
     cmp::Reverse,
@@ -22,6 +24,49 @@ const MAX_CONTEXT_BYTES: usize = 192 * 1024;
 const MIN_CONTEXT_BYTES: usize = 8 * 1024;
 const CONTEXT_BYTES_PER_MODEL_TOKEN: usize = 2;
 const MAX_DEPTH: usize = 16;
+
+#[allow(clippy::too_many_arguments)]
+pub(super) fn primary_knowledge_context(
+    lean_local_chat_context: bool,
+    knowledge_store: &KnowledgeStore,
+    gemma: GemmaService,
+    project_context: Option<&crate::db::ProjectInferenceContext>,
+    current_user_content: &str,
+    block_limit: usize,
+    token_budget: usize,
+    agent_id: &str,
+) -> Option<String> {
+    if lean_local_chat_context {
+        return None;
+    }
+    let result = match project_context {
+        Some(context) => knowledge::retrieve_project_blocks_for_gateway_with_token_budget(
+            knowledge_store,
+            gemma,
+            &context.project_id,
+            current_user_content,
+            block_limit,
+            token_budget,
+        ),
+        None => knowledge::retrieve_blocks_for_gateway_with_token_budget(
+            knowledge_store,
+            gemma,
+            current_user_content,
+            block_limit,
+            token_budget,
+        ),
+    };
+    match result {
+        Ok(blocks) => knowledge::source_tagged_context_with_token_budget(&blocks, token_budget),
+        Err(error) => {
+            eprintln!(
+                "OOMU_PRIMARY_RAG_RETRIEVAL_SKIPPED agent_id={} code={} message={}",
+                agent_id, error.code, error.message
+            );
+            None
+        }
+    }
+}
 
 pub(super) fn verified(
     requested: bool,
@@ -160,6 +205,18 @@ pub(super) fn without_redundant_knowledge_read_tools(
         })
         .cloned()
         .collect()
+}
+
+pub(super) fn tools_for_knowledge_context(
+    capabilities: Vec<ConversationalMcpToolCapability>,
+    has_project_context: bool,
+    has_knowledge_context: bool,
+) -> Vec<ConversationalMcpToolCapability> {
+    if has_project_context && has_knowledge_context {
+        without_redundant_knowledge_read_tools(&capabilities)
+    } else {
+        capabilities
+    }
 }
 
 pub(super) fn enforce_provider_policy(

@@ -1,10 +1,82 @@
 use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap},
+    fs::File,
+    io::{Read, Seek, SeekFrom},
     path::Path,
 };
 
-pub(super) fn extract_file_text(path: &Path, bytes: &[u8]) -> Result<String, String> {
+pub(super) fn read_bounded_granted_file(
+    handle: &mut File,
+    max_bytes: u64,
+) -> Result<Vec<u8>, super::KnowledgeError> {
+    handle
+        .seek(SeekFrom::Start(0))
+        .map_err(super::KnowledgeError::io)?;
+    let mut bytes = Vec::new();
+    handle
+        .take(max_bytes.saturating_add(1))
+        .read_to_end(&mut bytes)
+        .map_err(super::KnowledgeError::io)?;
+    handle
+        .seek(SeekFrom::Start(0))
+        .map_err(super::KnowledgeError::io)?;
+    if bytes.len() as u64 > max_bytes {
+        return Err(super::KnowledgeError::grant(
+            "Knowledge file exceeded the per-file byte limit.",
+        ));
+    }
+    Ok(bytes)
+}
+
+pub(super) fn knowledge_source_byte_limit(path: &Path) -> u64 {
+    match path
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        Some("pdf" | "xlsx") => super::MAX_BINARY_SOURCE_BYTES,
+        _ => super::MAX_FILE_BYTES,
+    }
+}
+
+pub(super) fn push_token_bounded_line_chunks(
+    chunks: &mut Vec<(usize, usize, String)>,
+    lines: &[&str],
+    start: usize,
+    end: usize,
+) {
+    let max_chars = super::MAX_CHUNK_TOKENS.saturating_mul(4).max(1);
+    let mut cursor = start;
+    while cursor < end {
+        let line_chars = lines[cursor].chars().count();
+        if line_chars > max_chars {
+            let characters = lines[cursor].chars().collect::<Vec<_>>();
+            for part in characters.chunks(max_chars) {
+                chunks.push((cursor + 1, cursor + 1, part.iter().collect()));
+            }
+            cursor += 1;
+            continue;
+        }
+
+        let mut chunk_end = cursor;
+        let mut used_chars = 0;
+        while chunk_end < end {
+            let separator_chars = usize::from(chunk_end > cursor);
+            let next_chars = lines[chunk_end].chars().count();
+            if chunk_end > cursor && used_chars + separator_chars + next_chars > max_chars {
+                break;
+            }
+            used_chars += separator_chars + next_chars;
+            chunk_end += 1;
+        }
+        chunks.push((cursor + 1, chunk_end, lines[cursor..chunk_end].join("\n")));
+        cursor = chunk_end;
+    }
+}
+
+pub(crate) fn extract_file_text(path: &Path, bytes: &[u8]) -> Result<String, String> {
     let extension = path
         .extension()
         .and_then(|value| value.to_str())

@@ -447,10 +447,10 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 256600,
+      "bytes": 256253,
       "maxLineBytes": 2053,
-      "functionLines": 1708,
-      "complexity": 209
+      "functionLines": 1700,
+      "complexity": 202
     },
     "src-tauri/src/inference/provider_stream.rs": {
       "owner": "native/inference",
@@ -458,7 +458,7 @@
     },
     "src-tauri/src/knowledge.rs": {
       "owner": "knowledge/vault",
-      "complexity": 29
+      "complexity": 28
     },
     "src-tauri/src/learning/repository.rs": {
       "owner": "native/learning",

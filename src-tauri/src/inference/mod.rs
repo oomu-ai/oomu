@@ -2044,41 +2044,23 @@ async fn run_chat_turn(
                 )
                 .map_err(|e| InferenceError::worker(e.to_string()))?
         };
-        let primary_knowledge_prompt_context = if lean_local_chat_context {
-            None
-        } else {
-            let primary_knowledge_result = match project_context.as_ref() {
-                Some(context) => knowledge::retrieve_project_blocks_for_gateway_with_token_budget(
-                    &knowledge_store, gemma.clone(), &context.project_id, &current_user_content,
-                    jit_context_allocation.primary_rag_block_limit, jit_context_allocation.primary_rag_token_budget,
-                ),
-                None => knowledge::retrieve_blocks_for_gateway_with_token_budget(
-                    &knowledge_store, gemma.clone(), &current_user_content,
-                    jit_context_allocation.primary_rag_block_limit, jit_context_allocation.primary_rag_token_budget,
-                ),
-            };
-            match primary_knowledge_result {
-                Ok(blocks) => knowledge::source_tagged_context_with_token_budget(
-                    &blocks,
-                    jit_context_allocation.primary_rag_token_budget,
-                ),
-                Err(error) => {
-                    eprintln!(
-                        "OOMU_PRIMARY_RAG_RETRIEVAL_SKIPPED agent_id={} code={} message={}",
-                        agent_id, error.code, error.message
-                    );
-                    None
-                }
-            }
-        };
-        if project_context.is_some() && primary_knowledge_prompt_context.is_some() {
-            effective_mcp_tool_capabilities =
-                project_chat::without_redundant_knowledge_read_tools(
-                    &effective_mcp_tool_capabilities,
-                );
-            tool_registry_offline_for_prompt =
-                !has_connected_conversational_mcp_tools(&effective_mcp_tool_capabilities);
-        }
+        let primary_knowledge_prompt_context = project_chat::primary_knowledge_context(
+            lean_local_chat_context,
+            &knowledge_store,
+            gemma.clone(),
+            project_context.as_ref(),
+            &current_user_content,
+            jit_context_allocation.primary_rag_block_limit,
+            jit_context_allocation.primary_rag_token_budget,
+            &agent_id,
+        );
+        effective_mcp_tool_capabilities = project_chat::tools_for_knowledge_context(
+            effective_mcp_tool_capabilities,
+            project_context.is_some(),
+            primary_knowledge_prompt_context.is_some(),
+        );
+        tool_registry_offline_for_prompt =
+            !has_connected_conversational_mcp_tools(&effective_mcp_tool_capabilities);
         project_chat::require_project_document_evidence(
             project_document_turn,
             project_folder_context.as_deref(),

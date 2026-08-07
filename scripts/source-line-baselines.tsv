@@ -6,8 +6,8 @@ src-tauri/src/dom_streaming.rs	1578	native/dom_streaming
 src-tauri/src/gateway.rs	2287	channels/gateway-workers
 src-tauri/src/gemma.rs	3299	inference/local-model-lifecycle
 src-tauri/src/inference/dynamic_routing.rs	1290	native/inference
-src-tauri/src/inference/mod.rs	6556	inference/routing-transports
-src-tauri/src/knowledge.rs	2058	knowledge/vault
+src-tauri/src/inference/mod.rs	6554	inference/routing-transports
+src-tauri/src/knowledge.rs	2056	knowledge/vault
 src-tauri/src/lib.rs	760	app-shell/command-handler-wiring
 src-tauri/src/mcp/client.rs	4229	integrations/mcp-client
 src-tauri/src/memory_ledger.rs	4754	memory/ledger

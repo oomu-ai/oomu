@@ -15,8 +15,9 @@ describe("next_security_upgrade release contract", () => {
     expect(manifest.dependencies.next).toBe("16.2.12");
     expect(manifest.devDependencies["eslint-config-next"]).toBe("16.2.12");
     expect(manifest.overrides).toEqual({
+      nanoid: "3.3.17",
+      postcss: "8.5.23",
       next: {
-        postcss: "8.5.18",
         sharp: "0.35.0",
       },
     });

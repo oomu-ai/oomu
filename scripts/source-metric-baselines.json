@@ -257,10 +257,6 @@
       "owner": "native/artifacts",
       "complexity": 29
     },
-    "src-tauri/src/artifacts/workbooks/zip.rs": {
-      "owner": "native/artifacts",
-      "complexity": 40
-    },
     "src-tauri/src/authority/mod.rs": {
       "owner": "native/authority",
       "complexity": 82
@@ -426,6 +422,10 @@
     "src-tauri/src/dom_streaming.rs": {
       "owner": "native/dom_streaming",
       "functionLines": 163
+    },
+    "src-tauri/src/foundation/office_zip.rs": {
+      "owner": "native/foundation",
+      "complexity": 40
     },
     "src-tauri/src/gateway.rs": {
       "owner": "channels/gateway-workers",

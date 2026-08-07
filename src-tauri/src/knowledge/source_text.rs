@@ -94,7 +94,7 @@ pub(crate) fn extract_file_text(path: &Path, bytes: &[u8]) -> Result<String, Str
 }
 
 fn extract_xlsx_text(bytes: &[u8]) -> Result<String, String> {
-    let entries = crate::artifacts::workbooks::zip::read_zip(bytes)
+    let entries = crate::foundation::office_zip::read_zip(bytes)
         .map_err(|_| "A Project workbook could not be read safely.".to_string())?;
     let shared_strings = entries
         .get("xl/sharedStrings.xml")
@@ -294,7 +294,7 @@ mod tests {
             ("xl/sharedStrings.xml".to_string(), br#"<sst><si><t>WS-LAB-001</t></si><si><t>Ready</t></si></sst>"#.to_vec()),
             ("xl/worksheets/sheet1.xml".to_string(), br#"<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1"><v>42</v></c><c r="D1" t="inlineStr"><is><t>Calibrated</t></is></c></row></sheetData></worksheet>"#.to_vec()),
         ]);
-        let bytes = crate::artifacts::workbooks::zip::write_store_zip(&entries).unwrap();
+        let bytes = crate::foundation::office_zip::write_store_zip(&entries).unwrap();
         let text = extract_xlsx_text(&bytes).unwrap();
         assert!(text.contains("[WORKSHEET name=\"Inventory\"]"));
         assert!(text.contains("A1=WS-LAB-001"));

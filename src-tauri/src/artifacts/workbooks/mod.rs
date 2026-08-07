@@ -27,7 +27,7 @@ mod validation;
 mod validation_budget;
 mod validation_primitives;
 mod verification;
-pub(crate) mod zip;
+pub(crate) use crate::foundation::office_zip as zip;
 
 pub use commands::*;
 pub(crate) use contract::artifact_workbook_contract;

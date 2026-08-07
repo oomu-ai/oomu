@@ -1,3 +1,5 @@
+//! Bounded OOXML ZIP reader shared by Project ingestion and artifact builders.
+
 use crc32fast::Hasher;
 use flate2::read::DeflateDecoder;
 use std::{collections::BTreeMap, io::Read};

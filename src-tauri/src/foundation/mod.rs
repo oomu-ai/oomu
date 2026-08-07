@@ -5,4 +5,5 @@
 
 pub mod clock;
 pub mod digest;
+pub(crate) mod office_zip;
 pub(crate) mod public_web_sources;

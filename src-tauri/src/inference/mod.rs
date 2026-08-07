@@ -614,7 +614,7 @@ fn classify_inference_failure(code: &str, boundary: &str, message: &str) -> Infe
     let message = message.trim().to_ascii_lowercase();
     let combined = format!("{code} {boundary} {message}");
 
-    if code == "deepseek_reasoning_without_answer" {
+    if deepseek_recovery::empty(&code, &message) {
         return InferenceFailureClass::Transient;
     }
 

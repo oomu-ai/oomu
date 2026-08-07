@@ -1,4 +1,4 @@
-//! Provider-specific recovery for DeepSeek reasoning-only completions.
+//! Bounded recovery for provider responses that contain no visible answer.
 
 use super::{
     execute_provider_inference, execute_provider_streaming_inference,
@@ -7,29 +7,35 @@ use super::{
     InferenceResponse, ResolvedProviderRoute,
 };
 
-struct DeepSeekReasoningRecovery {
-    allowed: bool,
+struct EmptyAnswerRecovery {
+    can_reduce_reasoning: bool,
     retry_without_reasoning: bool,
 }
 
-impl DeepSeekReasoningRecovery {
+impl EmptyAnswerRecovery {
     fn new(request: &InferenceRequest) -> Self {
-        let allowed = matches!(
-            request.provider_id.trim().to_ascii_lowercase().as_str(),
-            "deepseek" | "deepseek_v3" | "deepseek_r1"
-        ) && request
-            .reasoning
-            .as_deref()
-            .map(str::trim)
-            .is_some_and(|reasoning| {
+        let provider = request.provider_id.trim().to_ascii_lowercase();
+        let can_reduce_reasoning = matches!(
+            provider.as_str(),
+            "deepseek"
+                | "deepseek_v3"
+                | "deepseek_r1"
+                | "google"
+                | "gemini"
+                | "google_gemini"
+                | "gemini_pro"
+                | "gemini_flash"
+        ) && request.reasoning.as_deref().map(str::trim).is_some_and(
+            |reasoning| {
                 !reasoning.is_empty()
                     && !matches!(
                         reasoning.to_ascii_lowercase().as_str(),
                         "off" | "none" | "disabled" | "false" | "0"
                     )
-            });
+            },
+        );
         Self {
-            allowed,
+            can_reduce_reasoning,
             retry_without_reasoning: false,
         }
     }
@@ -44,19 +50,45 @@ impl DeepSeekReasoningRecovery {
     }
 
     fn error(&mut self, error: InferenceError, model_id: &str) -> InferenceError {
-        if error.code != "deepseek_reasoning_without_answer" {
+        if !provider_returned_no_visible_answer(&error) {
             return error;
         }
-        if self.allowed && !self.retry_without_reasoning {
+        if self.retry_without_reasoning {
+            return InferenceError {
+                code: "provider_empty_after_recovery".to_string(),
+                boundary: "provider_api".to_string(),
+                message: "The provider still returned no visible answer after OOMU reduced reasoning for one retry."
+                    .to_string(),
+            };
+        }
+        if self.can_reduce_reasoning && !self.retry_without_reasoning {
             self.retry_without_reasoning = true;
             eprintln!(
-                "DEEPSEEK_REASONING_ONLY_RECOVERY model_id={} next_reasoning=off",
+                "PROVIDER_EMPTY_ANSWER_RECOVERY model_id={} next_reasoning=off",
                 crate::redaction::redacted_log_text(model_id),
             );
-            return error;
         }
-        InferenceError::provider("DeepSeek returned an empty response.")
+        error
     }
+}
+
+pub(super) fn empty(code: &str, message: &str) -> bool {
+    if code == "deepseek_reasoning_without_answer" {
+        return true;
+    }
+    code == "provider_response_error"
+        && [
+            "empty response",
+            "no visible text",
+            "returned no text",
+            "returned no content",
+        ]
+        .iter()
+        .any(|needle| message.to_ascii_lowercase().contains(needle))
+}
+
+fn provider_returned_no_visible_answer(error: &InferenceError) -> bool {
+    empty(&error.code, &error.message)
 }
 
 pub(super) fn execute_remote_chat_inference(
@@ -66,7 +98,7 @@ pub(super) fn execute_remote_chat_inference(
 ) -> Result<InferenceResponse, InferenceError> {
     validate_inference_request_attachments(&request)?;
     let retry_stream = stream.clone();
-    let mut recovery = DeepSeekReasoningRecovery::new(&request);
+    let mut recovery = EmptyAnswerRecovery::new(&request);
     execute_with_transient_inference_retry(
         "chat_provider_inference",
         || {
@@ -91,7 +123,7 @@ pub(super) fn execute_provider_inference_with_retry(
     operation_name: &str,
 ) -> Result<InferenceResponse, InferenceError> {
     validate_inference_request_attachments(&request)?;
-    let mut recovery = DeepSeekReasoningRecovery::new(&request);
+    let mut recovery = EmptyAnswerRecovery::new(&request);
     execute_with_transient_inference_retry(
         operation_name,
         || {
@@ -131,8 +163,8 @@ mod tests {
     #[test]
     fn reasoning_only_recovery_is_provider_specific_and_bounded() {
         let deepseek = request("deepseek", "max");
-        let mut recovery = DeepSeekReasoningRecovery::new(&deepseek);
-        assert!(recovery.allowed);
+        let mut recovery = EmptyAnswerRecovery::new(&deepseek);
+        assert!(recovery.can_reduce_reasoning);
 
         let first = recovery.error(
             InferenceError::deepseek_reasoning_without_answer(),
@@ -147,8 +179,25 @@ mod tests {
             InferenceError::deepseek_reasoning_without_answer(),
             &deepseek.model_id,
         );
-        assert_eq!(second.code, "provider_response_error");
-        assert!(!DeepSeekReasoningRecovery::new(&request("openai", "max")).allowed);
-        assert!(!DeepSeekReasoningRecovery::new(&request("deepseek", "off")).allowed);
+        assert_eq!(second.code, "provider_empty_after_recovery");
+        assert!(!EmptyAnswerRecovery::new(&request("openai", "max")).can_reduce_reasoning);
+        assert!(!EmptyAnswerRecovery::new(&request("deepseek", "off")).can_reduce_reasoning);
+    }
+
+    #[test]
+    fn gemini_empty_answer_retries_once_with_minimal_reasoning() {
+        let gemini = request("google_gemini", "medium");
+        let mut recovery = EmptyAnswerRecovery::new(&gemini);
+        let error = recovery.error(
+            InferenceError::provider(
+                "Google Gemini finished normally but returned no visible text.",
+            ),
+            "gemini-3.5-flash",
+        );
+
+        assert_eq!(error.code, "provider_response_error");
+        let retry = recovery.request(&gemini);
+        assert_eq!(retry.reasoning.as_deref(), Some("off"));
+        assert_eq!(retry.reasoning_budget_tokens, None);
     }
 }

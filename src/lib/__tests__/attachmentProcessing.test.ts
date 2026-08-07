@@ -51,6 +51,28 @@ describe("bounded attachment processing", () => {
     expect(JSON.stringify(results)).not.toContain("raw-canary-must-not-escape");
   });
 
+  it("preserves a stable native failure code without exposing error details", async () => {
+    const candidates: AttachmentCandidate<string>[] = [{
+      name: "study-guide.pdf",
+      decodedByteCount: 1,
+      encodedByteCount: 0,
+      process: async () => {
+        throw Object.assign(new Error("private path must not escape"), {
+          code: "pdf_helper_unavailable",
+        });
+      },
+    }];
+    const results = await processAttachmentsBounded(candidates, {
+      signal: new AbortController().signal,
+    });
+    expect(results).toEqual([{
+      ok: false,
+      name: "study-guide.pdf",
+      errorCode: "pdf_helper_unavailable",
+    }]);
+    expect(JSON.stringify(results)).not.toContain("private path");
+  });
+
   it("cancels queued work and releases rejected buffers", async () => {
     const controller = new AbortController();
     const released: string[] = [];

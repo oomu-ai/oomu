@@ -370,7 +370,7 @@ fn sprint_61_remote_faults_are_classified_and_failover_eligible() {
     assert_eq!(empty_payload.code, "provider_response_error");
     assert_eq!(empty_payload.boundary, "provider_api");
     assert!(empty_payload.message.contains("empty response"));
-    assert!(!should_attempt_failover(&empty_payload, false));
+    assert!(should_attempt_failover(&empty_payload, false));
 
     let invalid = InferenceError::invalid("Inference prompt cannot be empty.");
     assert!(!should_attempt_failover(&invalid, false));

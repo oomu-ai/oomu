@@ -28,6 +28,19 @@ type AttachmentUsage = {
   encodedBytes: number;
 };
 
+function processingErrorCode(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string" && /^[a-z][a-z0-9_]*$/iu.test(code)) {
+      return code;
+    }
+  }
+  if (typeof error === "string" && /^[a-z][a-z0-9_]*$/iu.test(error.trim())) {
+    return error.trim();
+  }
+  return "attachment_processing_failed";
+}
+
 const emptyUsage: AttachmentUsage = {
   count: 0,
   decodedBytes: 0,
@@ -110,14 +123,14 @@ export async function processAttachmentsBounded<T>(
         } else {
           results[next.index] = { ok: true, name: next.candidate.name, value };
         }
-      } catch {
+      } catch (error) {
         next.candidate.release?.();
         results[next.index] = {
           ok: false,
           name: next.candidate.name,
           errorCode: options.signal.aborted
             ? "attachment_processing_cancelled"
-            : "attachment_processing_failed",
+            : processingErrorCode(error),
         };
       }
     }

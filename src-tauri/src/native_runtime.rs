@@ -45,7 +45,6 @@ use tokio::{
 };
 
 const MIN_GGUF_BYTES: u64 = 32;
-const DEFAULT_CONTEXT_SIZE: u32 = 12288;
 const DEFAULT_BATCH_SIZE: u32 = 512;
 const DEFAULT_UBATCH_SIZE: u32 = 256;
 const DEFAULT_MAX_SESSIONS: u32 = 8;
@@ -871,8 +870,10 @@ impl NativeRuntime {
 impl RuntimeConfig {
     fn for_hardware(hardware: &HardwareProfile) -> Self {
         let logical_threads = hardware.logical_threads;
+
         let decode_threads = env_i32("OOMU_LLAMA_THREADS")
             .unwrap_or_else(|| i32::try_from((logical_threads / 2).max(1)).unwrap_or(i32::MAX));
+
         let batch_threads = env_i32("OOMU_LLAMA_BATCH_THREADS")
             .unwrap_or_else(|| i32::try_from(logical_threads).unwrap_or(i32::MAX));
         let metal_enabled = hardware.apple_silicon
@@ -880,10 +881,9 @@ impl RuntimeConfig {
             && env::var("OOMU_DISABLE_METAL").ok().as_deref() != Some("1");
         let requested_gpu_layers =
             env_u32("OOMU_LLAMA_GPU_LAYERS").unwrap_or(if metal_enabled { u32::MAX } else { 0 });
-
         Self {
             context_size: env_u32("OOMU_LLAMA_CONTEXT_SIZE")
-                .unwrap_or(DEFAULT_CONTEXT_SIZE)
+                .unwrap_or(crate::sys_info::native_ctx(hardware.total_memory_bytes))
                 .clamp(512, 131_072),
             batch_size: env_u32("OOMU_LLAMA_BATCH_SIZE")
                 .unwrap_or(DEFAULT_BATCH_SIZE)

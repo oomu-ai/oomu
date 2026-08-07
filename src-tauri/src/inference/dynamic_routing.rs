@@ -30,9 +30,9 @@ pub(crate) const SEMANTIC_CLASSIFIER_VERSION: &str = classifier_protocol::CLASSI
 pub(crate) const AUTO_ROUTE_POLICY_VERSION: &str = "auto_route_policy_v2";
 const SEMANTIC_CLASSIFIER_QUEUE_TIMEOUT: Duration = Duration::from_secs(2);
 const SEMANTIC_CLASSIFIER_PREPARATION_TIMEOUT: Duration = Duration::from_secs(90);
-const SEMANTIC_CLASSIFIER_PROBE_TIMEOUT: Duration = Duration::from_secs(8);
-const SEMANTIC_CLASSIFIER_INFERENCE_TIMEOUT: Duration = Duration::from_secs(4);
-const SEMANTIC_CLASSIFIER_CLEANUP_GRACE: Duration = Duration::from_millis(500);
+const SEMANTIC_CLASSIFIER_PROBE_TIMEOUT: Duration = Duration::from_secs(20);
+const SEMANTIC_CLASSIFIER_INFERENCE_TIMEOUT: Duration = Duration::from_secs(12);
+const SEMANTIC_CLASSIFIER_CLEANUP_GRACE: Duration = Duration::from_secs(1);
 static SEMANTIC_CLASSIFIER_QUEUE: OnceLock<tokio::sync::Mutex<()>> = OnceLock::new();
 
 #[derive(Debug, Clone)]
@@ -747,10 +747,10 @@ mod tests {
             SEMANTIC_CLASSIFIER_PREPARATION_TIMEOUT,
             Duration::from_secs(90)
         );
-        assert_eq!(SEMANTIC_CLASSIFIER_PROBE_TIMEOUT, Duration::from_secs(8));
+        assert_eq!(SEMANTIC_CLASSIFIER_PROBE_TIMEOUT, Duration::from_secs(20));
         assert_eq!(
             SEMANTIC_CLASSIFIER_INFERENCE_TIMEOUT,
-            Duration::from_secs(4)
+            Duration::from_secs(12)
         );
         assert!(SEMANTIC_CLASSIFIER_PREPARATION_TIMEOUT > SEMANTIC_CLASSIFIER_INFERENCE_TIMEOUT);
         assert!(SEMANTIC_CLASSIFIER_PROBE_TIMEOUT > SEMANTIC_CLASSIFIER_INFERENCE_TIMEOUT);

@@ -5,6 +5,8 @@ use sysinfo::System;
 pub const LOW_SPEC_LOCAL_CONTEXT_BUDGET: usize = 8_192;
 pub const MID_SPEC_LOCAL_CONTEXT_BUDGET: usize = 16_384;
 pub const HIGH_SPEC_LOCAL_CONTEXT_BUDGET: usize = 32_768;
+const DEFAULT_NATIVE_CONTEXT_SIZE: u32 = 12_288;
+const LOW_MEMORY_NATIVE_CONTEXT_SIZE: u32 = 8_192;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HostHardwareTelemetry {
@@ -52,6 +54,15 @@ pub fn max_local_context_budget_for_physical_memory(physical_ram_gb: u64) -> usi
         MID_SPEC_LOCAL_CONTEXT_BUDGET
     } else {
         HIGH_SPEC_LOCAL_CONTEXT_BUDGET
+    }
+}
+
+pub fn native_ctx(total_memory_bytes: u64) -> u32 {
+    const SIXTEEN_GIB: u64 = 16 * 1024 * 1024 * 1024;
+    if total_memory_bytes > 0 && total_memory_bytes < SIXTEEN_GIB {
+        LOW_MEMORY_NATIVE_CONTEXT_SIZE
+    } else {
+        DEFAULT_NATIVE_CONTEXT_SIZE
     }
 }
 
@@ -115,6 +126,13 @@ mod tests {
         assert_eq!(max_local_context_budget_for_physical_memory(16), 16_384);
         assert_eq!(max_local_context_budget_for_physical_memory(31), 16_384);
         assert_eq!(max_local_context_budget_for_physical_memory(32), 32_768);
+    }
+
+    #[test]
+    fn native_context_default_respects_low_memory_macs() {
+        assert_eq!(native_ctx(8 * 1024 * 1024 * 1024), 8_192);
+        assert_eq!(native_ctx(16 * 1024 * 1024 * 1024), 12_288);
+        assert_eq!(native_ctx(0), 12_288);
     }
 
     #[test]

@@ -447,7 +447,7 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 259230,
+      "bytes": 259228,
       "maxLineBytes": 2053,
       "functionLines": 1749,
       "complexity": 217
@@ -507,7 +507,7 @@
     },
     "src-tauri/src/native_runtime.rs": {
       "owner": "inference/native-runtime",
-      "bytes": 114924,
+      "bytes": 114920,
       "functionLines": 258,
       "complexity": 52
     },

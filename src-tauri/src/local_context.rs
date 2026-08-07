@@ -898,7 +898,8 @@ fn sha256_open_file(file: &mut fs::File) -> Result<[u8; 32], String> {
 }
 
 fn validate_image_dimensions(path: &Path, file: &mut fs::File) -> Result<(), &'static str> {
-    if !crate::tools::vision::is_supported_visual_artifact_path(path) {
+    // PDFs are rendered only after the bounded native grant; they are not raster images.
+    if is_pdf_path(path) || !crate::tools::vision::is_supported_visual_artifact_path(path) {
         return Ok(());
     }
     file.seek(SeekFrom::Start(0))
@@ -1122,7 +1123,6 @@ mod tests {
             turn_id: turn.to_string(),
         }
     }
-
     #[test]
     fn picker_grant_reads_only_the_exact_selected_file_once() {
         let root = std::env::temp_dir().join(format!(
@@ -1477,5 +1477,24 @@ mod tests {
             Some("attachment_image_dimension_limit_exceeded")
         );
         let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn pdf_grants_bypass_raster_dimension_validation() {
+        let path = std::env::temp_dir().join(format!(
+            "oomu-pdf-grant-{}-{}.pdf",
+            std::process::id(),
+            unix_time_ms()
+        ));
+        fs::write(&path, b"%PDF-1.4\n").unwrap();
+        let response = issue_grants_for_paths(
+            &LocalContextGrantStore::default(),
+            vec![path.clone()],
+            GrantOperation::Read,
+            "session",
+            "turn",
+        );
+        assert!(response.results[0].ok && response.results[0].mime_type == "application/pdf");
+        let _ = fs::remove_file(path);
     }
 }

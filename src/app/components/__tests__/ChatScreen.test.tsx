@@ -2021,10 +2021,10 @@ describe("ChatScreen", () => {
         claimRequest = args?.request as Record<string, unknown>;
         return {
           results: [{
-            name: "finder-note.txt",
+            name: "finder.pdf",
             ok: true,
             grantId: "c".repeat(64),
-            mimeType: "text/plain",
+            mimeType: "application/pdf",
             decodedByteCount: 11,
             encodedByteCount: 0,
             expiresAtMs: Date.now() + 60_000,
@@ -2038,10 +2038,10 @@ describe("ChatScreen", () => {
       if (command === "read_local_context") {
         readRequest = args?.request as Record<string, unknown>;
         return {
-          name: "finder-note.txt",
-          mime_type: "text/plain",
+          name: "finder.pdf",
+          mime_type: "application/pdf",
           byte_count: 11,
-          text: "Finder note",
+          text: "PDF content here",
           truncated: false,
         };
       }
@@ -2075,7 +2075,7 @@ describe("ChatScreen", () => {
       type: "drop", dropId: "d".repeat(64),
       position: { x: 240, y: 180 },
     }));
-    await within(view.container).findByText("finder-note.txt");
+    await within(view.container).findByText("finder.pdf");
 
     expect(claimRequest).toMatchObject({
       dropId: "d".repeat(64), sessionId: "__new_chat_session__",

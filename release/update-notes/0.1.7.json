@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "version": "0.1.7",
   "notes": {
-    "de-DE": "Verbessert die Zuverlässigkeit von Updates, Auto-Route und Cloud-Antworten, verarbeitet PDF-Anhänge korrekt und erweitert OpenRouter um acht aktuelle Modelle.",
-    "en-US": "Improves update, Auto-route, and cloud-answer reliability, fixes PDF attachments, and adds eight current models to OpenRouter.",
-    "es-ES": "Mejora la fiabilidad de las actualizaciones, Auto-route y las respuestas en la nube, corrige los archivos PDF adjuntos y añade ocho modelos actuales a OpenRouter.",
-    "fr-FR": "Améliore la fiabilité des mises à jour, d’Auto-route et des réponses cloud, corrige les pièces jointes PDF et ajoute huit modèles récents à OpenRouter.",
-    "id-ID": "Meningkatkan keandalan pembaruan, Auto-route, dan jawaban cloud, memperbaiki lampiran PDF, serta menambahkan delapan model terbaru ke OpenRouter.",
-    "ja-JP": "アップデート、Auto-route、クラウド回答の信頼性を向上し、PDF 添付を修正して、OpenRouter に最新の 8 モデルを追加しました。",
-    "pt-BR": "Melhora a confiabilidade das atualizações, do Auto-route e das respostas na nuvem, corrige anexos em PDF e adiciona oito modelos atuais ao OpenRouter.",
-    "ru-RU": "Повышена надёжность обновлений, Auto-route и облачных ответов, исправлена работа с PDF-вложениями и добавлено восемь актуальных моделей OpenRouter.",
-    "uk-UA": "Підвищено надійність оновлень, Auto-route і хмарних відповідей, виправлено PDF-вкладення та додано вісім актуальних моделей OpenRouter.",
-    "vi-VN": "Cải thiện độ tin cậy của cập nhật, Auto-route và câu trả lời đám mây, sửa lỗi tệp PDF đính kèm và bổ sung tám mô hình mới cho OpenRouter.",
-    "zh-CN": "提升更新、Auto-route 和云端回答的可靠性，修复 PDF 附件，并为 OpenRouter 新增八个当前模型。",
-    "zh-TW": "提升更新、Auto-route 和雲端回答的可靠性，修正 PDF 附件，並為 OpenRouter 新增八個目前模型。"
+    "de-DE": "Verbessert die Zuverlässigkeit von Updates, Auto-Route und Cloud-Antworten. Projektdateien bleiben im gesamten Chat verfügbar, PDF- und Excel-Inhalte werden zuverlässig gelesen, PDF-Anhänge funktionieren korrekt und OpenRouter bietet acht weitere Modelle.",
+    "en-US": "Improves update, Auto-route, and cloud-answer reliability. Project files now remain available throughout a chat, PDF and Excel evidence is read reliably, PDF attachments work correctly, and OpenRouter includes eight more models.",
+    "es-ES": "Mejora la fiabilidad de las actualizaciones, Auto-route y las respuestas en la nube. Los archivos del Proyecto permanecen disponibles durante todo el chat, la evidencia de PDF y Excel se lee de forma fiable, los PDF adjuntos funcionan correctamente y OpenRouter incluye ocho modelos más.",
+    "fr-FR": "Améliore la fiabilité des mises à jour, d’Auto-route et des réponses cloud. Les fichiers du Projet restent disponibles pendant toute la conversation, les contenus PDF et Excel sont lus de façon fiable, les pièces jointes PDF fonctionnent correctement et OpenRouter propose huit modèles supplémentaires.",
+    "id-ID": "Meningkatkan keandalan pembaruan, Auto-route, dan jawaban cloud. File Proyek kini tetap tersedia sepanjang percakapan, bukti PDF dan Excel dibaca secara andal, lampiran PDF berfungsi dengan benar, dan OpenRouter menyertakan delapan model tambahan.",
+    "ja-JP": "アップデート、Auto-route、クラウド回答の信頼性を向上しました。プロジェクトのファイルはチャット全体で利用でき、PDF と Excel の内容を確実に読み取れるようになり、PDF 添付を修正し、OpenRouter に 8 つのモデルを追加しました。",
+    "pt-BR": "Melhora a confiabilidade das atualizações, do Auto-route e das respostas na nuvem. Os arquivos do Projeto permanecem disponíveis durante toda a conversa, o conteúdo de PDF e Excel é lido com confiança, os anexos PDF funcionam corretamente e o OpenRouter inclui mais oito modelos.",
+    "ru-RU": "Повышена надёжность обновлений, Auto-route и облачных ответов. Файлы Проекта теперь доступны на протяжении всего чата, содержимое PDF и Excel считывается надёжно, исправлены PDF-вложения и в OpenRouter добавлено ещё восемь моделей.",
+    "uk-UA": "Підвищено надійність оновлень, Auto-route і хмарних відповідей. Файли Проєкту тепер доступні протягом усього чату, вміст PDF і Excel зчитується надійно, виправлено PDF-вкладення та до OpenRouter додано ще вісім моделей.",
+    "vi-VN": "Cải thiện độ tin cậy của cập nhật, Auto-route và câu trả lời đám mây. Tệp Dự án nay luôn sẵn dùng trong suốt cuộc trò chuyện, nội dung PDF và Excel được đọc chính xác, tệp PDF đính kèm hoạt động đúng và OpenRouter có thêm tám mô hình.",
+    "zh-CN": "提升更新、Auto-route 和云端回答的可靠性。项目文件现在可在整个聊天中持续使用，能够可靠读取 PDF 和 Excel 内容，PDF 附件可正常工作，并为 OpenRouter 新增八个模型。",
+    "zh-TW": "提升更新、Auto-route 和雲端回答的可靠性。專案檔案現在可在整個聊天中持續使用，能夠可靠讀取 PDF 和 Excel 內容，PDF 附件可正常運作，並為 OpenRouter 新增八個模型。"
   }
 }

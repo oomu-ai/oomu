@@ -18,6 +18,7 @@ import {
   readFileSync,
   readdirSync,
   realpathSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -66,6 +67,22 @@ import {
 } from "./release-signing-order.mjs";
 
 export { assertNoReleaseEnvironmentOverrides, externalHarnessEnvironment };
+
+export function detachDmgFromCreationHelper(dmgPath) {
+  const detachedPath = `${dmgPath}.detached-${process.pid}`;
+  const originalDigest = sha256(readFileSync(dmgPath));
+  try {
+    copyFileSync(dmgPath, detachedPath, constants.COPYFILE_EXCL);
+    const detachedDigest = sha256(readFileSync(detachedPath));
+    if (detachedDigest !== originalDigest) {
+      throw new Error("dmg_detach_digest_mismatch: copied DMG bytes changed");
+    }
+    renameSync(detachedPath, dmgPath);
+  } finally {
+    rmSync(detachedPath, { force: true });
+  }
+  return originalDigest;
+}
 
 const root = resolve(import.meta.dirname, "..");
 const tauriConfig = JSON.parse(readFileSync(join(root, "src-tauri", "tauri.conf.json"), "utf8"));
@@ -1054,6 +1071,10 @@ function notarizeAndCreateDmg(context, toolchain, built) {
       "--force", "--timestamp", "--sign", "<reviewed-identity>", basename(dmgPath),
     ],
   });
+  detachDmgFromCreationHelper(dmgPath);
+  runStep("verify_dmg_structure", toolchain.tools.hdiutil.executable, [
+    "verify", dmgPath,
+  ]);
   const dmgNotary = notarizationArgs(dmgPath, credentials);
   const dmgNotaryCapture = runStep(
     "notarize_dmg",

@@ -36,7 +36,7 @@ describe("modelRegistry", () => {
         provider.models.map((model) => model.modelId),
       ),
     );
-    expect(REMOTE_MODEL_CATALOG.version).toBe("2026.07.25");
+    expect(REMOTE_MODEL_CATALOG.version).toBe("2026.08.07");
     expect(REMOTE_MODEL_CATALOG.providers.map((provider) => provider.providerId)).toEqual([
       "google",
       "openai",
@@ -69,7 +69,7 @@ describe("modelRegistry", () => {
       "https://openrouter.ai/api/v1",
       "https://api.synthetic.ai/v1",
     ]);
-    expect(SYSTEM_MODEL_TEMPLATES).toHaveLength(80);
+    expect(SYSTEM_MODEL_TEMPLATES).toHaveLength(88);
   });
 
   it("uses template metadata for context and reasoning support", () => {
@@ -112,5 +112,37 @@ describe("modelRegistry", () => {
     expect(defaultReasoningLevelForProvider("openai")).toBe("high");
     expect(defaultReasoningLevelForProvider("anthropic")).toBe("high");
     expect(defaultReasoningLevelForProvider("local_model")).toBe("low");
+  });
+});
+
+describe("OpenRouter model catalog", () => {
+  it("exposes the verified expansion with gateway reasoning controls", () => {
+    const openRouter = REMOTE_MODEL_CATALOG.providers.find(
+      (provider) => provider.providerId === "openrouter",
+    );
+    expect(openRouter?.models.slice(-8).map((model) => model.modelId)).toEqual([
+      "deepseek/deepseek-v4-flash-0731",
+      "deepseek/deepseek-v4-flash",
+      "tencent/hy3",
+      "xiaomi/mimo-v2.5",
+      "z-ai/glm-5.2",
+      "deepseek/deepseek-v4-pro",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "moonshotai/kimi-k3",
+    ]);
+    expect(
+      openRouter?.models.find((model) => model.modelId === "deepseek/deepseek-v4-pro")
+        ?.thinkingSupport,
+    ).toMatchObject({
+      type: "reasoning_effort",
+      parameterName: "reasoning.effort",
+      levels: ["off", "high", "xhigh"],
+      defaultLevel: "high",
+    });
+    expect(
+      openRouter?.models.find(
+        (model) => model.modelId === "nvidia/nemotron-3-ultra-550b-a55b:free",
+      )?.pricingPer1M,
+    ).toEqual({ input: 0, output: 0 });
   });
 });

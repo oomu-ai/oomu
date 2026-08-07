@@ -1,6 +1,6 @@
 # OOMU 0.1.7 — Public Beta
 
-OOMU 0.1.7 is a focused reliability release for updates, Auto-route, cloud replies, and PDF attachments.
+OOMU 0.1.7 is a focused reliability release for updates, Auto-route, cloud replies, PDF attachments, and OpenRouter choice.
 
 ## What’s improved
 
@@ -8,6 +8,7 @@ OOMU 0.1.7 is a focused reliability release for updates, Auto-route, cloud repli
 - **Auto-route is more dependable across Macs.** OOMU uses a smaller on-device context on lower-memory Macs and gives the local classifier enough time to answer on real hardware, while preserving the larger context on more capable systems.
 - **Cloud replies recover from an empty answer.** If Gemini or DeepSeek finishes without visible text, OOMU makes one bounded retry with extended reasoning turned off. The recovery cannot loop.
 - **PDF attachments work from either gesture.** PDFs selected with the file picker or dragged into Chat now pass through the dedicated PDF parser and remain available for summarizing and other grounded work.
+- **OpenRouter offers more current models.** The built-in OpenRouter list now includes DeepSeek V4 Flash 0731, DeepSeek V4 Flash, Tencent Hy3, Xiaomi MiMo-V2.5, Z.ai GLM 5.2, DeepSeek V4 Pro, NVIDIA Nemotron 3 Ultra (free), and MoonshotAI Kimi K3, with OpenRouter-specific context, output, pricing, and reasoning settings.
 
 ## Security and data integrity
 

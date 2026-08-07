@@ -1,6 +1,6 @@
 {
-  "version": "2026.07.25",
-  "updated_at": "2026-07-25T15:30:00Z",
+  "version": "2026.08.07",
+  "updated_at": "2026-08-07T16:30:00Z",
   "description": "OOMU Master Model Catalog verified against current official provider documentation.",
   "providers": [
     {
@@ -1361,6 +1361,167 @@
               "max"
             ],
             "default": "medium"
+          }
+        },
+        {
+          "model_id": "deepseek/deepseek-v4-flash-0731",
+          "display_name": "DeepSeek: DeepSeek V4 Flash 0731",
+          "context_window": 1048576,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 0.09,
+            "output": 0.18
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "low",
+              "high",
+              "max"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "deepseek/deepseek-v4-flash",
+          "display_name": "DeepSeek: DeepSeek V4 Flash 0423",
+          "context_window": 1048576,
+          "max_output_tokens": 131072,
+          "pricing_per_1m": {
+            "input": 0.0882,
+            "output": 0.1764
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "tencent/hy3",
+          "display_name": "Tencent: Hy3",
+          "context_window": 262144,
+          "max_output_tokens": 128000,
+          "pricing_per_1m": {
+            "input": 0.132,
+            "output": 0.528
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "low",
+              "high"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "xiaomi/mimo-v2.5",
+          "display_name": "Xiaomi: MiMo-V2.5",
+          "context_window": 1050000,
+          "max_output_tokens": 131072,
+          "pricing_per_1m": {
+            "input": 0.14,
+            "output": 0.28
+          },
+          "thinking_support": {
+            "type": "include_reasoning",
+            "parameter_name": "reasoning.enabled",
+            "levels": [
+              "off",
+              "high"
+            ],
+            "default": "off"
+          }
+        },
+        {
+          "model_id": "z-ai/glm-5.2",
+          "display_name": "Z.ai: GLM 5.2",
+          "context_window": 1048576,
+          "max_output_tokens": 262144,
+          "pricing_per_1m": {
+            "input": 0.76,
+            "output": 2.42
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "deepseek/deepseek-v4-pro",
+          "display_name": "DeepSeek: DeepSeek V4 Pro",
+          "context_window": 1048576,
+          "max_output_tokens": 384000,
+          "pricing_per_1m": {
+            "input": 0.435,
+            "output": 0.87
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "high",
+              "xhigh"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+          "display_name": "NVIDIA: Nemotron 3 Ultra (free)",
+          "context_window": 1000000,
+          "max_output_tokens": 65536,
+          "pricing_per_1m": {
+            "input": 0.0,
+            "output": 0.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "medium",
+              "high"
+            ],
+            "default": "high"
+          }
+        },
+        {
+          "model_id": "moonshotai/kimi-k3",
+          "display_name": "MoonshotAI: Kimi K3",
+          "context_window": 1048576,
+          "max_output_tokens": 65535,
+          "pricing_per_1m": {
+            "input": 3.0,
+            "output": 15.0
+          },
+          "thinking_support": {
+            "type": "reasoning_effort",
+            "parameter_name": "reasoning.effort",
+            "levels": [
+              "off",
+              "low",
+              "high",
+              "max"
+            ],
+            "default": "max"
           }
         }
       ]

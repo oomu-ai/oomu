@@ -400,7 +400,7 @@
     "list_label": "Dự án của bạn",
     "definition": "Một nơi cho mỗi vụ việc, hồ sơ, khách hàng hay công việc — mọi thứ về nó (trò chuyện, tệp, hướng dẫn, quyền riêng tư) được đặt cùng nhau.",
     "policy_help": "AI đám mây mạnh hơn; trên thiết bị giữ công việc này hoàn toàn riêng tư. Bạn có thể thay đổi bất cứ lúc nào.",
-    "knowledge_limits": "Hỗ trợ TXT, Markdown, CSV, JSON, HTML, XML, YAML và các tệp mã phổ biến. Tối đa 512 KB mỗi tệp, 240 tệp, hoặc 20 MB mỗi thư mục.",
+    "knowledge_limits": "Hỗ trợ PDF, Excel, TXT, Markdown, CSV, JSON, HTML, XML, YAML và các tệp mã phổ biến. Tối đa 8 MB cho mỗi tệp PDF hoặc Excel và 512 KB cho mỗi tệp khác; 240 tệp hoặc 20 MB mỗi thư mục.",
     "source_added_empty": "Đã thêm thư mục. Hiện nó trống; OOMU sẽ kiểm tra lại vào lần khởi động tiếp theo.",
     "source_add_failed": "OOMU không thể thêm thư mục này. Hãy chọn lại và thử một lần nữa.",
     "source_empty": "Thư mục này trống. Các tệp bạn thêm sẽ xuất hiện ở đây vào lần khởi động OOMU tiếp theo."

@@ -124,7 +124,8 @@ it("keeps the Project document turn visible across chats and executes once", asy
     expect.objectContaining({
       provider_id: "provider-1",
       model_id: "model-1",
-      dynamic_routing_override: false,
+      dynamic_routing_override: true,
+      auto_route_choice: "local",
       project_document_composition: true,
       mcp_tool_capabilities: [],
     }),
@@ -188,7 +189,8 @@ it("uses the Project attached to the selected chat when the screen has no Projec
     expect.objectContaining({
       provider_id: "provider-1",
       model_id: "model-1",
-      dynamic_routing_override: false,
+      dynamic_routing_override: true,
+      auto_route_choice: "local",
       project_document_composition: true,
       mcp_tool_capabilities: [],
     }),

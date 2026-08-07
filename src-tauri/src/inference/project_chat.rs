@@ -143,6 +143,25 @@ pub(super) fn append_folder_context(blocks: &mut Vec<super::ContextBlock>, conte
     }
 }
 
+pub(super) fn without_redundant_knowledge_read_tools(
+    capabilities: &[ConversationalMcpToolCapability],
+) -> Vec<ConversationalMcpToolCapability> {
+    capabilities
+        .iter()
+        .filter(|capability| {
+            !capability
+                .server_name
+                .trim()
+                .eq_ignore_ascii_case("local_filesystem")
+                || !matches!(
+                    capability.tool_name.trim().to_ascii_lowercase().as_str(),
+                    "list_directory" | "read_file" | "search_files" | "stat_file"
+                )
+        })
+        .cloned()
+        .collect()
+}
+
 pub(super) fn enforce_provider_policy(
     persistence: &PersistenceEngine,
     session_id: &str,
@@ -477,10 +496,17 @@ fn read_source(path: &Path) -> Result<Option<(String, bool)>, super::InferenceEr
             )
         })?;
     verify_unchanged(path, &opened)?;
-    if bytes.len() as u64 > MAX_SOURCE_BYTES || bytes.iter().any(|byte| *byte == 0) {
+    if bytes.len() as u64 > MAX_SOURCE_BYTES {
         return Ok(None);
     }
-    let text = String::from_utf8(bytes).map_err(|_| {
+    let workbook = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .is_some_and(|value| value.eq_ignore_ascii_case("xlsx"));
+    if !workbook && bytes.iter().any(|byte| *byte == 0) {
+        return Ok(None);
+    }
+    let text = crate::knowledge::extract_supported_file_text(path, &bytes).map_err(|_| {
         composition_error(
             "project_file_encoding_unsupported",
             "A Project source file is not readable UTF-8 text.",
@@ -661,5 +687,40 @@ mod tests {
         assert_eq!(error.code, "project_folder_has_no_readable_files");
         assert!(require_project_document_evidence(true, Some("folder"), None, None).is_ok());
         assert!(require_project_document_evidence(true, None, Some("knowledge"), None).is_ok());
+    }
+
+    #[test]
+    fn verified_project_knowledge_suppresses_only_redundant_filesystem_reads() {
+        let capabilities = vec![
+            ConversationalMcpToolCapability {
+                server_name: "local_filesystem".to_string(),
+                tool_name: "read_file".to_string(),
+                description: "Read a file".to_string(),
+                input_schema: serde_json::json!({"type":"object"}),
+            },
+            ConversationalMcpToolCapability {
+                server_name: "local_filesystem".to_string(),
+                tool_name: "write_file".to_string(),
+                description: "Write a file".to_string(),
+                input_schema: serde_json::json!({"type":"object"}),
+            },
+            ConversationalMcpToolCapability {
+                server_name: "local_search".to_string(),
+                tool_name: "search_web".to_string(),
+                description: "Search public sources".to_string(),
+                input_schema: serde_json::json!({"type":"object"}),
+            },
+        ];
+
+        let filtered = without_redundant_knowledge_read_tools(&capabilities);
+        assert!(!filtered.iter().any(|capability| {
+            capability.server_name == "local_filesystem" && capability.tool_name == "read_file"
+        }));
+        assert!(filtered.iter().any(|capability| {
+            capability.server_name == "local_filesystem" && capability.tool_name == "write_file"
+        }));
+        assert!(filtered.iter().any(|capability| {
+            capability.server_name == "local_search" && capability.tool_name == "search_web"
+        }));
     }
 }

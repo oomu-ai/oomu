@@ -49,12 +49,13 @@ export function projectDocumentNativeRequestRoute<T>(
   mcpToolCapabilities: T[],
 ) {
   const localRoute = requireProjectDocumentLocalExecutionRoute(request, readiness, selectedRoute, selectedRouteIsLocal, errorMessage);
+  const preserveAutoRoute = Boolean(request && selectedRoute.dynamicRoutingEnabled);
   return {
     provider_id: localRoute?.providerId ?? selectedRoute.providerId,
     model_id: localRoute?.modelId ?? selectedRoute.modelId,
-    dynamic_routing_override: request ? false : selectedRoute.dynamicRoutingEnabled,
-    auto_route_choice: request ? null : autoRouteChoice,
-    auto_route_cloud_confirmed: request ? false : autoRouteChoice === "cloud",
+    dynamic_routing_override: selectedRoute.dynamicRoutingEnabled,
+    auto_route_choice: preserveAutoRoute ? "local" : request ? null : autoRouteChoice,
+    auto_route_cloud_confirmed: !request && autoRouteChoice === "cloud",
     mcp_tool_capabilities: mcpToolCapabilities,
     project_document_composition: Boolean(request),
   };

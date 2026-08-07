@@ -400,7 +400,7 @@
     "list_label": "Ihre Projekte",
     "definition": "Ein Ort pro Fall, Angelegenheit, Kunde oder Auftrag – alles dazu (Unterhaltungen, Dateien, Anweisungen, Datenschutz) liegt zusammen.",
     "policy_help": "Cloud-KI ist leistungsfähiger; auf dem Gerät bleibt diese Arbeit vollständig privat. Sie können dies jederzeit ändern.",
-    "knowledge_limits": "Funktioniert mit TXT, Markdown, CSV, JSON, HTML, XML, YAML und gängigen Codedateien. Bis zu 512 KB pro Datei, 240 Dateien oder 20 MB pro Ordner.",
+    "knowledge_limits": "Funktioniert mit PDF, Excel, TXT, Markdown, CSV, JSON, HTML, XML, YAML und gängigen Codedateien. Bis zu 8 MB pro PDF- oder Excel-Datei und 512 KB pro anderer Datei; 240 Dateien oder 20 MB pro Ordner.",
     "source_added_empty": "Ordner hinzugefügt. Er ist jetzt leer; OOMU prüft ihn beim nächsten Start erneut.",
     "source_add_failed": "OOMU konnte diesen Ordner nicht hinzufügen. Wählen Sie ihn erneut und versuchen Sie es noch einmal.",
     "source_empty": "Dieser Ordner ist leer. Dateien, die Sie hinzufügen, erscheinen hier beim nächsten Start von OOMU."

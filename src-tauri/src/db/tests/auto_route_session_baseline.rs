@@ -419,6 +419,67 @@ fn explicit_repair_rebinds_only_the_exact_frozen_turn_once() {
 }
 
 #[test]
+fn verified_auto_route_baseline_restores_only_a_stale_static_session_wrapper() {
+    let path = std::env::temp_dir().join(format!(
+        "oomu-auto-route-binding-repair-{}-{}.db",
+        std::process::id(),
+        crate::foundation::clock::unix_time_ns_u128()
+    ));
+    let engine = PersistenceEngine::initialize_at(path.clone()).expect("database initializes");
+    let session = dynamic_session(
+        &engine,
+        "agent-binding-repair",
+        crate::gemma::GEMMA_E4B_CANONICAL_ID,
+    );
+    let baseline = engine
+        .select_chat_session_route_policy(&session.id)
+        .expect("baseline reads")
+        .expect("baseline exists");
+    engine
+        .open_connection()
+        .expect("database opens")
+        .execute(
+            "UPDATE chat_sessions SET provider_id=?2,model_id=?3,dynamic_routing_override=1
+             WHERE id=?1",
+            params![
+                &session.id,
+                TEST_LOCAL_PROVIDER_CONFIG_ID,
+                crate::gemma::GEMMA_E4B_CANONICAL_ID,
+            ],
+        )
+        .expect("the stale static wrapper is reproduced");
+
+    assert!(engine
+        .restore_verified_dynamic_session_binding(
+            &session.id,
+            TEST_LOCAL_PROVIDER_CONFIG_ID,
+            crate::gemma::GEMMA_E4B_CANONICAL_ID,
+            baseline.local_provider_id.as_deref().expect("provider id"),
+            baseline
+                .local_provider_type
+                .as_deref()
+                .expect("provider type"),
+            baseline.local_model_id.as_deref().expect("model id"),
+            baseline.route_generation,
+        )
+        .expect("verified binding repairs"));
+    let repaired = engine
+        .select_chat_session_route_policy(&session.id)
+        .expect("repaired policy reads")
+        .expect("repaired policy exists");
+    assert_eq!(repaired.session_provider_id, "dynamic");
+    assert_eq!(repaired.session_model_id, "dynamic");
+    assert_eq!(repaired.dynamic_routing_override, Some(true));
+    assert_eq!(repaired.local_provider_id, baseline.local_provider_id);
+    assert_eq!(repaired.local_provider_type, baseline.local_provider_type);
+    assert_eq!(repaired.local_model_id, baseline.local_model_id);
+    assert_eq!(repaired.route_generation, baseline.route_generation);
+
+    drop(engine);
+    let _ = std::fs::remove_file(path);
+}
+
+#[test]
 fn explicit_repair_rejects_a_different_saved_turn_identity_atomically() {
     let path = std::env::temp_dir().join(format!(
         "oomu-auto-route-wrong-repair-{}-{}.db",

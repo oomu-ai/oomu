@@ -400,7 +400,7 @@
     "list_label": "你的專案",
     "definition": "每個案件、事項、客戶或工作對應一個位置——與之相關的一切（對話、檔案、指示、隱私）都集中在一起。",
     "policy_help": "雲端 AI 更強大；裝置端可讓這項工作完全私密。你可以隨時變更。",
-    "knowledge_limits": "支援 TXT、Markdown、CSV、JSON、HTML、XML、YAML 和常見程式碼檔案。每個檔案最多 512 KB，最多 240 個檔案，或每個資料夾最多 20 MB。",
+    "knowledge_limits": "支援 PDF、Excel、TXT、Markdown、CSV、JSON、HTML、XML、YAML 和常見程式碼檔案。每個 PDF 或 Excel 檔案最多 8 MB，其他檔案最多 512 KB；最多 240 個檔案或每個資料夾 20 MB。",
     "source_added_empty": "資料夾已新增。目前為空；OOMU 將在下次啟動時再次檢查。",
     "source_add_failed": "OOMU 無法新增此資料夾。請重新選擇並再試一次。",
     "source_empty": "此資料夾為空。你新增的檔案將在 OOMU 下次啟動時顯示於此。"

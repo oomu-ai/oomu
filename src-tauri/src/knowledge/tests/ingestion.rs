@@ -40,6 +40,27 @@ fn sliding_chunks_preserve_line_numbers_with_overlap() {
 }
 
 #[test]
+fn sliding_chunks_preserve_every_large_spreadsheet_row() {
+    let content = (1..=24)
+        .map(|row| format!("row {row}: {}", "cell-value ".repeat(18)))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let chunks = sliding_chunks(&content);
+    let covered_lines = chunks
+        .iter()
+        .flat_map(|(_, _, snippet)| snippet.lines())
+        .collect::<Vec<_>>();
+
+    for line in content.lines() {
+        assert!(covered_lines.contains(&line), "missing line: {line}");
+    }
+    assert!(chunks.len() > 1);
+    assert!(chunks
+        .iter()
+        .all(|(_, _, snippet)| estimate_tokens(snippet) <= MAX_CHUNK_TOKENS));
+}
+
+#[test]
 fn select_chunks_applies_mod_and_workspace_prefilter() {
     let temp_dir = std::env::temp_dir().join(format!("oomu-knowledge-scope-{}", unix_time_ms()));
     fs::create_dir_all(&temp_dir).unwrap();

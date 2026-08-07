@@ -23,14 +23,17 @@ use std::{
     time::{Duration, Instant},
 };
 mod project_purge;
+mod source_text;
 const VAULT_DIR: &str = ".oomu/vault";
 const KNOWLEDGE_DB: &str = "knowledge.db";
 const OPS_DB_FILE: &str = "oomu_ops.db";
 const SQLITE_BUSY_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_FILE_BYTES: u64 = 512 * 1024;
+const MAX_BINARY_SOURCE_BYTES: u64 = 8 * 1024 * 1024;
 const CHUNK_LINES: usize = 80;
 const CHUNK_OVERLAP_PERCENT: usize = 15;
 const MAX_CHUNK_TOKENS: usize = 320;
+const CHUNK_SCHEMA_VERSION: &str = "knowledge-chunks-v2";
 #[cfg(test)]
 const MAX_CONTEXT_TOKENS: usize = 1_400;
 const SEMANTIC_DUPLICATE_THRESHOLD: f32 = 0.92;
@@ -46,8 +49,8 @@ const MAX_LIVE_KNOWLEDGE_BYTES: u64 = 80 * 1024 * 1024;
 const KNOWLEDGE_GRANT_TTL_MS: i64 = 5 * 60 * 1_000;
 const PRIVATE_KNOWLEDGE_VAULT_ID: &str = "private://knowledge";
 pub(crate) const KNOWLEDGE_SUPPORTED_FORMATS: &[&str] = &[
-    "csv", "css", "html", "js", "json", "jsx", "md", "rs", "rst", "sql", "toml", "ts", "tsx",
-    "txt", "xml", "yaml", "yml",
+    "csv", "css", "html", "js", "json", "jsx", "md", "pdf", "rs", "rst", "sql", "toml", "ts",
+    "tsx", "txt", "xlsx", "xml", "yaml", "yml",
 ];
 #[derive(Clone)]
 pub struct KnowledgeStore {
@@ -379,7 +382,7 @@ impl KnowledgeStore {
             return Err(KnowledgeError::invalid("File is empty."));
         }
         let storage_path = scoped_storage_path(scope, relative_path);
-        let content_hash = sha256_hex(content.as_bytes());
+        let content_hash = sha256_hex(format!("{CHUNK_SCHEMA_VERSION}\0{content}").as_bytes());
         let existing = self
             .open_connection()
             .map_err(KnowledgeError::database)?
@@ -403,10 +406,11 @@ impl KnowledgeStore {
             .map(|(line_start, line_end, snippet)| {
                 let embedding = gemma
                     .embed_text_sync(&format!("{relative_path}\n{snippet}"))
-                    .map_err(KnowledgeError::embedding)?;
-                Ok((line_start, line_end, snippet, embedding.vector))
+                    .map(|embedding| (embedding.vector, "local_llama_cpp"))
+                    .unwrap_or_else(|_| (Vec::new(), "lexical_fallback"));
+                (line_start, line_end, snippet, embedding.0, embedding.1)
             })
-            .collect::<Result<Vec<_>, KnowledgeError>>()?;
+            .collect::<Vec<_>>();
         let _guard = self.lock_writes();
         let mut connection = self.open_connection().map_err(KnowledgeError::database)?;
         let tx = connection.transaction().map_err(KnowledgeError::database)?;
@@ -444,14 +448,16 @@ impl KnowledgeStore {
             params![&storage_path, &scope.workspace_id],
         )
         .map_err(KnowledgeError::database)?;
-        for (index, (line_start, line_end, snippet, embedding)) in chunks.iter().enumerate() {
+        for (index, (line_start, line_end, snippet, embedding, embedding_source)) in
+            chunks.iter().enumerate()
+        {
             tx.execute(
                 "
                 INSERT INTO knowledge_chunks (
                     path, workspace_id, mod_id, workspace_root, project_id, chunk_index, line_start, line_end, snippet,
                     embedding_json, embedding_source
                 )
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'local_llama_cpp')
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
                 ",
                 params![
                     &storage_path,
@@ -463,7 +469,8 @@ impl KnowledgeStore {
                     *line_start as i64,
                     *line_end as i64,
                     snippet,
-                    json_string(embedding)
+                    json_string(embedding),
+                    embedding_source
                 ],
             )
             .map_err(KnowledgeError::database)?;
@@ -666,10 +673,17 @@ fn score_chunks_for_query(
 ) -> Vec<KnowledgeContextBlock> {
     let mut scored = chunks
         .into_iter()
-        .filter(|chunk| chunk.embedding.len() == query_embedding.len())
+        .filter(|chunk| {
+            chunk.embedding.is_empty()
+                || (!query_embedding.is_empty() && chunk.embedding.len() == query_embedding.len())
+        })
         .map(|chunk| {
-            let semantic = cosine_similarity(query_embedding, &chunk.embedding);
-            let lexical = lexical_overlap(query, &chunk.snippet);
+            let semantic = if chunk.embedding.is_empty() || query_embedding.is_empty() {
+                0.0
+            } else {
+                cosine_similarity(query_embedding, &chunk.embedding)
+            };
+            let lexical = lexical_overlap(query, &format!("{}\n{}", chunk.path, chunk.snippet));
             let score = semantic + lexical + multi_document_bonus(chunk.chunk_index);
             let block = KnowledgeContextBlock {
                 semantic_relevance_score: semantic,
@@ -890,8 +904,8 @@ pub(crate) fn ingest_persisted_project_directory(
         project_id: Some(project_id.to_string()),
     };
     let files = consume_knowledge_ingest_grant(&grants, &request)?;
-    knowledge.ingest_sync(&request, files, gemma)?;
-    Ok(grant.file_count)
+    let response = knowledge.ingest_sync(&request, files, gemma)?;
+    Ok(response.indexed_files)
 }
 
 #[tauri::command]
@@ -967,13 +981,14 @@ pub(crate) fn retrieve_project_blocks_for_gateway_with_token_budget(
     if query.is_empty() {
         return Err(KnowledgeError::invalid("Knowledge query cannot be empty."));
     }
-    let embedding = gemma
+    let query_embedding = gemma
         .embed_text_sync(query)
-        .map_err(KnowledgeError::embedding)?;
+        .map(|embedding| embedding.vector)
+        .unwrap_or_default();
     let project_scope = KnowledgeScope::from_project_id(project_id)?;
     let mut project_blocks = score_chunks_for_query(
         query,
-        &embedding.vector,
+        &query_embedding,
         knowledge.select_chunks(&project_scope)?,
         limit.clamp(1, 1_000),
         max_context_tokens.clamp(1, 500_000),
@@ -986,7 +1001,7 @@ pub(crate) fn retrieve_project_blocks_for_gateway_with_token_budget(
             .sum::<usize>();
         let global_blocks = score_chunks_for_query(
             query,
-            &embedding.vector,
+            &query_embedding,
             knowledge.select_chunks(&KnowledgeScope::default())?,
             remaining,
             max_context_tokens.saturating_sub(used_tokens).max(1),
@@ -1203,7 +1218,7 @@ pub(crate) fn source_tagged_context_with_token_budget(
     }
     let max_context_tokens = max_context_tokens.clamp(1, 500_000);
     Some(format!(
-        "Use the following local OOMU knowledge vault context when relevant. Cite file paths and line numbers from each [SOURCE] block you use.\n\n{}",
+        "Use the following local OOMU knowledge vault context when relevant. Each [SOURCE] block already contains the readable source content; do not request a filesystem tool to read it again. Cite file paths and line numbers from each [SOURCE] block you use.\n\n{}",
         source_blocks_text(blocks, max_context_tokens)
     ))
 }
@@ -1301,7 +1316,7 @@ fn issue_knowledge_ingest_grant(
                 "A selected knowledge file changed during grant issuance.",
             ));
         }
-        if metadata.len() > MAX_FILE_BYTES {
+        if metadata.len() > knowledge_source_byte_limit(&candidate.path) {
             continue;
         }
         let canonical_path = fs::canonicalize(&candidate.path).map_err(KnowledgeError::io)?;
@@ -1314,10 +1329,8 @@ fn issue_knowledge_ingest_grant(
         let handle_metadata = handle.metadata().map_err(KnowledgeError::io)?;
         let identity = KnowledgeFileIdentity::from_metadata(&handle_metadata);
         revalidate_knowledge_path(&canonical_path, &handle, &identity, false)?;
-        let bytes = read_bounded_granted_file(&mut handle)?;
-        if std::str::from_utf8(&bytes).is_err() {
-            continue;
-        }
+        let bytes =
+            read_bounded_granted_file(&mut handle, knowledge_source_byte_limit(&canonical_path))?;
         if total_bytes.saturating_add(bytes.len() as u64) > MAX_KNOWLEDGE_AGGREGATE_BYTES {
             break;
         }
@@ -1432,7 +1445,8 @@ fn consume_knowledge_ingest_grant(
             ));
         }
         revalidate_knowledge_path(&file.path, &file.handle, &file.identity, false)?;
-        let bytes = read_bounded_granted_file(&mut file.handle)?;
+        let bytes =
+            read_bounded_granted_file(&mut file.handle, knowledge_source_byte_limit(&file.path))?;
         if sha256(&bytes).as_bytes() != &file.content_sha256 {
             return Err(KnowledgeError::grant(
                 "Knowledge grant file contents changed after selection.",
@@ -1445,8 +1459,9 @@ fn consume_knowledge_ingest_grant(
                 "Knowledge grant exceeded the aggregate byte limit.",
             ));
         }
-        let content = String::from_utf8(bytes)
-            .map_err(|_| KnowledgeError::grant("Knowledge grant contained a non-text file."))?;
+        let Ok(content) = source_text::extract_file_text(&file.path, &bytes) else {
+            continue;
+        };
         consumed.push(ConsumedKnowledgeFile {
             display_path: format!("{}/{}", grant.directory_name, file.relative_path),
             content,
@@ -1547,7 +1562,7 @@ fn visit_grant_directory(
         if !metadata.is_file() || !is_supported_knowledge_file(&canonical_path) {
             continue;
         }
-        if metadata.len() > MAX_FILE_BYTES {
+        if metadata.len() > knowledge_source_byte_limit(&canonical_path) {
             continue;
         }
         let modified_ms = metadata
@@ -1604,24 +1619,43 @@ fn revalidate_knowledge_path(
     Ok(())
 }
 
-fn read_bounded_granted_file(handle: &mut fs::File) -> Result<Vec<u8>, KnowledgeError> {
+fn read_bounded_granted_file(
+    handle: &mut fs::File,
+    max_bytes: u64,
+) -> Result<Vec<u8>, KnowledgeError> {
     handle
         .seek(SeekFrom::Start(0))
         .map_err(KnowledgeError::io)?;
     let mut bytes = Vec::new();
     handle
-        .take(MAX_FILE_BYTES.saturating_add(1))
+        .take(max_bytes.saturating_add(1))
         .read_to_end(&mut bytes)
         .map_err(KnowledgeError::io)?;
     handle
         .seek(SeekFrom::Start(0))
         .map_err(KnowledgeError::io)?;
-    if bytes.len() as u64 > MAX_FILE_BYTES {
+    if bytes.len() as u64 > max_bytes {
         return Err(KnowledgeError::grant(
             "Knowledge file exceeded the per-file byte limit.",
         ));
     }
     Ok(bytes)
+}
+
+fn knowledge_source_byte_limit(path: &Path) -> u64 {
+    match path
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        Some("pdf" | "xlsx") => MAX_BINARY_SOURCE_BYTES,
+        _ => MAX_FILE_BYTES,
+    }
+}
+
+pub(crate) fn extract_supported_file_text(path: &Path, bytes: &[u8]) -> Result<String, String> {
+    source_text::extract_file_text(path, bytes)
 }
 
 fn validate_grant_scope(session_id: &str, turn_id: &str) -> Result<(), KnowledgeError> {
@@ -1683,14 +1717,48 @@ fn sliding_chunks(content: &str) -> Vec<(usize, usize, String)> {
     let overlap_lines = ((CHUNK_LINES * CHUNK_OVERLAP_PERCENT) / 100).max(1);
     while start < lines.len() {
         let end = (start + CHUNK_LINES).min(lines.len());
-        let snippet = trim_to_token_bound(&lines[start..end].join("\n"), MAX_CHUNK_TOKENS);
-        chunks.push((start + 1, end, snippet));
+        push_token_bounded_line_chunks(&mut chunks, &lines, start, end);
         if end == lines.len() {
             break;
         }
         start += CHUNK_LINES.saturating_sub(overlap_lines).max(1);
     }
     chunks
+}
+
+fn push_token_bounded_line_chunks(
+    chunks: &mut Vec<(usize, usize, String)>,
+    lines: &[&str],
+    start: usize,
+    end: usize,
+) {
+    let max_chars = MAX_CHUNK_TOKENS.saturating_mul(4).max(1);
+    let mut cursor = start;
+    while cursor < end {
+        let line_chars = lines[cursor].chars().count();
+        if line_chars > max_chars {
+            let characters = lines[cursor].chars().collect::<Vec<_>>();
+            for part in characters.chunks(max_chars) {
+                chunks.push((cursor + 1, cursor + 1, part.iter().collect()));
+            }
+            cursor += 1;
+            continue;
+        }
+
+        let mut chunk_end = cursor;
+        let mut used_chars = 0;
+        while chunk_end < end {
+            let separator_chars = usize::from(chunk_end > cursor);
+            let next_chars = lines[chunk_end].chars().count();
+            if chunk_end > cursor && used_chars + separator_chars + next_chars > max_chars {
+                break;
+            }
+            used_chars += separator_chars + next_chars;
+            chunk_end += 1;
+        }
+        chunks.push((cursor + 1, chunk_end, lines[cursor..chunk_end].join("\n")));
+        cursor = chunk_end;
+    }
 }
 
 struct IgnoreRules {

@@ -528,6 +528,55 @@ pub(super) fn refresh_source(
     source_by_id(&connection, &id, &request.source_id)
 }
 
+pub(super) fn refresh_source_content(
+    engine: &PersistenceEngine,
+    knowledge: &crate::knowledge::KnowledgeStore,
+    gemma: crate::gemma::GemmaService,
+    request: ProjectSourceRequest,
+) -> Result<ProjectSourceRecord, String> {
+    let source = refresh_source(engine, request.clone())?;
+    let result = crate::knowledge::ingest_persisted_project_directory(
+        knowledge,
+        gemma,
+        &source.project_id,
+        Path::new(&source.canonical_path),
+    );
+    let now = crate::foundation::clock::unix_time_ms_i64();
+    let connection = engine
+        .open_connection()
+        .map_err(|error| error.to_string())?;
+    match result {
+        Ok(0) if source.file_count > 0 => {
+            connection
+                .execute(
+                    "UPDATE project_sources SET indexing_state='failed',failure_code='source_index_empty',updated_at_ms=?3 WHERE project_id=?1 AND source_id=?2",
+                    params![source.project_id, source.source_id, now],
+                )
+                .map_err(|error| error.to_string())?;
+            return Err("OOMU could not read the files in this folder.".to_string());
+        }
+        Ok(file_count) => {
+            connection
+                .execute(
+                    "UPDATE project_sources SET indexing_state='ready',file_count=?3,last_indexed_at_ms=?4,failure_code=NULL,updated_at_ms=?4 WHERE project_id=?1 AND source_id=?2",
+                    params![source.project_id, source.source_id, file_count as i64, now],
+                )
+                .map_err(|error| error.to_string())?;
+        }
+        Err(error) => {
+            let unavailable = error.code == "knowledge_io_failed";
+            connection
+                .execute(
+                    "UPDATE project_sources SET grant_state=CASE WHEN ?3 THEN 'unavailable' ELSE grant_state END,indexing_state='failed',failure_code=?4,updated_at_ms=?5 WHERE project_id=?1 AND source_id=?2",
+                    params![source.project_id, source.source_id, unavailable, error.code, now],
+                )
+                .map_err(|db_error| db_error.to_string())?;
+            return Err(error.message);
+        }
+    }
+    source_by_id(&connection, &source.project_id, &source.source_id)
+}
+
 pub(super) fn revoke_source(
     engine: &PersistenceEngine,
     request: ProjectSourceRequest,

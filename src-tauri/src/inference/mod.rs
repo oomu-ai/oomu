@@ -1859,6 +1859,8 @@ async fn run_chat_turn(
     );
 
     let execution_result = tauri::async_runtime::spawn_blocking(move || {
+        let mut effective_mcp_tool_capabilities = effective_mcp_tool_capabilities;
+        let mut tool_registry_offline_for_prompt = tool_registry_offline_for_prompt;
         let current_user_content = message_with_attachment_receipt(&message, &attachments);
         let public_grounding_active = has_public_grounding_attachment(&attachments);
         let headless_grounding_boundary_active =
@@ -2069,6 +2071,14 @@ async fn run_chat_turn(
                 }
             }
         };
+        if project_context.is_some() && primary_knowledge_prompt_context.is_some() {
+            effective_mcp_tool_capabilities =
+                project_chat::without_redundant_knowledge_read_tools(
+                    &effective_mcp_tool_capabilities,
+                );
+            tool_registry_offline_for_prompt =
+                !has_connected_conversational_mcp_tools(&effective_mcp_tool_capabilities);
+        }
         project_chat::require_project_document_evidence(
             project_document_turn,
             project_folder_context.as_deref(),
@@ -4438,12 +4448,18 @@ fn conversational_mcp_tool_contract(
         return None;
     }
     let public_web_search_available = has_public_web_search_capability(capabilities);
+    let example = serde_json::json!({
+        "serverName": available[0].server_name.trim(),
+        "toolName": available[0].tool_name.trim(),
+        "arguments": {},
+    })
+    .to_string();
 
     let mut lines = vec![
         "OOMU exposes request-only brokered tools for this chat turn. The catalog may include local capabilities and isolated public-web retrieval; no tool grants permission or changes the selected model route.".to_string(),
         "You cannot execute tools directly. To request one tool call, output exactly one fenced block using this format and no invented fields:".to_string(),
         "```oomu_mcp_tool_call".to_string(),
-        r#"{"serverName":"local_filesystem","toolName":"read_file","arguments":{"path":"relative/path.txt"}}"#.to_string(),
+        example,
         "```".to_string(),
         "Infer the user's intent semantically in any language. The English examples below are guidance only; wording and keywords never decide whether an available tool may be requested.".to_string(),
         "When a request semantically matches an available tool, request it and let OOMU's native broker determine permission and availability. Never claim that OOMU lacks access, that permission was denied, or that a tool is unavailable unless a native terminal result attached to the continuation says so.".to_string(),

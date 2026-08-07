@@ -400,7 +400,7 @@
     "list_label": "Seus projetos",
     "definition": "Um lugar para cada caso, assunto, cliente ou trabalho — tudo sobre ele (conversas, arquivos, instruções, privacidade) fica junto.",
     "policy_help": "A IA na nuvem é mais poderosa; no dispositivo, mantém este trabalho totalmente privado. Você pode alterar isso a qualquer momento.",
-    "knowledge_limits": "Funciona com TXT, Markdown, CSV, JSON, HTML, XML, YAML e arquivos de código comuns. Até 512 KB por arquivo, 240 arquivos ou 20 MB por pasta.",
+    "knowledge_limits": "Funciona com PDF, Excel, TXT, Markdown, CSV, JSON, HTML, XML, YAML e arquivos de código comuns. Até 8 MB por arquivo PDF ou Excel e 512 KB por cada outro arquivo; 240 arquivos ou 20 MB por pasta.",
     "source_added_empty": "Pasta adicionada. Ela está vazia agora; o OOMU a verificará novamente na próxima vez que iniciar.",
     "source_add_failed": "O OOMU não conseguiu adicionar esta pasta. Escolha-a novamente e tente mais uma vez.",
     "source_empty": "Esta pasta está vazia. Os arquivos que você adicionar aparecerão aqui na próxima vez que o OOMU iniciar."

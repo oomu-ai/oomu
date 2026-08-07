@@ -457,6 +457,7 @@ fn conversational_mcp_contract_truthfully_routes_current_public_facts_to_search(
         .expect("the connected public-search tool should be advertised");
 
     assert!(contract.contains("local_search/search_web"));
+    assert!(!contract.contains("local_filesystem/read_file"));
     assert!(contract.contains("current or changing public facts"));
     assert!(contract.contains("Do not answer from model memory, training data"));
     assert!(contract.contains("native broker will decide"));

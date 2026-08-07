@@ -133,10 +133,14 @@ pub async fn list_project_sources(
 pub async fn refresh_project_source(
     request: ProjectSourceRequest,
     persistence: tauri::State<'_, PersistenceEngine>,
+    knowledge: tauri::State<'_, crate::knowledge::KnowledgeStore>,
+    gemma: tauri::State<'_, crate::gemma::GemmaService>,
 ) -> Result<ProjectSourceRecord, String> {
     repository::user_managed_project_id(&request.project_id)?;
     let engine = persistence.inner().clone();
-    blocking(move || repository::refresh_source(&engine, request)).await
+    let knowledge = knowledge.inner().clone();
+    let gemma = gemma.inner().clone();
+    blocking(move || repository::refresh_source_content(&engine, &knowledge, gemma, request)).await
 }
 
 #[tauri::command]

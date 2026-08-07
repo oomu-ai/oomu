@@ -400,7 +400,7 @@
     "list_label": "Vos projets",
     "definition": "Un endroit par affaire, dossier, client ou mission — tout ce qui s’y rapporte (conversations, fichiers, instructions, confidentialité) est réuni.",
     "policy_help": "L’IA cloud est plus puissante ; sur l’appareil, ce travail reste entièrement privé. Vous pouvez changer cela à tout moment.",
-    "knowledge_limits": "Fonctionne avec TXT, Markdown, CSV, JSON, HTML, XML, YAML et les fichiers de code courants. Jusqu’à 512 Ko par fichier, 240 fichiers ou 20 Mo par dossier.",
+    "knowledge_limits": "Fonctionne avec PDF, Excel, TXT, Markdown, CSV, JSON, HTML, XML, YAML et les fichiers de code courants. Jusqu’à 8 Mo par fichier PDF ou Excel et 512 Ko par autre fichier ; 240 fichiers ou 20 Mo par dossier.",
     "source_added_empty": "Dossier ajouté. Il est vide pour l’instant ; OOMU le vérifiera à nouveau à son prochain démarrage.",
     "source_add_failed": "OOMU n’a pas pu ajouter ce dossier. Choisissez-le à nouveau et réessayez.",
     "source_empty": "Ce dossier est vide. Les fichiers que vous ajoutez apparaîtront ici au prochain démarrage d’OOMU."

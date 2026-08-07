@@ -61,3 +61,22 @@ fn retrieve_blocks_for_gateway_sanitizes_primary_rag_snippets() {
     assert!(!blocks[0].snippet.to_lowercase().contains("openclaw"));
     let _ = fs::remove_dir_all(temp_dir);
 }
+
+#[test]
+fn lexical_only_project_chunks_are_retrievable_by_file_name() {
+    let chunks = vec![StoredChunk {
+        path: "projects/project_test/uat_4_lab_coordinator/Lab_Inventory.xlsx".to_string(),
+        chunk_index: 0,
+        line_start: 1,
+        line_end: 1,
+        snippet: "A1=Workstation ID | B1=Current Status | A2=WS-LAB-001 | B2=Ready".to_string(),
+        embedding: Vec::new(),
+    }];
+
+    let blocks = score_chunks_for_query("Review Lab_Inventory.xlsx", &[], chunks, 4, 500);
+
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(blocks[0].semantic_relevance_score, 0.0);
+    assert!(blocks[0].lexical_relevance_score > 0.0);
+    assert!(blocks[0].snippet.contains("WS-LAB-001"));
+}

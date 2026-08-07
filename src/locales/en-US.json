@@ -283,7 +283,7 @@
     "folder_failed": "OOMU couldn’t use that Project folder. Choose it again and try once more.",
     "knowledge_title": "Knowledge",
     "knowledge_help": "Add a folder once. OOMU keeps it private and checks for new files when it starts.",
-    "knowledge_limits": "Works with TXT, Markdown, CSV, JSON, HTML, XML, YAML, and common code files. Up to 512 KB per file, 240 files, or 20 MB per folder.",
+    "knowledge_limits": "Works with PDF, Excel, TXT, Markdown, CSV, JSON, HTML, XML, YAML, and common code files. Up to 8 MB for each PDF or Excel file and 512 KB for each other file; 240 files or 20 MB per folder.",
     "add_source": "Add folder",
     "no_sources": "No knowledge folders are attached.",
     "source_added": "Folder added.",

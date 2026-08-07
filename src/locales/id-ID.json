@@ -400,7 +400,7 @@
     "list_label": "Proyek Anda",
     "definition": "Satu tempat untuk tiap kasus, perkara, klien, atau pekerjaan — semua tentangnya (percakapan, berkas, instruksi, privasi) berada bersama.",
     "policy_help": "AI cloud lebih bertenaga; di perangkat menjaga pekerjaan ini sepenuhnya privat. Anda dapat mengubahnya kapan saja.",
-    "knowledge_limits": "Mendukung TXT, Markdown, CSV, JSON, HTML, XML, YAML, dan berkas kode umum. Hingga 512 KB per berkas, 240 berkas, atau 20 MB per folder.",
+    "knowledge_limits": "Mendukung PDF, Excel, TXT, Markdown, CSV, JSON, HTML, XML, YAML, dan berkas kode umum. Hingga 8 MB per berkas PDF atau Excel dan 512 KB per berkas lainnya; 240 berkas atau 20 MB per folder.",
     "source_added_empty": "Folder ditambahkan. Sekarang kosong; OOMU akan memeriksanya lagi saat mulai berikutnya.",
     "source_add_failed": "OOMU tidak dapat menambahkan folder ini. Pilih lagi dan coba sekali lagi.",
     "source_empty": "Folder ini kosong. Berkas yang Anda tambahkan akan muncul di sini saat OOMU mulai berikutnya."

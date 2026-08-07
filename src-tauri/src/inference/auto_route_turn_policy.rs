@@ -135,16 +135,13 @@ async fn freeze_live_policy(
             )
         })?
         .to_string();
-    let snapshot = request
-        .session_snapshot
-        .filter(|snapshot| session_snapshot_is_dynamic(snapshot))
-        .ok_or_else(|| {
-            InferenceError::routing_attention(
-                "auto_route_session_binding_invalid",
-                "chat_sessions",
-                "Auto-route is enabled, but the saved session binding is not dynamic/dynamic. Nothing was sent to a provider.",
-            )
-        })?;
+    let snapshot = request.session_snapshot.ok_or_else(|| {
+        InferenceError::routing_attention(
+            "auto_route_session_baseline_missing",
+            "active_session_configs",
+            "Auto-route could not load an authoritative session baseline. Nothing was sent to a provider.",
+        )
+    })?;
     let baseline = auto_route_execution::verified_session_baseline(
         snapshot,
         app,
@@ -153,6 +150,38 @@ async fn freeze_live_policy(
         request.requested_reasoning,
         request.context_budget,
     )?;
+    if !session_snapshot_is_dynamic(snapshot) {
+        let persistence_for_repair = persistence.clone();
+        let session_id_for_repair = active_session_id.clone();
+        let expected_provider_id = snapshot.provider_id.clone();
+        let expected_model_id = snapshot.model_id.clone();
+        let provider_config_id = baseline.provider_config_id.clone();
+        let provider_type = baseline.provider_type.clone();
+        let model_id = baseline.model_id.clone();
+        let route_generation = baseline.route_generation;
+        tauri::async_runtime::spawn_blocking(move || {
+            persistence_for_repair.restore_verified_dynamic_session_binding(
+                &session_id_for_repair,
+                &expected_provider_id,
+                &expected_model_id,
+                &provider_config_id,
+                &provider_type,
+                &model_id,
+                route_generation,
+            )
+        })
+        .await
+        .map_err(|error| InferenceError::worker(error.to_string()))?
+        .map_err(|error| {
+            InferenceError::routing_attention(
+                "auto_route_session_binding_invalid",
+                "chat_sessions",
+                format!(
+                    "Auto-route could not repair the saved session binding. Nothing was sent to a provider. {error}"
+                ),
+            )
+        })?;
+    }
     let acceptance = crate::db::AcceptChatTurnRequest {
         turn_id: request.turn_id.to_string(),
         generation_token: request.generation_token.to_string(),

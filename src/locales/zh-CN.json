@@ -400,7 +400,7 @@
     "list_label": "你的项目",
     "definition": "每个案件、事项、客户或工作对应一个位置——与之相关的一切（对话、文件、指示、隐私）都集中在一起。",
     "policy_help": "云端 AI 更强大；设备端可让这项工作完全私密。你可以随时更改。",
-    "knowledge_limits": "支持 TXT、Markdown、CSV、JSON、HTML、XML、YAML 和常见代码文件。每个文件最多 512 KB，最多 240 个文件，或每个文件夹最多 20 MB。",
+    "knowledge_limits": "支持 PDF、Excel、TXT、Markdown、CSV、JSON、HTML、XML、YAML 和常见代码文件。每个 PDF 或 Excel 文件最多 8 MB，其他文件最多 512 KB；最多 240 个文件或每个文件夹 20 MB。",
     "source_added_empty": "文件夹已添加。目前为空；OOMU 将在下次启动时再次检查。",
     "source_add_failed": "OOMU 无法添加此文件夹。请重新选择并再试一次。",
     "source_empty": "此文件夹为空。你添加的文件将在 OOMU 下次启动时显示在此处。"

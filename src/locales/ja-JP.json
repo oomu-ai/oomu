@@ -400,7 +400,7 @@
     "list_label": "あなたのプロジェクト",
     "definition": "案件、事案、クライアント、仕事ごとに1つの場所——それに関するすべて（会話、ファイル、指示、プライバシー）がまとまって置かれます。",
     "policy_help": "クラウド AI はより強力です。オンデバイスならこの作業を完全に非公開に保てます。この設定はいつでも変更できます。",
-    "knowledge_limits": "TXT、Markdown、CSV、JSON、HTML、XML、YAML、および一般的なコードファイルに対応します。1ファイルあたり最大 512 KB、240 ファイル、またはフォルダーあたり 20 MB まで。",
+    "knowledge_limits": "PDF、Excel、TXT、Markdown、CSV、JSON、HTML、XML、YAML、および一般的なコードファイルに対応します。PDF または Excel は1ファイルあたり最大 8 MB、その他は最大 512 KB、合計 240 ファイルまたはフォルダーあたり 20 MB まで。",
     "source_added_empty": "フォルダーを追加しました。現在は空です。OOMU は次回起動時にもう一度確認します。",
     "source_add_failed": "OOMU はこのフォルダーを追加できませんでした。もう一度選択してお試しください。",
     "source_empty": "このフォルダーは空です。追加したファイルは、次回 OOMU の起動時にここに表示されます。"

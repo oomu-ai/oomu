@@ -163,7 +163,7 @@ describe("ProjectsScreen permanent deletion", () => {
 
     renderProjects();
     await screen.findByRole("heading", { name: "Alpha" });
-    expect(screen.getByText(/Up to 512 KB per file, 240 files, or 20 MB per folder/)).toBeVisible();
+    expect(screen.getByText(/Up to 8 MB for each PDF or Excel file/)).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Add folder" }));
 
     expect(await screen.findByText("Folder added. It is empty now; OOMU will check it again the next time it starts.")).toBeVisible();

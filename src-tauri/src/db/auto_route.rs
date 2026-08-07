@@ -42,6 +42,88 @@ struct FrozenAutoRouteTurnState {
 }
 
 impl PersistenceEngine {
+    pub(crate) fn restore_verified_dynamic_session_binding(
+        &self,
+        session_id: &str,
+        expected_session_provider_id: &str,
+        expected_session_model_id: &str,
+        local_provider_config_id: &str,
+        local_provider_type: &str,
+        local_model_id: &str,
+        route_generation: i64,
+    ) -> rusqlite::Result<bool> {
+        let _guard = self.lock_writes();
+        let mut connection = self.open_connection()?;
+        let transaction = connection.transaction()?;
+        let verified_config_exists: bool = transaction.query_row(
+            "SELECT EXISTS(
+                 SELECT 1 FROM active_session_configs
+                 WHERE session_id=?1 AND local_provider_config_id=?2
+                   AND local_provider_type=?3 AND model_id=?4
+                   AND local_route_generation=?5 AND local_route_generation>0
+             )",
+            params![
+                session_id,
+                local_provider_config_id,
+                local_provider_type,
+                local_model_id,
+                route_generation,
+            ],
+            |row| row.get(0),
+        )?;
+        if !verified_config_exists {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "auto_route_session_binding_repair_precondition_failed".to_string(),
+            ));
+        }
+        let now = unix_time_ms();
+        let changed = transaction.execute(
+            "UPDATE chat_sessions
+             SET provider_id='dynamic',model_id='dynamic',dynamic_routing_override=1,
+                 updated_at_ms=?1
+             WHERE id=?2 AND workspace_id=?3 AND provider_id=?4 AND model_id=?5",
+            params![
+                now,
+                session_id,
+                &self.workspace_id,
+                expected_session_provider_id,
+                expected_session_model_id,
+            ],
+        )? == 1;
+        if !changed {
+            let binding: (String, String) = transaction.query_row(
+                "SELECT provider_id,model_id FROM chat_sessions
+                 WHERE id=?1 AND workspace_id=?2",
+                params![session_id, &self.workspace_id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )?;
+            if !binding.0.eq_ignore_ascii_case("dynamic")
+                || !binding.1.eq_ignore_ascii_case("dynamic")
+            {
+                return Err(rusqlite::Error::InvalidParameterName(
+                    "auto_route_session_binding_changed_during_repair".to_string(),
+                ));
+            }
+        }
+        transaction.commit()?;
+        crate::diagnostic_output::write_diagnostic_line(format_args!(
+            "OOMU_NATIVE_RECEIPT {}",
+            serde_json::json!({
+                "kind": "auto_route_binding_repair",
+                "receiptId": format!("auto-route-binding-repair-{session_id}-{route_generation}"),
+                "sessionId": session_id,
+                "providerConfigId": local_provider_config_id,
+                "providerType": local_provider_type,
+                "modelId": local_model_id,
+                "routeGeneration": route_generation,
+                "committed": true,
+                "changed": changed,
+                "rolledBack": false,
+            })
+        ));
+        Ok(changed)
+    }
+
     pub fn auto_route_audit_storage_ready(&self) -> rusqlite::Result<bool> {
         let connection = self.open_ops_connection()?;
         connection.query_row(

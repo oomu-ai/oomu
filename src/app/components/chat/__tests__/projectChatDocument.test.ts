@@ -4,6 +4,7 @@ import {
   projectChatDocumentRequest,
   projectDocumentOutputRequested,
   projectDocumentLocalExecutionRoute,
+  projectDocumentNativeRequestRoute,
   projectDocumentPendingAssistantId,
   projectDocumentRouteDecision,
 } from "../projectChatDocument";
@@ -65,5 +66,33 @@ describe("Project chat document composition", () => {
       localProviderId: null, localModelId: null,
       recommendedLocalProviderId: null, recommendedLocalModelId: null,
     }, { providerId: "cloud", modelId: "cloud-model" }, false)).toBeNull();
+  });
+
+  it("forces Project composition local without replacing an Auto-route session binding", () => {
+    expect(projectDocumentNativeRequestRoute(
+      { modelMessage: "Compose from the Project folder." },
+      {
+        localProviderId: "local-model",
+        localModelId: "gemma-local",
+        recommendedLocalProviderId: null,
+        recommendedLocalModelId: null,
+      },
+      {
+        providerId: "dynamic",
+        modelId: "dynamic",
+        dynamicRoutingEnabled: true,
+      },
+      false,
+      null,
+      "Choose a local model.",
+      [],
+    )).toMatchObject({
+      provider_id: "local-model",
+      model_id: "gemma-local",
+      dynamic_routing_override: true,
+      auto_route_choice: "local",
+      auto_route_cloud_confirmed: false,
+      project_document_composition: true,
+    });
   });
 });

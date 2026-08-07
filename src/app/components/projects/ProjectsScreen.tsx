@@ -284,7 +284,11 @@ function ProjectFields({ name, setName, description, setDescription, instruction
 
 function SourceRow({ projectId, source, setError, setSources, t }: { projectId: string; source: ProjectSource; setError: (value: string) => void; setSources: (value: ProjectSource[]) => void; t: TranslateFn }) {
   const unhealthy = source.grantState !== "active" || source.indexingState === "failed";
-  const act = async (operation: () => Promise<unknown>) => { try { await operation(); setSources(await projectApi.sources(projectId)); } catch (cause) { setError(String(cause)); } };
+  const act = async (operation: () => Promise<unknown>) => {
+    try { await operation(); setError(""); }
+    catch { setError(t("projects.source_recovery")); }
+    finally { setSources(await projectApi.sources(projectId)); }
+  };
   const status = unhealthy
     ? t("projects.source_recovery")
     : source.fileCount === 0

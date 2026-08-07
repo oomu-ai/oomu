@@ -1,4 +1,5 @@
-pub(super) fn is_objective(lowered: &str) -> bool {
+pub(crate) fn is_objective(prompt: &str) -> bool {
+    let lowered = &prompt.trim().to_ascii_lowercase();
     super::file_creation_intent(lowered)
         && super::file_formats::requested_file_formats(lowered).len() == 1
         && ![
@@ -18,6 +19,12 @@ pub(super) fn is_objective(lowered: &str) -> bool {
         ]
         .iter()
         .any(|term| lowered.contains(term))
+}
+
+pub(crate) fn is_native_artifact_objective(prompt: &str) -> bool {
+    let lowered = prompt.trim().to_ascii_lowercase();
+    super::file_creation_intent(&lowered)
+        && !super::file_formats::requested_file_formats(&lowered).is_empty()
 }
 
 pub(super) fn preserves_deterministic_draft(draft: &super::GeneratedActionPlanDraft) -> bool {

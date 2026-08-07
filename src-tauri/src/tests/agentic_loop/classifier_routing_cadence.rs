@@ -191,8 +191,17 @@ async fn recurring_mail_check_preserves_enforced_midnight_boundary_for_review() 
 
 #[tokio::test]
 async fn cadence_adjective_on_an_ordinary_noun_does_not_create_a_routine() {
-    let decision = classify_schedule("Check my hourly rate and tell me whether it changed.").await;
-    assert_ne!(decision.decision_source, "routine_scheduler_filter");
+    for prompt in [
+        "Check my hourly rate and tell me whether it changed.",
+        "Prepare a quarterly program update and create a results table.",
+        "Create a monthly report as a Word document.",
+    ] {
+        let decision = classify_schedule(prompt).await;
+        assert_ne!(
+            decision.decision_source, "routine_scheduler_filter",
+            "{prompt}"
+        );
+    }
 }
 
 #[tokio::test]

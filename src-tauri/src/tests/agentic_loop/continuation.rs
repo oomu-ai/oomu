@@ -467,6 +467,25 @@ async fn classifier_routes_common_rich_document_requests_to_native_artifacts() {
 }
 
 #[tokio::test]
+async fn classifier_keeps_multi_format_project_deliverables_on_the_native_artifact_path() {
+    let prompt = "Using only the files in this Project, prepare a two-page quarterly program update. Answer each funder question, summarize outcomes, create a results table, and identify any claim that lacks supporting evidence. Produce an editable Word document and a PDF. Do not invent statistics or contact anyone.";
+    let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {
+        prompt: prompt.to_string(),
+        automated_web_grounding_enabled: None,
+        attachments: vec![],
+    })
+    .await
+    .unwrap();
+
+    assert!(matches!(decision.route, ChatIntentRoute::AgenticPlanner));
+    assert!(decision.requires_local_access);
+    assert_eq!(decision.decision_source, "native_artifact_creation_filter");
+    assert!(has_executable_agent_objective(prompt));
+    assert!(!crate::gemma::single_file_creation::is_objective(prompt));
+    assert!(crate::gemma::is_native_artifact_objective(prompt));
+}
+
+#[tokio::test]
 async fn classifier_keeps_rich_format_explanations_and_reads_out_of_creation_filter() {
     for prompt in [
         "Explain what a PDF is.",

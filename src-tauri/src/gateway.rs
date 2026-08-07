@@ -206,7 +206,6 @@ fn execute_configure_channel_tool<'a>(
             )
             .await?;
         }
-
         let gateway = app.state::<SovereignGatewayService>();
         let credentials_json = if request.credentials_json == "{}" {
             None
@@ -1155,6 +1154,7 @@ impl SovereignGatewayService {
                 auto_route_choice: None,
                 auto_route_cloud_confirmed: None,
                 project_cloud_confirmed: None,
+                project_document_composition: None,
             },
             app,
             self.agent_manager.clone(),

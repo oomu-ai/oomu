@@ -171,6 +171,7 @@ macro_rules! oomu_command_handler {
             computer_use::observe_app_control_session,
             computer_use::review_and_execute_app_control_action,
             artifacts::create_artifact,
+            artifacts::create_project_chat_document,
             artifacts::create_decision_brief_from_delegation,
             artifacts::revise_artifact,
             artifacts::list_artifacts,

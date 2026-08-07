@@ -528,6 +528,7 @@ pub(crate) async fn dispatch_hidden_turn(
         auto_route_choice: None,
         auto_route_cloud_confirmed: None,
         project_cloud_confirmed: None,
+        project_document_composition: None,
     };
     inference::run_backend_chat_turn(
         request,

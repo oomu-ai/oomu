@@ -53,6 +53,7 @@
     "allow-control-browser-automation",
     "allow-control-app-control-session",
     "allow-create-artifact",
+    "allow-create-project-chat-document",
     "allow-create-presentation",
     "allow-create-workbook",
     "allow-create-workbook-from-template",

@@ -256,13 +256,14 @@ export function normalizeChatMessageMetadata(
 
 export function markAcceptedTurnTerminal<T extends {
   role: string;
+  isPending?: boolean;
   metadata?: ChatMessageMetadata | null;
-}>(messages: T[], turnId: string, state: "failed" | "cancelled") {
+}>(messages: T[], turnId: string, state: "completed" | "failed" | "cancelled") {
   return messages.map((message) =>
     message.role === "user" &&
     message.metadata?.turnId === turnId &&
     message.metadata.turnState === "accepted"
-      ? { ...message, metadata: { ...message.metadata, turnState: state } }
+      ? { ...message, isPending: false, metadata: { ...message.metadata, turnState: state } }
       : message,
   );
 }

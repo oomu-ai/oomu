@@ -1,32 +1,12 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  BrowserModPanel,
-  ChatScreen,
-  type ChatAgent,
-} from "../ChatScreen";
+import { BrowserModPanel, ChatScreen, type ChatAgent } from "../ChatScreen";
 import { I18nProvider } from "@/context/I18nContext";
 import { ApprovalProvider } from "@/context/ApprovalContext";
 import type { ChatSession, StoredChatMessage } from "@/lib/chatSessions";
 import type { ConfiguredProvider } from "@/lib/modelRegistry";
-import {
-  agents,
-  approvedFilePreparation,
-  cloudAgents,
-  cloudConfiguredProviders,
-  cloudSessions,
-  configuredProviders,
-  geminiConfiguredProviders,
-  rejectDeferred,
-  resolveDeferred,
-  searchEnabledSessions,
-  sessions,
-  storedMessages,
-  testBypassNotice,
-  terminal,
-  token,
-} from "./ChatScreen.fixtures";
+import { agents, approvedFilePreparation, cloudAgents, cloudConfiguredProviders, cloudSessions, configuredProviders, geminiConfiguredProviders, rejectDeferred, resolveDeferred, searchEnabledSessions, sessions, storedMessages, testBypassNotice, terminal, token } from "./ChatScreen.fixtures";
 import { createPlanPersistenceMock } from "./ChatScreen.plan-test-runtime";
 import { MAIL_READ_FAILURE_RESULT, TERMINAL_DOWNLOADS_LIST_PROMPT } from "./ChatScreen.native-tool-fixtures";
 
@@ -48,12 +28,8 @@ const modelRoutingPreferencesMock = vi.hoisted(() => ({
     updatedAt: number;
   },
 }));
-const tauriEventListeners = vi.hoisted(
-  () => new Map<string, Set<(event: { payload: unknown }) => void>>(),
-);
-const executionChannelCallbacks = vi.hoisted(
-  () => new Set<(batch: Record<string, unknown>) => void>(),
-);
+const tauriEventListeners = vi.hoisted(() => new Map<string, Set<(event: { payload: unknown }) => void>>());
+const executionChannelCallbacks = vi.hoisted(() => new Set<(batch: Record<string, unknown>) => void>());
 
 function ApprovalTestProvider({ children }: { children: ReactNode }) {
   return (
@@ -71,11 +47,7 @@ vi.mock("@/lib/invoke", () => ({
     if (command === "accept_chat_turn" && response == null) {
       return { turnId: args?.request?.turn_id, messageId: 1e6, accepted: true };
     }
-    if (
-      (command === "chat_turn" || command === "record_browser_chat_turn") &&
-      response &&
-      typeof response === "object"
-    ) {
+    if ((command === "chat_turn" || command === "record_browser_chat_turn") && response && typeof response === "object") {
       const request = args?.request ?? {};
       return {
         ...response,
@@ -175,22 +147,7 @@ describe("ChatScreen", () => {
     });
     const onOpenTasks = vi.fn();
     const onOpenDocuments = vi.fn();
-    render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onOpenDocuments={onOpenDocuments}
-        onOpenTasks={onOpenTasks}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onOpenDocuments={onOpenDocuments} onOpenTasks={onOpenTasks} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     const results = screen.getByRole("navigation", { name: "Results" });
     fireEvent.click(within(results).getByRole("button", { name: "All tasks" }));
@@ -202,11 +159,7 @@ describe("ChatScreen", () => {
   it("keeps the loading state active until the native auto-turn finishes", async () => {
     tauriRuntimeMock.value = true;
     invokeMock.mockImplementation(async (command: string) => {
-      if (
-        command === "list_chat_messages" ||
-        command === "get_queued_messages" ||
-        command === "list_installed_mods"
-      ) {
+      if (command === "list_chat_messages" || command === "get_queued_messages" || command === "list_installed_mods") {
         return [];
       }
       if (command === "get_session_config") {
@@ -228,25 +181,10 @@ describe("ChatScreen", () => {
       }
       return null;
     });
-    render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
     await waitFor(() => {
       expect(tauriEventListeners.has("gateway://auto-turn")).toBe(true);
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "list_chat_messages"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "list_chat_messages")).toBe(true);
     });
     fireEvent.click(screen.getByRole("button", { name: "Tuning" }));
 
@@ -258,11 +196,7 @@ describe("ChatScreen", () => {
         status: "data_retrying",
       });
     });
-    expect(
-      await screen.findByText(
-        "We encountered an issue verifying the live data. Retrying...",
-      ),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("We encountered an issue verifying the live data. Retrying...")).toBeInTheDocument();
 
     act(() => {
       emitTauriEvent("gateway://auto-turn", {
@@ -292,9 +226,7 @@ describe("ChatScreen", () => {
     });
     expect(await screen.findByText("Ready.")).toBeInTheDocument();
     await waitFor(() => {
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "list_chat_sessions"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "list_chat_sessions")).toBe(true);
     });
   });
 
@@ -342,28 +274,13 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(within(view.container).getByText("Cloud (GPT 5.5)")).toBeInTheDocument();
       expect(within(view.container).getByTitle("Processed by GPT 5.5")).toBeInTheDocument();
       expect(within(view.container).getByText("That memory was not saved.")).toBeInTheDocument();
-      expect(
-        within(view.container).getByText(/reply above did not change your saved memory/i),
-      ).toBeInTheDocument();
+      expect(within(view.container).getByText(/reply above did not change your saved memory/i)).toBeInTheDocument();
     });
   });
 
@@ -373,16 +290,7 @@ describe("ChatScreen", () => {
         id: 1,
         sessionId: "session-1",
         role: "assistant",
-        content: [
-          "### CLIENT PROFILE STATE",
-          "* State: Confused",
-          "",
-          "### RECOMMENDED RESOLUTION PATHS",
-          "1. Verify the account.",
-          "",
-          "### EXPERIENCE ENHANCEMENT CHECKS",
-          "* Avoid unsupported promises.",
-        ].join("\n"),
+        content: ["### CLIENT PROFILE STATE", "* State: Confused", "", "### RECOMMENDED RESOLUTION PATHS", "1. Verify the account.", "", "### EXPERIENCE ENHANCEMENT CHECKS", "* Avoid unsupported promises."].join("\n"),
         createdAtMs: 1,
       },
     ];
@@ -397,20 +305,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await screen.findByLabelText("Operation control panel");
 
@@ -442,21 +337,12 @@ describe("ChatScreen", () => {
         id: 2,
         sessionId: "session-1",
         role: "assistant",
-        content: [
-          "<OomuSplitView>",
-          "<mod_id>ai.eldris.mods.browser</mod_id>",
-          "<action>NAVIGATE</action>",
-          "<url>https://www.google.com</url>",
-          "<reason>Open the requested site.</reason>",
-          "</OomuSplitView>",
-        ].join(" "),
+        content: ["<OomuSplitView>", "<mod_id>ai.eldris.mods.browser</mod_id>", "<action>NAVIGATE</action>", "<url>https://www.google.com</url>", "<reason>Open the requested site.</reason>", "</OomuSplitView>"].join(" "),
         createdAtMs: 2,
       },
     ];
     const storedValues = new Map<string, string>();
-    vi.mocked(window.localStorage.getItem).mockImplementation((key: string) =>
-      storedValues.get(key) ?? null,
-    );
+    vi.mocked(window.localStorage.getItem).mockImplementation((key: string) => storedValues.get(key) ?? null);
     vi.mocked(window.localStorage.setItem).mockImplementation((key: string, value: string) => {
       storedValues.set(key, value);
     });
@@ -474,23 +360,13 @@ describe("ChatScreen", () => {
       const [showChat, setShowChat] = useState(true);
       return (
         <>
-          <button onClick={() => setShowChat(false)} type="button">Leave Chat</button>
-          <button onClick={() => setShowChat(true)} type="button">Return to Chat</button>
-          {showChat ? (
-            <ChatScreen
-              activeSessionId="session-1"
-              agents={agents}
-              configuredProviders={configuredProviders}
-              onCreateSession={vi.fn()}
-              onDeleteSession={vi.fn()}
-              onSelectSession={vi.fn()}
-              onSessionsChange={vi.fn()}
-              privacySettings={null}
-              sessions={sessions}
-            />
-          ) : (
-            <div>Agents view</div>
-          )}
+          <button onClick={() => setShowChat(false)} type="button">
+            Leave Chat
+          </button>
+          <button onClick={() => setShowChat(true)} type="button">
+            Return to Chat
+          </button>
+          {showChat ? <ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} /> : <div>Agents view</div>}
         </>
       );
     }
@@ -501,9 +377,7 @@ describe("ChatScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Split" }));
     expect(screen.queryByLabelText("Browser mod")).not.toBeInTheDocument();
     await waitFor(() => {
-      expect(
-        JSON.parse(storedValues.get("oomu.chat.dismissedSplitRoutes") ?? "[]"),
-      ).toHaveLength(1);
+      expect(JSON.parse(storedValues.get("oomu.chat.dismissedSplitRoutes") ?? "[]")).toHaveLength(1);
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Leave Chat" }));
@@ -520,21 +394,13 @@ describe("ChatScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Split" }));
     await screen.findByLabelText("Browser mod");
     await waitFor(() => {
-      expect(
-        JSON.parse(storedValues.get("oomu.chat.dismissedSplitRoutes") ?? "[]"),
-      ).toEqual([]);
+      expect(JSON.parse(storedValues.get("oomu.chat.dismissedSplitRoutes") ?? "[]")).toEqual([]);
     });
   });
 
   it("reopens a persisted-closed split panel for a new browser route", async () => {
-    const dismissedRouteIdentity = JSON.stringify([
-      "session-1",
-      "ai.eldris.mods.browser",
-      2,
-    ]);
-    const storedValues = new Map<string, string>([
-      ["oomu.chat.dismissedSplitRoutes", JSON.stringify([dismissedRouteIdentity])],
-    ]);
+    const dismissedRouteIdentity = JSON.stringify(["session-1", "ai.eldris.mods.browser", 2]);
+    const storedValues = new Map<string, string>([["oomu.chat.dismissedSplitRoutes", JSON.stringify([dismissedRouteIdentity])]]);
     const dismissedBrowserMessages: StoredChatMessage[] = [
       {
         id: 1,
@@ -547,21 +413,15 @@ describe("ChatScreen", () => {
         id: 2,
         sessionId: "session-1",
         role: "assistant",
-        content:
-          "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com</url></OomuSplitView>",
+        content: "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com</url></OomuSplitView>",
         createdAtMs: 2,
       },
     ];
-    vi.mocked(window.localStorage.getItem).mockImplementation((key: string) =>
-      storedValues.get(key) ?? null,
-    );
+    vi.mocked(window.localStorage.getItem).mockImplementation((key: string) => storedValues.get(key) ?? null);
     vi.mocked(window.localStorage.setItem).mockImplementation((key: string, value: string) => {
       storedValues.set(key, value);
     });
-    invokeMock.mockImplementation(async (
-      command: string,
-      args?: { request?: Record<string, unknown> },
-    ) => {
+    invokeMock.mockImplementation(async (command: string, args?: { request?: Record<string, unknown> }) => {
       if (command === "list_chat_messages") {
         return dismissedBrowserMessages;
       }
@@ -598,29 +458,15 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
-      expect(window.localStorage.setItem).toHaveBeenCalledWith(
-        "oomu.chat.dismissedSplitRoutes",
-        JSON.stringify([dismissedRouteIdentity]),
-      );
+      expect(window.localStorage.setItem).toHaveBeenCalledWith("oomu.chat.dismissedSplitRoutes", JSON.stringify([dismissedRouteIdentity]));
     });
     await waitFor(() => {
-      const splitToggle = within(view.container).getByRole("button", { name: "Split" });
+      const splitToggle = within(view.container).getByRole("button", {
+        name: "Split",
+      });
       expect(splitToggle).toBeEnabled();
       expect(splitToggle).toHaveAttribute("aria-pressed", "false");
     });
@@ -632,20 +478,14 @@ describe("ChatScreen", () => {
 
     const browserPanel = await within(view.container).findByLabelText("Browser mod");
     expect(within(browserPanel).getByText("example.com")).toBeInTheDocument();
-    expect(within(view.container).getByRole("button", { name: "Split" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(within(view.container).getByRole("button", { name: "Split" })).toHaveAttribute("aria-pressed", "true");
     await waitFor(() => {
-      expect(
-        JSON.parse(storedValues.get("oomu.chat.dismissedSplitRoutes") ?? "[]"),
-      ).toEqual([dismissedRouteIdentity]);
+      expect(JSON.parse(storedValues.get("oomu.chat.dismissedSplitRoutes") ?? "[]")).toEqual([dismissedRouteIdentity]);
     });
   });
 
   it("scopes browser dismissals by session and provider without persisting URL secrets", async () => {
-    const rawUrl =
-      "https://user-canary:password-canary@example.com/path?token=query-secret-canary";
+    const rawUrl = "https://user-canary:password-canary@example.com/path?token=query-secret-canary";
     let hydratedMessages: StoredChatMessage[] = [
       {
         id: 1,
@@ -663,9 +503,7 @@ describe("ChatScreen", () => {
       },
     ];
     const storedValues = new Map<string, string>();
-    vi.mocked(window.localStorage.getItem).mockImplementation((key: string) =>
-      storedValues.get(key) ?? null,
-    );
+    vi.mocked(window.localStorage.getItem).mockImplementation((key: string) => storedValues.get(key) ?? null);
     vi.mocked(window.localStorage.setItem).mockImplementation((key: string, value: string) => {
       storedValues.set(key, value);
     });
@@ -679,20 +517,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const firstView = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const firstView = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
     await within(firstView.container).findByLabelText("Browser mod");
     fireEvent.click(within(firstView.container).getByRole("button", { name: "Split" }));
     await waitFor(() => {
@@ -721,26 +546,10 @@ describe("ChatScreen", () => {
       },
     ];
     const sessionTwo = { ...sessions[0], id: "session-2" };
-    const secondView = render(
-      <ChatScreen
-        activeSessionId="session-2"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={[sessionTwo]}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const secondView = render(<ChatScreen activeSessionId="session-2" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={[sessionTwo]} />, { wrapper: I18nProvider });
     await within(secondView.container).findByLabelText("Browser mod");
     await waitFor(() => {
-      expect(within(secondView.container).getByRole("button", { name: "Split" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
+      expect(within(secondView.container).getByRole("button", { name: "Split" })).toHaveAttribute("aria-pressed", "true");
     });
     secondView.unmount();
 
@@ -749,44 +558,18 @@ describe("ChatScreen", () => {
         id: 1,
         sessionId: "session-1",
         role: "assistant",
-        content: [
-          "### CLIENT PROFILE STATE",
-          "* State: Confused",
-          "",
-          "### RECOMMENDED RESOLUTION PATHS",
-          "1. Verify the account.",
-          "",
-          "### EXPERIENCE ENHANCEMENT CHECKS",
-          "* Avoid unsupported promises.",
-        ].join("\n"),
+        content: ["### CLIENT PROFILE STATE", "* State: Confused", "", "### RECOMMENDED RESOLUTION PATHS", "1. Verify the account.", "", "### EXPERIENCE ENHANCEMENT CHECKS", "* Avoid unsupported promises."].join("\n"),
         createdAtMs: 1,
       },
     ];
-    const thirdView = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const thirdView = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
     await within(thirdView.container).findByLabelText("Operation control panel");
-    expect(within(thirdView.container).getByRole("button", { name: "Split" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(within(thirdView.container).getByRole("button", { name: "Split" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("keeps a dismissed browser route closed across duplicate stream activation", async () => {
     const enabledSessions = searchEnabledSessions;
-    const directive =
-      "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com/search?q=oomu</url><reason>Searching Google for oomu.</reason></OomuSplitView>";
+    const directive = "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com/search?q=oomu</url><reason>Searching Google for oomu.</reason></OomuSplitView>";
     let streamRequest: Record<string, string> | null = null;
     let resolveTurn: ((value: Record<string, unknown>) => void) | null = null;
     invokeMock.mockImplementation((command: string, payload?: Record<string, unknown>) => {
@@ -828,20 +611,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={enabledSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={enabledSessions} />, { wrapper: I18nProvider });
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Use the browser to research oomu" },
     });
@@ -873,10 +643,7 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "list_chat_sessions")).toBe(true);
-      expect(within(view.container).getByRole("button", { name: "Split" })).toHaveAttribute(
-        "aria-pressed",
-        "false",
-      );
+      expect(within(view.container).getByRole("button", { name: "Split" })).toHaveAttribute("aria-pressed", "false");
     });
     expect(within(view.container).queryByLabelText("Browser mod")).not.toBeInTheDocument();
   });
@@ -894,8 +661,7 @@ describe("ChatScreen", () => {
         id: 2,
         sessionId: "session-1",
         role: "assistant",
-        content:
-          "<OomuSplitView> <mod_id>ai.eldris.mods.browser</mod_id> <action>NAVIGATE</action> <url>https://www.google.com</url> <reason>User requested to open google.com using browser capabilities.</reason> </OomuSplitView>",
+        content: "<OomuSplitView> <mod_id>ai.eldris.mods.browser</mod_id> <action>NAVIGATE</action> <url>https://www.google.com</url> <reason>User requested to open google.com using browser capabilities.</reason> </OomuSplitView>",
         createdAtMs: 2,
       },
     ];
@@ -910,20 +676,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     const browserPanel = await within(view.container).findByLabelText("Browser mod");
     expect(within(browserPanel).getByText("www.google.com")).toBeInTheDocument();
@@ -935,12 +688,12 @@ describe("ChatScreen", () => {
     await within(browserPanel).findByText("Couldn't open the page");
     expect(within(browserPanel).getByText("Open OOMU on your Mac to use this page.")).toBeInTheDocument();
     expect(within(browserPanel).queryByTitle("Preview")).not.toBeInTheDocument();
-    expect(invokeMock.mock.calls.map(([command]) => command)).not.toContain(
-      "authorize_native_browser_navigation",
-    );
+    expect(invokeMock.mock.calls.map(([command]) => command)).not.toContain("authorize_native_browser_navigation");
     expect(within(view.container).queryByText(/OomuSplitView/)).not.toBeInTheDocument();
 
-    const splitToggle = within(view.container).getByRole("button", { name: "Split" });
+    const splitToggle = within(view.container).getByRole("button", {
+      name: "Split",
+    });
     expect(splitToggle).toBeEnabled();
     expect(splitToggle).toHaveAttribute("aria-pressed", "true");
   });
@@ -976,20 +729,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Visit example.com in the browser" },
     });
@@ -1022,8 +762,7 @@ describe("ChatScreen", () => {
             id: 2,
             sessionId: "session-1",
             role: "assistant",
-            content:
-              "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://127.0.0.1/</url></OomuSplitView>",
+            content: "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://127.0.0.1/</url></OomuSplitView>",
             createdAtMs: 2,
           },
         ];
@@ -1037,40 +776,22 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     const browserPanel = await within(view.container).findByLabelText("Browser mod");
     expect(within(browserPanel).queryByTitle("Preview")).not.toBeInTheDocument();
     fireEvent.click(within(browserPanel).getByRole("button", { name: "Open secure browser" }));
     await within(browserPanel).findByText("Couldn't open the page");
-    expect(within(browserPanel).getByText(
-      "OOMU couldn't open the secure browser. Try again.",
-    )).toBeInTheDocument();
+    expect(within(browserPanel).getByText("OOMU couldn't open the secure browser. Try again.")).toBeInTheDocument();
     expect(within(browserPanel).queryByText(/BACKEND CANARY|native_browser_loopback/i)).not.toBeInTheDocument();
     expect(within(browserPanel).queryByTitle("Preview")).not.toBeInTheDocument();
-    expect(invokeMock.mock.calls.map(([command]) => command)).not.toContain(
-      "open_authorized_native_browser",
-    );
+    expect(invokeMock.mock.calls.map(([command]) => command)).not.toContain("open_authorized_native_browser");
   });
 
   it("redacts model URL credentials in browser consent while authorizing the exact original URL", async () => {
     tauriRuntimeMock.value = true;
     (window as Window & { __TAURI_IPC__?: unknown }).__TAURI_IPC__ = {};
-    const rawUrl =
-      "https://user-canary:password-canary@example.com/bot123456:telegram-secret-canary/path?token=query-secret-canary";
+    const rawUrl = "https://user-canary:password-canary@example.com/bot123456:telegram-secret-canary/path?token=query-secret-canary";
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "authorize_native_browser_navigation") {
         throw new Error("Native destination policy rejected this URL.");
@@ -1090,17 +811,14 @@ describe("ChatScreen", () => {
       wrapper: I18nProvider,
     });
 
-    for (const canary of [
-      "user-canary",
-      "password-canary",
-      "telegram-secret-canary",
-      "query-secret-canary",
-    ]) {
+    for (const canary of ["user-canary", "password-canary", "telegram-secret-canary", "query-secret-canary"]) {
       expect(view.container.textContent).not.toContain(canary);
     }
     expect(view.container.textContent).toContain("example.com");
     fireEvent.click(
-      within(view.container).getByRole("button", { name: "Open secure browser" }),
+      within(view.container).getByRole("button", {
+        name: "Open secure browser",
+      }),
     );
     await within(view.container).findByText("Couldn't open the page");
     expect(invokeMock).toHaveBeenCalledWith("authorize_native_browser_navigation", {
@@ -1119,22 +837,31 @@ describe("ChatScreen", () => {
       }
       return null;
     });
-    const view = render(<BrowserModPanel route={{
-      messageId: 3,
-      sessionId: "session-1",
-      modId: "ai.eldris.mods.browser",
-      action: "NAVIGATE",
-      url: rawUrl,
-      reason: null,
-      rawDirective: "",
-    }} />, { wrapper: I18nProvider });
+    const view = render(
+      <BrowserModPanel
+        route={{
+          messageId: 3,
+          sessionId: "session-1",
+          modId: "ai.eldris.mods.browser",
+          action: "NAVIGATE",
+          url: rawUrl,
+          reason: null,
+          rawDirective: "",
+        }}
+      />,
+      { wrapper: I18nProvider },
+    );
 
     expect(view.container.textContent).toContain("google.com");
     expect(view.container.textContent).not.toContain("private calendar request");
     expect(view.container.textContent).not.toContain("private+calendar+request");
     expect(view.container.textContent).not.toContain("account=personal");
 
-    fireEvent.click(within(view.container).getByRole("button", { name: "Open secure browser" }));
+    fireEvent.click(
+      within(view.container).getByRole("button", {
+        name: "Open secure browser",
+      }),
+    );
     await within(view.container).findByText("Couldn't open the page");
     expect(invokeMock).toHaveBeenCalledWith("authorize_native_browser_navigation", {
       url: rawUrl,
@@ -1144,13 +871,7 @@ describe("ChatScreen", () => {
   it("revokes a pending native browser approval when the active route changes", async () => {
     tauriRuntimeMock.value = true;
     (window as Window & { __TAURI_IPC__?: unknown }).__TAURI_IPC__ = {};
-    let resolveAuthorization: ((value: {
-      approvalToken: string;
-      canonicalUrl: string;
-      canonicalOrigin: string;
-      destinationBinding: string;
-      expiresAtMs: number;
-    }) => void) | null = null;
+    let resolveAuthorization: ((value: { approvalToken: string; canonicalUrl: string; canonicalOrigin: string; destinationBinding: string; expiresAtMs: number }) => void) | null = null;
     const authorization = new Promise<{
       approvalToken: string;
       canonicalUrl: string;
@@ -1185,7 +906,9 @@ describe("ChatScreen", () => {
       wrapper: I18nProvider,
     });
     fireEvent.click(
-      within(view.container).getByRole("button", { name: "Open secure browser" }),
+      within(view.container).getByRole("button", {
+        name: "Open secure browser",
+      }),
     );
     await waitFor(() => {
       expect(invokeMock).toHaveBeenCalledWith("authorize_native_browser_navigation", {
@@ -1205,13 +928,13 @@ describe("ChatScreen", () => {
     await authorization;
 
     await waitFor(() => {
-      expect(invokeMock.mock.calls.map(([command]) => command)).not.toContain(
-        "open_authorized_native_browser",
-      );
+      expect(invokeMock.mock.calls.map(([command]) => command)).not.toContain("open_authorized_native_browser");
     });
     expect(invokeMock.mock.calls.map(([command]) => command)).toContain("close_native_browser");
     expect(
-      within(view.container).getByRole("button", { name: "Open secure browser" }),
+      within(view.container).getByRole("button", {
+        name: "Open secure browser",
+      }),
     ).toBeEnabled();
   });
 
@@ -1244,13 +967,11 @@ describe("ChatScreen", () => {
           turn_id: (payload as { request: { turn_id: string } }).request.turn_id,
           generation_token: (payload as { request: { generation_token: string } }).request.generation_token,
           sequence: 1,
-          token:
-            "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com/search?q=oomu</url><reason>Searching Google for oomu.</reason></OomuSplitView>",
+          token: "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com/search?q=oomu</url><reason>Searching Google for oomu.</reason></OomuSplitView>",
           elapsed_ms: 1,
         });
         return {
-          text:
-            "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com/search?q=oomu</url><reason>Searching Google for oomu.</reason></OomuSplitView>",
+          text: "<OomuSplitView><mod_id>ai.eldris.mods.browser</mod_id><action>NAVIGATE</action><url>https://www.google.com/search?q=oomu</url><reason>Searching Google for oomu.</reason></OomuSplitView>",
           session_id: "session-1",
         };
       }
@@ -1260,20 +981,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={enabledSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={enabledSessions} />, { wrapper: I18nProvider });
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Use the browser to research oomu" },
     });
@@ -1294,8 +1002,7 @@ describe("ChatScreen", () => {
   it("runs an explicit active network mod headlessly while automatic grounding is off", async () => {
     tauriRuntimeMock.value = true;
     (window as Window & { __TAURI_IPC__?: unknown }).__TAURI_IPC__ = {};
-    const travelDirective =
-      "<OomuSplitView><mod_id>ai.eldris.mods.travel_companion</mod_id><action>NAVIGATE</action><url>https://www.google.com/flights?q=ROC+to+SIN</url><reason>Checking live flight options.</reason></OomuSplitView>";
+    const travelDirective = "<OomuSplitView><mod_id>ai.eldris.mods.travel_companion</mod_id><action>NAVIGATE</action><url>https://www.google.com/flights?q=ROC+to+SIN</url><reason>Checking live flight options.</reason></OomuSplitView>";
     invokeMock.mockImplementation(async (command: string, payload?: unknown) => {
       if (command === "list_chat_messages" || command === "get_queued_messages") {
         return [];
@@ -1317,11 +1024,15 @@ describe("ChatScreen", () => {
             name: "Travel Companion",
             isActive: true,
             endpoints: ["google.com", "*.google.com"],
-            commands: [{
-              trigger: "/travel",
-              description: { "en-US": "Search live flights and accommodations." },
-              public_network: true,
-            }],
+            commands: [
+              {
+                trigger: "/travel",
+                description: {
+                  "en-US": "Search live flights and accommodations.",
+                },
+                public_network: true,
+              },
+            ],
           },
         ];
       }
@@ -1341,27 +1052,33 @@ describe("ChatScreen", () => {
           query: "travel ROC to SIN",
           engine: "duckduckgo_lite_static",
           resultCount: 1,
-          results: [{
-            title: "Flights from Rochester to Singapore",
-            url: "https://www.google.com/travel/flights",
-            snippet: "Live public flight options.",
-          }],
-          contextJson: JSON.stringify({
-            results: [{
+          results: [
+            {
               title: "Flights from Rochester to Singapore",
               url: "https://www.google.com/travel/flights",
               snippet: "Live public flight options.",
-            }],
-            pages: [{
-              url: "https://www.google.com/travel/flights",
-              title: "Google Flights",
-              visibleText: "ROC to SIN from $1,120 round trip",
-              inputs: [],
-              buttons: [],
-              links: [],
-              tables: [],
-              extractionMethod: "headless_browser",
-            }],
+            },
+          ],
+          contextJson: JSON.stringify({
+            results: [
+              {
+                title: "Flights from Rochester to Singapore",
+                url: "https://www.google.com/travel/flights",
+                snippet: "Live public flight options.",
+              },
+            ],
+            pages: [
+              {
+                url: "https://www.google.com/travel/flights",
+                title: "Google Flights",
+                visibleText: "ROC to SIN from $1,120 round trip",
+                inputs: [],
+                buttons: [],
+                links: [],
+                tables: [],
+                extractionMethod: "headless_browser",
+              },
+            ],
           }),
           retrievalElapsedMs: 35,
           domPageCount: 1,
@@ -1432,13 +1149,9 @@ describe("ChatScreen", () => {
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
 
     await waitFor(() => {
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "sovereign_duckduckgo_search"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "sovereign_duckduckgo_search")).toBe(true);
     });
-    const searchCall = invokeMock.mock.calls.find(
-      ([command]) => command === "sovereign_duckduckgo_search",
-    );
+    const searchCall = invokeMock.mock.calls.find(([command]) => command === "sovereign_duckduckgo_search");
     expect(searchCall?.[1]).toEqual({
       request: {
         query: "travel ROC to SIN",
@@ -1480,11 +1193,15 @@ describe("ChatScreen", () => {
             name: "Travel Companion",
             isActive: true,
             endpoints: ["kayak.com", "*.kayak.com"],
-            commands: [{
-              trigger: "/travel",
-              description: { "en-US": "Search live flights and accommodations." },
-              public_network: true,
-            }],
+            commands: [
+              {
+                trigger: "/travel",
+                description: {
+                  "en-US": "Search live flights and accommodations.",
+                },
+                public_network: true,
+              },
+            ],
           },
         ];
       }
@@ -1541,9 +1258,7 @@ describe("ChatScreen", () => {
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
 
     await waitFor(() => {
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "sovereign_duckduckgo_search"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "sovereign_duckduckgo_search")).toBe(true);
       expect(within(view.container).getByText(prompt)).toBeInTheDocument();
       expect(within(view.container).getByPlaceholderText("Message OOMU…")).toHaveValue("");
     });
@@ -1556,11 +1271,13 @@ describe("ChatScreen", () => {
         engine: "duckduckgo_lite_static",
         resultCount: 1,
         contextJson: JSON.stringify({
-          results: [{
-            title: "Flights from Rochester to Singapore",
-            url: "https://www.kayak.com/flights/ROC-SIN",
-            snippet: "Verified public flight options.",
-          }],
+          results: [
+            {
+              title: "Flights from Rochester to Singapore",
+              url: "https://www.kayak.com/flights/ROC-SIN",
+              snippet: "Verified public flight options.",
+            },
+          ],
         }),
         retrievalElapsedMs: 35,
         domPageCount: 1,
@@ -1581,15 +1298,15 @@ describe("ChatScreen", () => {
     const chatTurnCalls = invokeMock.mock.calls.filter(([command]) => command === "chat_turn");
     expect(chatTurnCalls).toHaveLength(1);
     const chatTurnCall = chatTurnCalls[0];
-    const chatTurnRequest = (chatTurnCall?.[1] as {
-      request: {
-        attachments: Array<{ name: string }>;
-        display_message: string;
-      };
-    }).request;
-    expect(chatTurnRequest.attachments.map((attachment) => attachment.name)).toContain(
-      "local_web_search.md",
-    );
+    const chatTurnRequest = (
+      chatTurnCall?.[1] as {
+        request: {
+          attachments: Array<{ name: string }>;
+          display_message: string;
+        };
+      }
+    ).request;
+    expect(chatTurnRequest.attachments.map((attachment) => attachment.name)).toContain("local_web_search.md");
     expect(chatTurnRequest.display_message).toContain("local_web_search.md");
 
     await act(async () => {
@@ -1614,17 +1331,21 @@ describe("ChatScreen", () => {
         return "ready";
       }
       if (command === "list_installed_mods") {
-        return [{
-          id: "ai.eldris.mods.travel_companion",
-          name: "Travel Companion",
-          isActive: true,
-          endpoints: ["kayak.com", "*.kayak.com"],
-          commands: [{
-            trigger: "/travel",
-            description: "Search live flights and accommodations.",
-            public_network: true,
-          }],
-        }];
+        return [
+          {
+            id: "ai.eldris.mods.travel_companion",
+            name: "Travel Companion",
+            isActive: true,
+            endpoints: ["kayak.com", "*.kayak.com"],
+            commands: [
+              {
+                trigger: "/travel",
+                description: "Search live flights and accommodations.",
+                public_network: true,
+              },
+            ],
+          },
+        ];
       }
       if (command === "sovereign_duckduckgo_search") {
         return {
@@ -1632,11 +1353,13 @@ describe("ChatScreen", () => {
           engine: "duckduckgo_lite_static",
           resultCount: 1,
           contextJson: JSON.stringify({
-            results: [{
-              title: "Flights from Rochester to Singapore",
-              url: "https://www.kayak.com/flights/ROC-SIN",
-              snippet: "Verified public flight options.",
-            }],
+            results: [
+              {
+                title: "Flights from Rochester to Singapore",
+                url: "https://www.kayak.com/flights/ROC-SIN",
+                snippet: "Verified public flight options.",
+              },
+            ],
           }),
           retrievalElapsedMs: 10,
           domPageCount: 1,
@@ -1656,7 +1379,10 @@ describe("ChatScreen", () => {
         };
       }
       if (command === "chat_turn") {
-        return { text: "Verified context received.", session_id: "session-new" };
+        return {
+          text: "Verified context received.",
+          session_id: "session-new",
+        };
       }
       if (command === "list_chat_sessions") {
         return [createdSession];
@@ -1696,13 +1422,9 @@ describe("ChatScreen", () => {
 
     await waitFor(() => {
       expect(onCreateSession).toHaveBeenCalledTimes(1);
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "sovereign_duckduckgo_search"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "sovereign_duckduckgo_search")).toBe(true);
     });
-    const searchCall = invokeMock.mock.calls.find(
-      ([command]) => command === "sovereign_duckduckgo_search",
-    );
+    const searchCall = invokeMock.mock.calls.find(([command]) => command === "sovereign_duckduckgo_search");
     expect(searchCall?.[1]).toEqual({
       request: expect.objectContaining({
         originatingUtterance: "/travel ROC to SIN",
@@ -1717,7 +1439,12 @@ describe("ChatScreen", () => {
     (window as Window & { __TAURI_IPC__?: unknown }).__TAURI_IPC__ = {};
     const sessionList: ChatSession[] = [
       cloudSessions[0],
-      { ...cloudSessions[0], id: "session-2", title: "Second chat", updatedAtMs: 2 },
+      {
+        ...cloudSessions[0],
+        id: "session-2",
+        title: "Second chat",
+        updatedAtMs: 2,
+      },
     ];
     const pendingTurns = new Map<
       string,
@@ -1801,10 +1528,7 @@ describe("ChatScreen", () => {
       privacySettings: null,
       sessions: sessionList,
     };
-    const view = render(
-      <ChatScreen activeSessionId="session-1" {...screenProps} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" {...screenProps} />, { wrapper: I18nProvider });
 
     await screen.findByText("A history");
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
@@ -1853,7 +1577,12 @@ describe("ChatScreen", () => {
   it("keeps unsent composer drafts isolated while switching sessions", async () => {
     const sessionList: ChatSession[] = [
       cloudSessions[0],
-      { ...cloudSessions[0], id: "session-2", title: "Second chat", updatedAtMs: 2 },
+      {
+        ...cloudSessions[0],
+        id: "session-2",
+        title: "Second chat",
+        updatedAtMs: 2,
+      },
     ];
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "list_chat_messages" || command === "get_queued_messages") return [];
@@ -1910,14 +1639,9 @@ describe("ChatScreen", () => {
       onSessionsChange: vi.fn(),
       privacySettings: null,
     };
-    const view = render(
-      <ChatScreen activeSessionId="" sessions={[]} {...screenProps} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="" sessions={[]} {...screenProps} />, { wrapper: I18nProvider });
 
-    view.rerender(
-      <ChatScreen activeSessionId="session-1" sessions={sessions} {...screenProps} />,
-    );
+    view.rerender(<ChatScreen activeSessionId="session-1" sessions={sessions} {...screenProps} />);
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "list_chat_messages")).toBe(true);
     });
@@ -1944,16 +1668,18 @@ describe("ChatScreen", () => {
       if (command === "choose_local_context") {
         pickerRequest = args?.request as Record<string, unknown>;
         return {
-          results: [{
-            name: "startup.txt",
-            ok: true,
-            grantId: "b".repeat(64),
-            mimeType: "text/plain",
-            decodedByteCount: 7,
-            encodedByteCount: 0,
-            expiresAtMs: Date.now() + 60_000,
-            errorCode: null,
-          }],
+          results: [
+            {
+              name: "startup.txt",
+              ok: true,
+              grantId: "b".repeat(64),
+              mimeType: "text/plain",
+              decodedByteCount: 7,
+              encodedByteCount: 0,
+              expiresAtMs: Date.now() + 60_000,
+              errorCode: null,
+            },
+          ],
           countLimit: 5,
           decodedByteLimit: 20 * 1024 * 1024,
           encodedByteLimit: 28 * 1024 * 1024,
@@ -1972,20 +1698,7 @@ describe("ChatScreen", () => {
       if (command === "revoke_local_context_grants") return { revokedCount: 0 };
       return null;
     });
-    const view = render(
-      <ChatScreen
-        activeSessionId=""
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={[]}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={[]} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Attach file" }));
     await within(view.container).findByText("startup.txt");
@@ -2020,16 +1733,18 @@ describe("ChatScreen", () => {
       if (command === "claim_dropped_local_context") {
         claimRequest = args?.request as Record<string, unknown>;
         return {
-          results: [{
-            name: "finder.pdf",
-            ok: true,
-            grantId: "c".repeat(64),
-            mimeType: "application/pdf",
-            decodedByteCount: 11,
-            encodedByteCount: 0,
-            expiresAtMs: Date.now() + 60_000,
-            errorCode: null,
-          }],
+          results: [
+            {
+              name: "finder.pdf",
+              ok: true,
+              grantId: "c".repeat(64),
+              mimeType: "application/pdf",
+              decodedByteCount: 11,
+              encodedByteCount: 0,
+              expiresAtMs: Date.now() + 60_000,
+              errorCode: null,
+            },
+          ],
           countLimit: 5,
           decodedByteLimit: 20 * 1024 * 1024,
           encodedByteLimit: 28 * 1024 * 1024,
@@ -2048,37 +1763,29 @@ describe("ChatScreen", () => {
       if (command === "revoke_local_context_grants") return { revokedCount: 0 };
       return null;
     });
-    const view = render(
-      <ChatScreen
-        activeSessionId=""
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={[]}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={[]} />, { wrapper: I18nProvider });
     const dropTarget = view.container.querySelector<HTMLElement>("[data-chat-drop-target]");
     expect(dropTarget).not.toBeNull();
-    vi.spyOn(dropTarget!, "getBoundingClientRect").mockReturnValue(
-      { bottom: 300, left: 100, right: 700, top: 100 } as DOMRect,
-    );
-    await waitFor(() => expect(
-      tauriEventListeners.get("oomu://local-context-drag")?.size,
-    ).toBe(1));
+    vi.spyOn(dropTarget!, "getBoundingClientRect").mockReturnValue({
+      bottom: 300,
+      left: 100,
+      right: 700,
+      top: 100,
+    } as DOMRect);
+    await waitFor(() => expect(tauriEventListeners.get("oomu://local-context-drag")?.size).toBe(1));
 
-    act(() => emitTauriEvent("oomu://local-context-drag", {
-      type: "drop", dropId: "d".repeat(64),
-      position: { x: 240, y: 180 },
-    }));
+    act(() =>
+      emitTauriEvent("oomu://local-context-drag", {
+        type: "drop",
+        dropId: "d".repeat(64),
+        position: { x: 240, y: 180 },
+      }),
+    );
     await within(view.container).findByText("finder.pdf");
 
     expect(claimRequest).toMatchObject({
-      dropId: "d".repeat(64), sessionId: "__new_chat_session__",
+      dropId: "d".repeat(64),
+      sessionId: "__new_chat_session__",
       turnId: expect.stringMatching(/^attachment-/),
     });
     const dropTurnId = (claimRequest as Record<string, unknown> | null)?.turnId;
@@ -2093,10 +1800,9 @@ describe("ChatScreen", () => {
         turnId: dropTurnId,
       },
     });
-
   });
 
-  it("ignores late stream chunks and completion after cancelling a turn", async () => {
+  it("keeps a visible terminal result while ignoring late output after cancellation", async () => {
     let pendingRequest: Record<string, string> | null = null;
     let resolveTurn: ((response: Record<string, unknown>) => void) | null = null;
     invokeMock.mockImplementation((command: string, args?: { request?: Record<string, string> }) => {
@@ -2125,20 +1831,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "cancel this turn" },
     });
@@ -2159,6 +1852,8 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "cancel_chat_stream")).toBe(true);
     });
+    expect(await screen.findByText("This task was cancelled before it finished.")).toBeInTheDocument();
+    expect(screen.queryByText("before-cancel")).not.toBeInTheDocument();
     emitTauriEvent("chat://token", {
       stream_id: request.stream_id,
       session_id: "session-1",
@@ -2168,12 +1863,16 @@ describe("ChatScreen", () => {
       token: "after-cancel",
       elapsed_ms: 2,
     });
-    resolveDeferred(resolveTurn, { text: "late completion", session_id: "session-1" });
+    resolveDeferred(resolveTurn, {
+      text: "late completion",
+      session_id: "session-1",
+    });
     await waitFor(() => {
       expect(within(view.container).getByRole("button", { name: "Send" })).toBeInTheDocument();
     });
     expect(screen.queryByText("after-cancel")).not.toBeInTheDocument();
     expect(screen.queryByText("late completion")).not.toBeInTheDocument();
+    expect(screen.getByText("This task was cancelled before it finished.")).toBeInTheDocument();
   });
 
   it("clears an accepted steer draft and immediately renders it as a user message", async () => {
@@ -2213,28 +1912,19 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     const composer = within(view.container).getByPlaceholderText("Message OOMU…");
-    fireEvent.change(composer, { target: { value: "Write the initial answer" } });
+    fireEvent.change(composer, {
+      target: { value: "Write the initial answer" },
+    });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
     await waitFor(() => expect(chatTurnCount).toBe(1));
 
     const liveComposer = within(view.container).getByPlaceholderText("Message OOMU…");
-    fireEvent.change(liveComposer, { target: { value: "Use Markdown headings" } });
+    fireEvent.change(liveComposer, {
+      target: { value: "Use Markdown headings" },
+    });
     fireEvent.click(within(view.container).getByRole("button", { name: "Show send options" }));
     fireEvent.click(within(view.container).getByRole("menuitem", { name: "Steer reply" }));
 
@@ -2243,18 +1933,18 @@ describe("ChatScreen", () => {
     });
     expect(screen.getByText("Use Markdown headings")).toBeInTheDocument();
     await waitFor(() => {
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "cancel_chat_stream"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "cancel_chat_stream")).toBe(true);
     });
     await waitFor(() => expect(chatTurnCount).toBe(2));
-    expect(chatTurnRequests[1]).toEqual(expect.objectContaining({
-      message: "Use Markdown headings",
-      steering: "Use Markdown headings",
-      steering_only: true,
-      persist_steering_message: true,
-      turn_kind: "steer",
-    }));
+    expect(chatTurnRequests[1]).toEqual(
+      expect.objectContaining({
+        message: "Use Markdown headings",
+        steering: "Use Markdown headings",
+        steering_only: true,
+        persist_steering_message: true,
+        turn_kind: "steer",
+      }),
+    );
   });
 
   it("approves and hydrates an explicit file before steering a live reply", async () => {
@@ -2267,20 +1957,23 @@ describe("ChatScreen", () => {
       if (command === "list_chat_messages" || command === "get_queued_messages") return [];
       if (command === "get_session_config") return null;
       if (command === "get_local_generation_health") return "ready";
-      if (command === "classify_chat_intent_route") return {
-        route: "conversational_stream", requires_local_access: false,
-        decision_source: "heuristic_filter", reason: "test", matched_signals: [], status_label: "Thinking...",
-      };
-      if (command === "prepare_approved_chat_file") return approvedFilePreparation(
-        "Private Forecast.png",
-        "Visual analysis for Private Forecast.png\nDetected text:\n- Revenue forecast",
-        "image/png",
-        2048,
-      );
+      if (command === "classify_chat_intent_route")
+        return {
+          route: "conversational_stream",
+          requires_local_access: false,
+          decision_source: "heuristic_filter",
+          reason: "test",
+          matched_signals: [],
+          status_label: "Thinking...",
+        };
+      if (command === "prepare_approved_chat_file") return approvedFilePreparation("Private Forecast.png", "Visual analysis for Private Forecast.png\nDetected text:\n- Revenue forecast", "image/png", 2048);
       if (command === "chat_turn") {
         chatTurnCount += 1;
         chatTurnRequests.push(args?.request ?? {});
-        if (chatTurnCount === 1) return new Promise((_, reject) => { rejectOriginalTurn = reject; });
+        if (chatTurnCount === 1)
+          return new Promise((_, reject) => {
+            rejectOriginalTurn = reject;
+          });
         return new Promise(() => undefined);
       }
       if (command === "cancel_chat_stream") {
@@ -2290,14 +1983,11 @@ describe("ChatScreen", () => {
       if (command === "list_chat_sessions") return cloudSessions;
       return null;
     });
-    const view = render(
-      <ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     const composer = within(view.container).getByPlaceholderText("Message OOMU…");
-    fireEvent.change(composer, { target: { value: "Write the initial answer" } });
+    fireEvent.change(composer, {
+      target: { value: "Write the initial answer" },
+    });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
     await waitFor(() => expect(chatTurnCount).toBe(1));
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
@@ -2314,7 +2004,9 @@ describe("ChatScreen", () => {
     expect(chatTurnRequests[1]?.attachments).toEqual([
       expect.objectContaining({
         mime_type: "image/png",
-        approved_file_receipt: expect.objectContaining({ payload: "signed-approved-file-payload" }),
+        approved_file_receipt: expect.objectContaining({
+          payload: "signed-approved-file-payload",
+        }),
       }),
     ]);
   });
@@ -2326,10 +2018,15 @@ describe("ChatScreen", () => {
       if (command === "list_chat_messages" || command === "get_queued_messages") return [];
       if (command === "get_session_config") return null;
       if (command === "get_local_generation_health") return "ready";
-      if (command === "classify_chat_intent_route") return {
-        route: "conversational_stream", requires_local_access: false,
-        decision_source: "heuristic_filter", reason: "test", matched_signals: [], status_label: "Thinking...",
-      };
+      if (command === "classify_chat_intent_route")
+        return {
+          route: "conversational_stream",
+          requires_local_access: false,
+          decision_source: "heuristic_filter",
+          reason: "test",
+          matched_signals: [],
+          status_label: "Thinking...",
+        };
       if (command === "prepare_approved_chat_file") throw { code: "shield_approval_denied" };
       if (command === "chat_turn") {
         chatTurnCount += 1;
@@ -2338,12 +2035,7 @@ describe("ChatScreen", () => {
       if (command === "list_chat_sessions") return cloudSessions;
       return null;
     });
-    const view = render(
-      <ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write the initial answer" },
     });
@@ -2393,20 +2085,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write the initial answer" },
@@ -2445,12 +2124,14 @@ describe("ChatScreen", () => {
     await waitFor(() => expect(chatTurnCount).toBe(2));
     expect(view.container).not.toHaveTextContent("local_model_repetition_collapse");
     expect(screen.getAllByText("Summarize it for me when you’re done")).toHaveLength(1);
-    expect(chatTurnRequests[1]).toEqual(expect.objectContaining({
-      message: "Summarize it for me when you’re done",
-      steering_only: true,
-      persist_steering_message: true,
-      turn_kind: "steer",
-    }));
+    expect(chatTurnRequests[1]).toEqual(
+      expect.objectContaining({
+        message: "Summarize it for me when you’re done",
+        steering_only: true,
+        persist_steering_message: true,
+        turn_kind: "steer",
+      }),
+    );
   });
 
   it("retains an accepted steer when the steered continuation fails", async () => {
@@ -2490,20 +2171,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write the initial answer" },
@@ -2536,10 +2204,7 @@ describe("ChatScreen", () => {
     let chatTurnCount = 0;
     let rejectOriginalTurn: ((reason?: unknown) => void) | null = null;
     const chatTurnRequests: Record<string, unknown>[] = [];
-    const allSessions: ChatSession[] = [
-      ...cloudSessions,
-      { ...cloudSessions[0], id: "session-2", title: "Other chat" },
-    ];
+    const allSessions: ChatSession[] = [...cloudSessions, { ...cloudSessions[0], id: "session-2", title: "Other chat" }];
     invokeMock.mockImplementation((command: string, args?: { request?: Record<string, unknown> }) => {
       if (command === "list_chat_messages") return [];
       if (command === "get_queued_messages") return [];
@@ -2580,10 +2245,7 @@ describe("ChatScreen", () => {
       privacySettings: null,
       sessions: allSessions,
     };
-    const view = render(
-      <ChatScreen activeSessionId="session-1" {...sharedProps} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" {...sharedProps} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write the initial answer" },
@@ -2604,12 +2266,14 @@ describe("ChatScreen", () => {
     rejectDeferred(rejectOriginalTurn, { code: "local_inference_cancelled" });
 
     await waitFor(() => expect(chatTurnCount).toBe(2));
-    expect(chatTurnRequests[1]).toEqual(expect.objectContaining({
-      session_id: "session-1",
-      message: "Use Markdown headings",
-      steering: "Use Markdown headings",
-      persist_steering_message: true,
-    }));
+    expect(chatTurnRequests[1]).toEqual(
+      expect.objectContaining({
+        session_id: "session-1",
+        message: "Use Markdown headings",
+        steering: "Use Markdown headings",
+        persist_steering_message: true,
+      }),
+    );
   });
 
   it("coalesces rapid steer submissions so one accepted steer is delivered", async () => {
@@ -2646,20 +2310,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write the initial answer" },
@@ -2671,7 +2322,11 @@ describe("ChatScreen", () => {
       fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
         target: { value: steer },
       });
-      fireEvent.click(within(view.container).getByRole("button", { name: "Show send options" }));
+      fireEvent.click(
+        within(view.container).getByRole("button", {
+          name: "Show send options",
+        }),
+      );
       fireEvent.click(within(view.container).getByRole("menuitem", { name: "Steer reply" }));
     }
 
@@ -2682,11 +2337,13 @@ describe("ChatScreen", () => {
     rejectDeferred(rejectOriginalTurn, { code: "local_inference_cancelled" });
 
     await waitFor(() => expect(chatTurnCount).toBe(2));
-    expect(chatTurnRequests[1]).toEqual(expect.objectContaining({
-      message: "Use Markdown headings",
-      steering: "Use Markdown headings",
-      persist_steering_message: true,
-    }));
+    expect(chatTurnRequests[1]).toEqual(
+      expect.objectContaining({
+        message: "Use Markdown headings",
+        steering: "Use Markdown headings",
+        persist_steering_message: true,
+      }),
+    );
   });
 
   it("restarts queue draining when enqueue finishes after turn cleanup", async () => {
@@ -2695,38 +2352,58 @@ describe("ChatScreen", () => {
     let queued = false;
     let executions = 0;
     const queuedRecord = {
-      id: 1, sessionId: "session-1", agentId: "agent-1", message: "Queued follow-up",
-      attachments: [], status: "queued", createdAtMs: 1, updatedAtMs: 1,
+      id: 1,
+      sessionId: "session-1",
+      agentId: "agent-1",
+      message: "Queued follow-up",
+      attachments: [],
+      status: "queued",
+      createdAtMs: 1,
+      updatedAtMs: 1,
     };
-    const persisted = ["Cloud request", "Cloud answer", "Queued follow-up", "Queued answer"]
-      .map<StoredChatMessage>((content, index) => ({
-        id: index + 1, sessionId: "session-1", role: index % 2 === 0 ? "user" : "assistant",
-        content, createdAtMs: index + 1,
-      }));
+    const persisted = ["Cloud request", "Cloud answer", "Queued follow-up", "Queued answer"].map<StoredChatMessage>((content, index) => ({
+      id: index + 1,
+      sessionId: "session-1",
+      role: index % 2 === 0 ? "user" : "assistant",
+      content,
+      createdAtMs: index + 1,
+    }));
     invokeMock.mockImplementation((command: string) => {
       if (command === "list_chat_messages") return executions ? persisted : [];
       if (command === "get_queued_messages") return queued ? [queuedRecord] : [];
       if (command === "get_session_config") return null;
-      if (command === "classify_chat_intent_route") return {
-        route: "conversational_stream", requires_local_access: false, decision_source: "heuristic_filter",
-        reason: "test", matched_signals: [], status_label: "Thinking...",
-      };
-      if (command === "chat_turn") return new Promise((resolve) => { resolveTurn = resolve; });
-      if (command === "queue_message") return new Promise((resolve) => { resolveEnqueue = resolve; });
+      if (command === "classify_chat_intent_route")
+        return {
+          route: "conversational_stream",
+          requires_local_access: false,
+          decision_source: "heuristic_filter",
+          reason: "test",
+          matched_signals: [],
+          status_label: "Thinking...",
+        };
+      if (command === "chat_turn")
+        return new Promise((resolve) => {
+          resolveTurn = resolve;
+        });
+      if (command === "queue_message")
+        return new Promise((resolve) => {
+          resolveEnqueue = resolve;
+        });
       if (command === "execute_queued_messages") {
         executions += 1;
         queued = false;
-        return [{ status: "completed", session_id: "session-1", text: "Queued answer" }];
+        return [
+          {
+            status: "completed",
+            session_id: "session-1",
+            text: "Queued answer",
+          },
+        ];
       }
       if (command === "list_chat_sessions") return cloudSessions;
       return null;
     });
-    const view = render(
-      <ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     const composer = within(view.container).getByPlaceholderText("Message OOMU…");
     fireEvent.change(composer, { target: { value: "Cloud request" } });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
@@ -2736,7 +2413,10 @@ describe("ChatScreen", () => {
     fireEvent.change(queueComposer, { target: { value: "Queued follow-up" } });
     fireEvent.keyDown(queueComposer, { key: "Enter", code: "Enter" });
     await waitFor(() => expect(resolveEnqueue).not.toBeNull());
-    resolveDeferred(resolveTurn, { text: "Cloud answer", session_id: "session-1" });
+    resolveDeferred(resolveTurn, {
+      text: "Cloud answer",
+      session_id: "session-1",
+    });
     await screen.findByText("Cloud answer");
     expect(executions).toBe(0);
     queued = true;
@@ -2753,36 +2433,45 @@ describe("ChatScreen", () => {
       if (command === "list_chat_messages" || command === "get_queued_messages") return [];
       if (command === "get_session_config") return null;
       if (command === "get_local_generation_health") return "ready";
-      if (command === "classify_chat_intent_route") return {
-        route: "conversational_stream", requires_local_access: false,
-        decision_source: "heuristic_filter", reason: "test", matched_signals: [], status_label: "Thinking...",
-      };
+      if (command === "classify_chat_intent_route")
+        return {
+          route: "conversational_stream",
+          requires_local_access: false,
+          decision_source: "heuristic_filter",
+          reason: "test",
+          matched_signals: [],
+          status_label: "Thinking...",
+        };
       if (command === "chat_turn") return new Promise(() => undefined);
-      if (command === "prepare_approved_chat_file") return approvedFilePreparation(
-        "Private Forecast.png",
-        "Visual analysis for Private Forecast.png\nDetected text:\n- Revenue forecast",
-      );
+      if (command === "prepare_approved_chat_file") return approvedFilePreparation("Private Forecast.png", "Visual analysis for Private Forecast.png\nDetected text:\n- Revenue forecast");
       if (command === "queue_message") {
         const request = args?.request ?? {};
         const requestAttachments = Array.isArray(request.attachments) ? request.attachments : [];
         queueRequests.push({
           ...request,
-          attachments: requestAttachments.map((attachment) => ({ ...attachment })),
+          attachments: requestAttachments.map((attachment) => ({
+            ...attachment,
+          })),
         });
-        return { id: 1, sessionId: "session-1", agentId: "agent-1", message: "queued",
-          attachments: [], status: "queued", createdAtMs: 1, updatedAtMs: 1 };
+        return {
+          id: 1,
+          sessionId: "session-1",
+          agentId: "agent-1",
+          message: "queued",
+          attachments: [],
+          status: "queued",
+          createdAtMs: 1,
+          updatedAtMs: 1,
+        };
       }
       if (command === "list_chat_sessions") return cloudSessions;
       return null;
     });
-    const view = render(
-      <ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     const composer = within(view.container).getByPlaceholderText("Message OOMU…");
-    fireEvent.change(composer, { target: { value: "Write the initial answer" } });
+    fireEvent.change(composer, {
+      target: { value: "Write the initial answer" },
+    });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
     await screen.findByText("OOMU is thinking…");
     const queueComposer = within(view.container).getByPlaceholderText("Message OOMU…");
@@ -2797,7 +2486,9 @@ describe("ChatScreen", () => {
     expect(queueRequest?.attachments).toEqual([
       expect.objectContaining({
         mime_type: "text/plain",
-        approved_file_receipt: expect.objectContaining({ payload: "signed-approved-file-payload" }),
+        approved_file_receipt: expect.objectContaining({
+          payload: "signed-approved-file-payload",
+        }),
       }),
     ]);
   });
@@ -2835,20 +2526,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={onDeleteSession}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={onDeleteSession} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.click(await within(view.container).findByRole("button", { name: "Run queue" }));
     await waitFor(() => expect(resolveLateQueueRefresh).not.toBeNull());
@@ -2880,44 +2558,60 @@ describe("ChatScreen", () => {
     let messageReads = 0;
     let queued = false;
     const queuedRecord = {
-      id: 1, sessionId: "session-1", agentId: "agent-1", message: "Queued follow-up",
-      attachments: [], status: "queued", createdAtMs: 1, updatedAtMs: 1,
+      id: 1,
+      sessionId: "session-1",
+      agentId: "agent-1",
+      message: "Queued follow-up",
+      attachments: [],
+      status: "queued",
+      createdAtMs: 1,
+      updatedAtMs: 1,
     };
-    const persisted = ["Cloud request", "Cloud answer", "Queued follow-up", "Queued answer"]
-      .map<StoredChatMessage>((content, index) => ({
-        id: index + 1, sessionId: "session-1", role: index % 2 === 0 ? "user" : "assistant",
-        content, createdAtMs: index + 1,
-      }));
+    const persisted = ["Cloud request", "Cloud answer", "Queued follow-up", "Queued answer"].map<StoredChatMessage>((content, index) => ({
+      id: index + 1,
+      sessionId: "session-1",
+      role: index % 2 === 0 ? "user" : "assistant",
+      content,
+      createdAtMs: index + 1,
+    }));
     invokeMock.mockImplementation((command: string) => {
       if (command === "list_chat_messages") {
         messageReads += 1;
         if (messageReads === 1) return [];
-        if (messageReads === 2) return new Promise((resolve) => { resolveStaleHydration = resolve; });
+        if (messageReads === 2)
+          return new Promise((resolve) => {
+            resolveStaleHydration = resolve;
+          });
         return persisted;
       }
       if (command === "get_queued_messages") return queued ? [queuedRecord] : [];
       if (command === "get_session_config") return null;
-      if (command === "classify_chat_intent_route") return {
-        route: "conversational_stream", requires_local_access: false, decision_source: "heuristic_filter",
-        reason: "test", matched_signals: [], status_label: "Thinking...",
-      };
-      if (command === "chat_turn") return new Promise((resolve) => { resolveTurn = resolve; });
+      if (command === "classify_chat_intent_route")
+        return {
+          route: "conversational_stream",
+          requires_local_access: false,
+          decision_source: "heuristic_filter",
+          reason: "test",
+          matched_signals: [],
+          status_label: "Thinking...",
+        };
+      if (command === "chat_turn")
+        return new Promise((resolve) => {
+          resolveTurn = resolve;
+        });
       if (command === "queue_message") {
         queued = true;
         return queuedRecord;
       }
       if (command === "execute_queued_messages") {
-        return new Promise((resolve) => { resolveExecution = resolve; });
+        return new Promise((resolve) => {
+          resolveExecution = resolve;
+        });
       }
       if (command === "list_chat_sessions") return cloudSessions;
       return null;
     });
-    const view = render(
-      <ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     const composer = within(view.container).getByPlaceholderText("Message OOMU…");
     fireEvent.change(composer, { target: { value: "Cloud request" } });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
@@ -2927,7 +2621,10 @@ describe("ChatScreen", () => {
     fireEvent.change(queueComposer, { target: { value: "Queued follow-up" } });
     fireEvent.keyDown(queueComposer, { key: "Enter", code: "Enter" });
     await within(view.container).findByRole("button", { name: "Run queue" });
-    resolveDeferred(resolveTurn, { text: "Cloud answer", session_id: "session-1" });
+    resolveDeferred(resolveTurn, {
+      text: "Cloud answer",
+      session_id: "session-1",
+    });
     await waitFor(() => {
       expect(resolveStaleHydration).not.toBeNull();
       expect(resolveExecution).not.toBeNull();
@@ -3015,20 +2712,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     await screen.findByText("initial history");
     await waitFor(() => expect(executionChannelCallbacks.size).toBe(1));
     for (const callback of executionChannelCallbacks) {
@@ -3098,21 +2782,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        initialBypassNotice={testBypassNotice()}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} initialBypassNotice={testBypassNotice()} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(screen.getByText("Security preflight")).toBeInTheDocument();
@@ -3168,21 +2838,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        initialBypassNotice={testBypassNotice()}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} initialBypassNotice={testBypassNotice()} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(screen.getByText("Security preflight")).toBeInTheDocument();
@@ -3233,39 +2889,13 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        initialBypassNotice={testBypassNotice()}
-        sessions={sessionList}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} initialBypassNotice={testBypassNotice()} sessions={sessionList} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(screen.getByText("Security preflight")).toBeInTheDocument();
     });
 
-    view.rerender(
-      <ChatScreen
-        activeSessionId="session-2"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessionList}
-      />,
-    );
+    view.rerender(<ChatScreen activeSessionId="session-2" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessionList} />);
 
     await waitFor(() => {
       expect(screen.queryByText("Security preflight")).not.toBeInTheDocument();
@@ -3303,27 +2933,14 @@ describe("ChatScreen", () => {
       }
       if (command === "execute_system_apple_app_tool") {
         return {
-          content: [{ type: "text", text: "[\"missing value\"]" }],
+          content: [{ type: "text", text: '["missing value"]' }],
           isError: false,
         };
       }
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Summarize my Messages app UI." },
     });
@@ -3362,13 +2979,15 @@ describe("ChatScreen", () => {
             backend: "photokit",
             code: "photos_read_ok",
             authorization: "authorized",
-            photos: [{
-              originalFilename: "IMG_0042.HEIC",
-              creationDate: "2026-07-12T20:05:00.000Z",
-              pixelWidth: 4032,
-              pixelHeight: 3024,
-              favorite: false,
-            }],
+            photos: [
+              {
+                originalFilename: "IMG_0042.HEIC",
+                creationDate: "2026-07-12T20:05:00.000Z",
+                pixelWidth: 4032,
+                pixelHeight: 3024,
+                favorite: false,
+              },
+            ],
             returnedCount: 1,
             truncated: false,
           },
@@ -3397,26 +3016,16 @@ describe("ChatScreen", () => {
         };
       }
       if (command === "chat_turn") {
-        return { text: "Your newest photo is IMG_0042.HEIC.", session_id: "session-1" };
+        return {
+          text: "Your newest photo is IMG_0042.HEIC.",
+          session_id: "session-1",
+        };
       }
       if (command === "list_chat_sessions") return cloudSessions;
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "What is the newest photo in my photo albums?" },
@@ -3424,23 +3033,10 @@ describe("ChatScreen", () => {
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
 
     await waitFor(() => {
-      expect(
-        invokeMock.mock.calls.some(
-          ([command, args]) =>
-            command === "execute_system_apple_app_tool" &&
-            args?.toolName === "read_system_photos" &&
-            args?.arguments?.max_photos === 1,
-        ),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command, args]) => command === "execute_system_apple_app_tool" && args?.toolName === "read_system_photos" && args?.arguments?.max_photos === 1)).toBe(true);
     });
-    expect(
-      invokeMock.mock.calls.some(
-        ([command]) => command === "prepare_system_apple_app_tool_approval",
-      ),
-    ).toBe(true);
-    expect(
-      invokeMock.mock.calls.some(([command]) => command === "process_agent_objective"),
-    ).toBe(false);
+    expect(invokeMock.mock.calls.some(([command]) => command === "prepare_system_apple_app_tool_approval")).toBe(true);
+    expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(false);
   });
 
   it("routes internal name-memory requests through chat without Apple Notes approval", async () => {
@@ -3489,20 +3085,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: requestText },
@@ -3512,16 +3095,14 @@ describe("ChatScreen", () => {
     await screen.findByText("Got it, Alex.");
     expect(invokeMock.mock.calls.some(([command]) => command === "chat_turn")).toBe(true);
     const chatTurnCall = invokeMock.mock.calls.find(([command]) => command === "chat_turn");
-    expect(chatTurnCall?.[1]?.request).toEqual(expect.objectContaining({
-      message: requestText,
-      mcp_tool_capabilities: [],
-    }));
-    expect(
-      invokeMock.mock.calls.some(([command]) => command === "prepare_system_apple_app_tool_approval"),
-    ).toBe(false);
-    expect(
-      invokeMock.mock.calls.some(([command]) => command === "execute_system_apple_app_tool"),
-    ).toBe(false);
+    expect(chatTurnCall?.[1]?.request).toEqual(
+      expect.objectContaining({
+        message: requestText,
+        mcp_tool_capabilities: [],
+      }),
+    );
+    expect(invokeMock.mock.calls.some(([command]) => command === "prepare_system_apple_app_tool_approval")).toBe(false);
+    expect(invokeMock.mock.calls.some(([command]) => command === "execute_system_apple_app_tool")).toBe(false);
     expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(false);
   });
 
@@ -3580,20 +3161,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: ApprovalTestProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: ApprovalTestProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write in Apple Notes: hello." },
@@ -3604,22 +3172,16 @@ describe("ChatScreen", () => {
     fireEvent.click(within(approvalDialog).getByRole("button", { name: "Approve" }));
 
     await screen.findByText("Created note in Apple Notes.");
-    const executeCalls = invokeMock.mock.calls.filter(
-      ([command]) => command === "execute_system_apple_app_tool",
-    );
+    const executeCalls = invokeMock.mock.calls.filter(([command]) => command === "execute_system_apple_app_tool");
     expect(executeCalls).toHaveLength(1);
-    expect(executeCalls[0]?.[1]).toEqual(expect.objectContaining({
-      toolName: "create_system_note",
-      approval: { approvalToken: "approval-note-write" },
-    }));
-    expect(
-      invokeMock.mock.calls.filter(([command]) => command === "record_browser_chat_turn"),
-    ).toHaveLength(1);
-    for (const forbiddenCommand of [
-      "classify_chat_intent_route",
-      "process_agent_objective",
-      "chat_turn",
-    ]) {
+    expect(executeCalls[0]?.[1]).toEqual(
+      expect.objectContaining({
+        toolName: "create_system_note",
+        approval: { approvalToken: "approval-note-write" },
+      }),
+    );
+    expect(invokeMock.mock.calls.filter(([command]) => command === "record_browser_chat_turn")).toHaveLength(1);
+    for (const forbiddenCommand of ["classify_chat_intent_route", "process_agent_objective", "chat_turn"]) {
       expect(invokeMock.mock.calls.some(([command]) => command === forbiddenCommand)).toBe(false);
     }
   });
@@ -3655,20 +3217,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: ApprovalTestProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: ApprovalTestProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Write in Apple Notes: hello." },
@@ -3677,12 +3226,8 @@ describe("ChatScreen", () => {
     const approvalDialog = await within(view.container).findByRole("dialog");
     fireEvent.click(within(approvalDialog).getByRole("button", { name: "Approve" }));
 
-    await screen.findByText(
-      "The Notes action completed, but OOMU could not save its chat receipt.",
-    );
-    expect(
-      invokeMock.mock.calls.filter(([command]) => command === "execute_system_apple_app_tool"),
-    ).toHaveLength(1);
+    await screen.findByText("The Notes action completed, but OOMU could not save its chat receipt.");
+    expect(invokeMock.mock.calls.filter(([command]) => command === "execute_system_apple_app_tool")).toHaveLength(1);
     expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(false);
   });
 
@@ -3719,20 +3264,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={onDeleteSession}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: ApprovalTestProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={onDeleteSession} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: ApprovalTestProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Create a reminder to buy milk" },
@@ -3743,13 +3275,9 @@ describe("ChatScreen", () => {
     fireEvent.click(within(view.container).getByRole("button", { name: "Delete Debug chat" }));
     await waitFor(() => expect(onDeleteSession).toHaveBeenCalledWith("session-1"));
     await waitFor(() => {
-      expect(
-        invokeMock.mock.calls.some(([command]) => command === "mcp_reject_tool_approval"),
-      ).toBe(true);
+      expect(invokeMock.mock.calls.some(([command]) => command === "mcp_reject_tool_approval")).toBe(true);
     });
-    expect(
-      invokeMock.mock.calls.some(([command]) => command === "execute_system_apple_app_tool"),
-    ).toBe(false);
+    expect(invokeMock.mock.calls.some(([command]) => command === "execute_system_apple_app_tool")).toBe(false);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -3812,20 +3340,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "get_local_generation_health")).toBe(true);
     });
@@ -3839,7 +3354,9 @@ describe("ChatScreen", () => {
     expect(calls()).not.toContain("execute_native_file_access");
     expect(calls()).not.toContain("chat_turn");
     const execution = invokeMock.mock.calls.find(([name]) => name === "execute_command");
-    const args = execution?.[1] as { request: { action: { kind: string; content: string } } };
+    const args = execution?.[1] as {
+      request: { action: { kind: string; content: string } };
+    };
     expect(args.request.action).toEqual({
       kind: "shell_command",
       content: "ls ~/Downloads",
@@ -3852,13 +3369,15 @@ describe("ChatScreen", () => {
     invokeMock.mockImplementation(async (command: string, payload?: unknown) => {
       if (command === "list_chat_messages") {
         return recordedAssistantText
-          ? [{
-              id: 20,
-              sessionId: "session-1",
-              role: "assistant",
-              content: recordedAssistantText,
-              createdAtMs: 20,
-            }]
+          ? [
+              {
+                id: 20,
+                sessionId: "session-1",
+                role: "assistant",
+                content: recordedAssistantText,
+                createdAtMs: 20,
+              },
+            ]
           : [];
       }
       if (command === "get_queued_messages") return [];
@@ -3892,20 +3411,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "List the files in /Users/example/PrivateReports" },
@@ -3942,7 +3448,10 @@ describe("ChatScreen", () => {
     const capturedChatTurnRequests: Array<{
       message: string;
       display_message?: string;
-      attachments: Array<{ name: string; approved_file_receipt?: { payload: string } }>;
+      attachments: Array<{
+        name: string;
+        approved_file_receipt?: { payload: string };
+      }>;
     }> = [];
     invokeMock.mockImplementation(async (command: string, payload?: unknown) => {
       if (command === "list_chat_messages") {
@@ -3969,12 +3478,7 @@ describe("ChatScreen", () => {
       if (command === "get_session_config") return null;
       if (command === "get_local_generation_health") return "ready";
       if (command === "prepare_approved_chat_file") {
-        return approvedFilePreparation(
-          "oomu-profile.jpeg",
-          "Visual analysis for oomu-profile.jpeg\nThe image contains a profile portrait.",
-          "image/jpeg",
-          4096,
-        );
+        return approvedFilePreparation("oomu-profile.jpeg", "Visual analysis for oomu-profile.jpeg\nThe image contains a profile portrait.", "image/jpeg", 4096);
       }
       if (command === "classify_chat_intent_route") {
         return {
@@ -3987,17 +3491,24 @@ describe("ChatScreen", () => {
         };
       }
       if (command === "chat_turn") {
-        const request = (payload as {
-          request: {
-            message: string;
-            display_message?: string;
-            attachments: Array<{ name: string; approved_file_receipt?: { payload: string } }>;
-          };
-        }).request;
+        const request = (
+          payload as {
+            request: {
+              message: string;
+              display_message?: string;
+              attachments: Array<{
+                name: string;
+                approved_file_receipt?: { payload: string };
+              }>;
+            };
+          }
+        ).request;
         capturedChatTurnRequests.push({
           message: request.message,
           display_message: request.display_message,
-          attachments: request.attachments.map((attachment) => ({ ...attachment })),
+          attachments: request.attachments.map((attachment) => ({
+            ...attachment,
+          })),
         });
         completedChatTurn = true;
         return {
@@ -4009,20 +3520,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: prompt },
@@ -4037,9 +3535,7 @@ describe("ChatScreen", () => {
     });
     const executeCall = invokeMock.mock.calls.find(([command]) => command === "prepare_approved_chat_file");
     const commandOrder = invokeMock.mock.calls.map(([command]) => command);
-    expect(commandOrder.indexOf("prepare_approved_chat_file")).toBeLessThan(
-      commandOrder.indexOf("chat_turn"),
-    );
+    expect(commandOrder.indexOf("prepare_approved_chat_file")).toBeLessThan(commandOrder.indexOf("chat_turn"));
     expect(executeCall?.[1]).toEqual({
       request: {
         access: {
@@ -4068,7 +3564,9 @@ describe("ChatScreen", () => {
       expect.objectContaining({
         name: "oomu-profile.jpeg",
         mime_type: "image/jpeg",
-        approved_file_receipt: expect.objectContaining({ payload: "signed-approved-file-payload" }),
+        approved_file_receipt: expect.objectContaining({
+          payload: "signed-approved-file-payload",
+        }),
       }),
     ]);
     await screen.findByText(prompt);
@@ -4090,20 +3588,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: prompt },
@@ -4116,14 +3601,14 @@ describe("ChatScreen", () => {
     const accepted = invokeMock.mock.calls.find(([command]) => command === "accept_chat_turn")?.[1] as {
       request: { turn_id: string };
     };
-    const finalized = invokeMock.mock.calls.find(
-      ([command]) => command === "finalize_accepted_chat_turn",
-    )?.[1] as { request: { turn_id: string; content: string; status: string } };
-    expect(finalized.request).toEqual(expect.objectContaining({
-      turn_id: accepted.request.turn_id,
-      content: failureText,
-      status: "failed",
-    }));
+    const finalized = invokeMock.mock.calls.find(([command]) => command === "finalize_accepted_chat_turn")?.[1] as { request: { turn_id: string; content: string; status: string } };
+    expect(finalized.request).toEqual(
+      expect.objectContaining({
+        turn_id: accepted.request.turn_id,
+        content: failureText,
+        status: "failed",
+      }),
+    );
     expect(invokeMock.mock.calls.some(([command]) => command === "sign_logical_certificate")).toBe(false);
     expect(invokeMock.mock.calls.some(([command]) => command === "chat_turn")).toBe(false);
   });
@@ -4181,20 +3666,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "get_local_generation_health")).toBe(true);
@@ -4211,7 +3683,15 @@ describe("ChatScreen", () => {
     expect(recordedAssistantText).toContain("Mail could not read the inbox.");
     expect(recordedAssistantText).toContain("not because your inbox is clear");
     expect(recordedAssistantText).not.toContain("Mail context blocked");
-    expect(invokeMock).toHaveBeenCalledWith("read_system_emails", { maxMessages: 20, unreadOnly: true, turnContext: expect.objectContaining({ sessionId: "session-1", turnId: expect.any(String), generationToken: expect.any(String) }) });
+    expect(invokeMock).toHaveBeenCalledWith("read_system_emails", {
+      maxMessages: 20,
+      unreadOnly: true,
+      turnContext: expect.objectContaining({
+        sessionId: "session-1",
+        turnId: expect.any(String),
+        generationToken: expect.any(String),
+      }),
+    });
     expect(invokeMock.mock.calls.some(([command]) => command === "prepare_system_apple_app_tool_approval")).toBe(false);
     expect(within(view.container).queryByRole("dialog")).toBeNull();
     expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(false);
@@ -4282,20 +3762,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "get_local_generation_health")).toBe(true);
@@ -4309,12 +3776,8 @@ describe("ChatScreen", () => {
     await waitFor(() => {
       expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(true);
     });
-    const nativePlannerCall = invokeMock.mock.calls.find(
-      ([command]) => command === "process_agent_objective",
-    );
-    expect(
-      (nativePlannerCall?.[1] as { request: Record<string, unknown> }).request.user_objective,
-    ).toBe("Take a screenshot of my screen.");
+    const nativePlannerCall = invokeMock.mock.calls.find(([command]) => command === "process_agent_objective");
+    expect((nativePlannerCall?.[1] as { request: Record<string, unknown> }).request.user_objective).toBe("Take a screenshot of my screen.");
     expect(invokeMock.mock.calls.some(([command]) => command === "chat_turn")).toBe(false);
   });
 
@@ -4328,16 +3791,14 @@ describe("ChatScreen", () => {
                 id: 10,
                 sessionId: "session-1",
                 role: "user",
-                content:
-                  'Create a new markdown file in my Downloads directory called Hello World.md with the content "Hello World".',
+                content: 'Create a new markdown file in my Downloads directory called Hello World.md with the content "Hello World".',
                 createdAtMs: 10,
               },
               {
                 id: 11,
                 sessionId: "session-1",
                 role: "assistant",
-                content:
-                  "Shield Gate approved and wrote 11 byte(s) to /Users/example/Downloads/Hello World.md.",
+                content: "Shield Gate approved and wrote 11 byte(s) to /Users/example/Downloads/Hello World.md.",
                 createdAtMs: 11,
               },
             ]
@@ -4353,8 +3814,7 @@ describe("ChatScreen", () => {
         return {
           operation: "file_write",
           status: "completed",
-          message:
-            "Shield Gate approved and wrote 11 byte(s) to /Users/example/Downloads/Hello World.md.",
+          message: "Shield Gate approved and wrote 11 byte(s) to /Users/example/Downloads/Hello World.md.",
           claims: [],
           verified: true,
         };
@@ -4372,25 +3832,11 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: {
-        value:
-          'Create a new markdown file in my Downloads directory called Hello World.md with the content "Hello World".',
+        value: 'Create a new markdown file in my Downloads directory called Hello World.md with the content "Hello World".',
       },
     });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
@@ -4426,8 +3872,7 @@ describe("ChatScreen", () => {
                 id: 99,
                 sessionId: "session-1",
                 role: "system",
-                content:
-                  "Compacted conversation excerpts. Every entry below is a bounded extract from a persisted source message.\n[source message_id=42 role=assistant sha256=abc123] Keep the current implementation moving.",
+                content: "Compacted conversation excerpts. Every entry below is a bounded extract from a persisted source message.\n[source message_id=42 role=assistant sha256=abc123] Keep the current implementation moving.",
                 compactionType: "summary_anchor",
                 createdAtMs: 99,
               },
@@ -4459,20 +3904,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     const input = within(view.container).getByPlaceholderText("Message OOMU…");
     fireEvent.change(input, { target: { value: "/compact" } });
@@ -4510,8 +3942,7 @@ describe("ChatScreen", () => {
         id: 1,
         sessionId: "session-1",
         role: "assistant",
-        content:
-          "Done.\n\n---\nPremises:\nThe implementation changed.\nExecution Path:\nThe chat renderer split the response.\nFormal Conclusion:\nThe certificate is preserved.",
+        content: "Done.\n\n---\nPremises:\nThe implementation changed.\nExecution Path:\nThe chat renderer split the response.\nFormal Conclusion:\nThe certificate is preserved.",
         createdAtMs: 1,
       },
     ];
@@ -4526,20 +3957,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(screen.getByText("Done.")).toBeInTheDocument();
@@ -4581,20 +3999,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(screen.getByText("Literal **bold** </text> [link](https://example.com)")).toBeInTheDocument();
@@ -4635,23 +4040,12 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
-      target: { value: "The literal </text> tag leaked into the previous response." },
+      target: {
+        value: "The literal </text> tag leaked into the previous response.",
+      },
     });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
 
@@ -4673,20 +4067,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     await waitFor(() => {
       expect(screen.getByText(storedMessages[0].content)).toBeInTheDocument();
@@ -4728,20 +4109,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Hello there" },
@@ -4753,15 +4121,19 @@ describe("ChatScreen", () => {
     });
 
     const chatTurnCall = invokeMock.mock.calls.find(([command]) => command === "chat_turn");
-    const chatTurnArgs = chatTurnCall?.[1] as { request: Record<string, unknown> };
+    const chatTurnArgs = chatTurnCall?.[1] as {
+      request: Record<string, unknown>;
+    };
     const classifyCall = invokeMock.mock.calls.find(([command]) => command === "classify_chat_intent_route");
     const classifyArgs = classifyCall?.[1] as Record<string, unknown>;
 
-    expect(classifyArgs).toEqual(expect.objectContaining({
-      session_id: "session-1",
-      selected_provider_id: "provider-1",
-      selected_model_id: "model-1",
-    }));
+    expect(classifyArgs).toEqual(
+      expect.objectContaining({
+        session_id: "session-1",
+        selected_provider_id: "provider-1",
+        selected_model_id: "model-1",
+      }),
+    );
     expect(chatTurnArgs.request.provider_id).toBe("provider-1");
     expect(chatTurnArgs.request.model_id).toBe("model-1");
     expect(chatTurnArgs.request.dynamic_routing_override).toBe(false);
@@ -4774,13 +4146,16 @@ describe("ChatScreen", () => {
     let turnCount = 0;
     let resolveCloudTurn: ((response: Record<string, unknown>) => void) | null = null;
     let releaseStaleHydration: (messages: StoredChatMessage[]) => void = () => undefined;
-    const staleHydration = new Promise<StoredChatMessage[]>((resolve) => { releaseStaleHydration = resolve; });
-    const persistedMessages = ["Cloud request", "Cloud answer", "Local follow-up", "Local answer"]
-      .map<StoredChatMessage>((content, index) => ({
-        id: index + 1, sessionId: "session-1",
-        role: index % 2 === 0 ? "user" : "assistant",
-        content, createdAtMs: index + 1,
-      }));
+    const staleHydration = new Promise<StoredChatMessage[]>((resolve) => {
+      releaseStaleHydration = resolve;
+    });
+    const persistedMessages = ["Cloud request", "Cloud answer", "Local follow-up", "Local answer"].map<StoredChatMessage>((content, index) => ({
+      id: index + 1,
+      sessionId: "session-1",
+      role: index % 2 === 0 ? "user" : "assistant",
+      content,
+      createdAtMs: index + 1,
+    }));
     invokeMock.mockImplementation((command: string, args?: { request?: Record<string, unknown> }) => {
       if (command === "list_chat_messages") {
         reads += 1;
@@ -4789,13 +4164,21 @@ describe("ChatScreen", () => {
       }
       if (command === "get_queued_messages") return [];
       if (command === "get_session_config") return null;
-      if (command === "classify_chat_intent_route") return {
-        route: "conversational_stream", requires_local_access: false, decision_source: "heuristic_filter",
-        reason: "test", matched_signals: [], status_label: "Thinking...",
-      };
+      if (command === "classify_chat_intent_route")
+        return {
+          route: "conversational_stream",
+          requires_local_access: false,
+          decision_source: "heuristic_filter",
+          reason: "test",
+          matched_signals: [],
+          status_label: "Thinking...",
+        };
       if (command === "chat_turn") {
         turnCount += 1;
-        if (turnCount === 1) return new Promise((resolve) => { resolveCloudTurn = resolve; });
+        if (turnCount === 1)
+          return new Promise((resolve) => {
+            resolveCloudTurn = resolve;
+          });
         return {
           text: "Local answer",
           session_id: String(args?.request?.session_id ?? "session-1"),
@@ -4808,14 +4191,7 @@ describe("ChatScreen", () => {
       if (command === "list_chat_sessions") return sessions;
       return null;
     });
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
     const submit = (message: string) => {
       fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
         target: { value: message },
@@ -4828,8 +4204,12 @@ describe("ChatScreen", () => {
     });
     expect(await screen.findByText("OOMU is thinking…")).toBeInTheDocument();
     resolveDeferred(resolveCloudTurn, {
-      text: "Cloud answer", session_id: "session-1",
-      metadata: { executing_provider_id: "gemini", executing_model_id: "gemini-3.5-flash" },
+      text: "Cloud answer",
+      session_id: "session-1",
+      metadata: {
+        executing_provider_id: "gemini",
+        executing_model_id: "gemini-3.5-flash",
+      },
     });
     await screen.findByText("Cloud answer");
     await waitFor(() => expect(within(view.container).getByRole("button", { name: "Send" })).toBeInTheDocument());
@@ -4912,8 +4292,7 @@ describe("ChatScreen", () => {
       }
       if (command === "chat_turn") {
         const request = args?.request as { attachments?: Array<{ name?: string }> } | undefined;
-        chatTurnAttachmentNames = request?.attachments?.flatMap((attachment) =>
-          attachment.name ? [attachment.name] : []) ?? [];
+        chatTurnAttachmentNames = request?.attachments?.flatMap((attachment) => (attachment.name ? [attachment.name] : [])) ?? [];
         return { text: "Summarized attached mail.", session_id: "session-1" };
       }
       if (command === "list_chat_sessions") {
@@ -4922,20 +4301,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Attach file" }));
 
@@ -4981,23 +4347,12 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Tuning" }));
-    const slider = within(view.container).getByRole("slider", { name: "Context budget" }) as HTMLInputElement;
+    const slider = within(view.container).getByRole("slider", {
+      name: "Context budget",
+    }) as HTMLInputElement;
 
     expect(slider.min).toBe("0");
     expect(slider.max).toBe("2");
@@ -5023,23 +4378,12 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={cloudAgents}
-        configuredProviders={cloudConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={cloudSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={cloudAgents} configuredProviders={cloudConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={cloudSessions} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Tuning" }));
-    const slider = within(view.container).getByRole("slider", { name: "Context budget" }) as HTMLInputElement;
+    const slider = within(view.container).getByRole("slider", {
+      name: "Context budget",
+    }) as HTMLInputElement;
 
     expect(slider.min).toBe("0");
     expect(slider.max).toBe("6");
@@ -5070,7 +4414,10 @@ describe("ChatScreen", () => {
         };
       }
       if (command === "chat_turn") {
-        return { text: "Here is the architectural comparison.", session_id: "session-1" };
+        return {
+          text: "Here is the architectural comparison.",
+          session_id: "session-1",
+        };
       }
       if (command === "list_chat_sessions") {
         return sessions;
@@ -5078,20 +4425,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Can you inspect the Downloads folder?" },
@@ -5103,7 +4437,9 @@ describe("ChatScreen", () => {
     });
 
     const chatTurnCall = invokeMock.mock.calls.find(([command]) => command === "chat_turn");
-    const chatTurnArgs = chatTurnCall?.[1] as { request: { attachments: Array<{ text?: string }> } };
+    const chatTurnArgs = chatTurnCall?.[1] as {
+      request: { attachments: Array<{ text?: string }> };
+    };
 
     expect(invokeMock.mock.calls.some(([command]) => command === "read_local_context")).toBe(false);
     expect(chatTurnArgs.request.attachments).toEqual([]);
@@ -5141,20 +4477,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     const prompt = "Compare the architecture described by `/Users/example/My Files/Missing.md` with our current approach and recommend a rollout; do not open the path.";
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
@@ -5180,13 +4503,15 @@ describe("ChatScreen", () => {
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "list_chat_messages") {
         return chatCompleted
-          ? [{
-              id: 91,
-              sessionId: "session-1",
-              role: "assistant",
-              content: "Most users will not know every capability yet.",
-              createdAtMs: 91,
-            }]
+          ? [
+              {
+                id: 91,
+                sessionId: "session-1",
+                role: "assistant",
+                content: "Most users will not know every capability yet.",
+                createdAtMs: 91,
+              },
+            ]
           : [];
       }
       if (command === "get_queued_messages") return [];
@@ -5209,26 +4534,16 @@ describe("ChatScreen", () => {
       }
       if (command === "chat_turn") {
         chatCompleted = true;
-        return { text: "Most users will not know every capability yet.", session_id: "session-1" };
+        return {
+          text: "Most users will not know every capability yet.",
+          session_id: "session-1",
+        };
       }
       if (command === "list_chat_sessions") return sessions;
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "99.9% of users will not know that." },
@@ -5242,9 +4557,11 @@ describe("ChatScreen", () => {
     expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(true);
     expect(invokeMock.mock.calls.some(([command]) => command === "chat_turn")).toBe(true);
     expect(
-      (invokeMock.mock.calls.find(([command]) => command === "process_agent_objective")?.[1] as {
-        request: Record<string, unknown>;
-      }).request.user_objective,
+      (
+        invokeMock.mock.calls.find(([command]) => command === "process_agent_objective")?.[1] as {
+          request: Record<string, unknown>;
+        }
+      ).request.user_objective,
     ).toBe("99.9% of users will not know that.");
     expect(screen.queryByText(/agent_objective_not_executable/i)).not.toBeInTheDocument();
   });
@@ -5305,20 +4622,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Review Downloads" },
@@ -5332,13 +4636,17 @@ describe("ChatScreen", () => {
     expect(screen.getByText(/Plan ID: plan-1/)).toBeInTheDocument();
     expect(invokeMock.mock.calls.some(([command]) => command === "process_agent_objective")).toBe(true);
     const plannerCall = invokeMock.mock.calls.find(([command]) => command === "process_agent_objective");
-    const plannerArgs = plannerCall?.[1] as { request: Record<string, unknown> };
-    expect(plannerArgs.request).toEqual(expect.objectContaining({
-      user_objective: "Review Downloads",
-      selected_model: "local_gemma",
-      selected_provider_id: "local_model",
-      selected_model_id: "model-1",
-    }));
+    const plannerArgs = plannerCall?.[1] as {
+      request: Record<string, unknown>;
+    };
+    expect(plannerArgs.request).toEqual(
+      expect.objectContaining({
+        user_objective: "Review Downloads",
+        selected_model: "local_gemma",
+        selected_provider_id: "local_model",
+        selected_model_id: "model-1",
+      }),
+    );
   });
 
   it("discards a deferred planner response after its session is deleted", async () => {
@@ -5369,20 +4677,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={onDeleteSession}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={onDeleteSession} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Modify the local workspace configuration safely." },
@@ -5449,7 +4744,11 @@ describe("ChatScreen", () => {
             },
             {
               step: "Write the approved summary.",
-              tool: { kind: "file_write", path: "/tmp/testing/summary.md", content: "done" },
+              tool: {
+                kind: "file_write",
+                path: "/tmp/testing/summary.md",
+                content: "done",
+              },
               risk_level: "high",
             },
           ],
@@ -5461,7 +4760,14 @@ describe("ChatScreen", () => {
           },
         };
       }
-      if (command === "record_browser_chat_turn") return { ...planPersistence.record(args), metadata: { executingProviderId: "provider-1", executingModelId: "model-1" } };
+      if (command === "record_browser_chat_turn")
+        return {
+          ...planPersistence.record(args),
+          metadata: {
+            executingProviderId: "provider-1",
+            executingModelId: "model-1",
+          },
+        };
       if (command === "request_agent_plan_authority") {
         return {
           authorityProofId: "telemetry-authority-proof",
@@ -5478,31 +4784,18 @@ describe("ChatScreen", () => {
       if (command === "list_chat_sessions") return dynamicSessions;
       return null;
     });
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={dynamicSessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={dynamicSessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
-      target: { value: "Create a local telemetry archive in the testing directory." },
+      target: {
+        value: "Create a local telemetry archive in the testing directory.",
+      },
     });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
     await waitFor(() => expect(screen.getByText("Create the approved telemetry audit.")).toBeInTheDocument());
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Approve & execute" }));
-    await waitFor(() =>
-      expect(invokeMock.mock.calls.some(([command]) => command === "spawn_agent_execution")).toBe(true),
-    );
+    await waitFor(() => expect(invokeMock.mock.calls.some(([command]) => command === "spawn_agent_execution")).toBe(true));
     expect(screen.queryByText(/Execution ID: telemetry-execution/)).not.toBeInTheDocument();
 
     expect(invokeMock.mock.calls.some(([command]) => command === "grant_actuation_lease")).toBe(false);
@@ -5512,7 +4805,11 @@ describe("ChatScreen", () => {
         principal_approved: true,
         authority_proof_id: "telemetry-authority-proof",
         plan: { id: "telemetry-plan" },
-        turn_context: { sessionId: "session-1", providerId: "provider-1", modelId: "model-1" },
+        turn_context: {
+          sessionId: "session-1",
+          providerId: "provider-1",
+          modelId: "model-1",
+        },
       },
     });
   });
@@ -5541,11 +4838,13 @@ describe("ChatScreen", () => {
         return {
           id: "bound-plan",
           objective: "Bound background execution",
-          steps: [{
-            step: "Inspect the approved workspace.",
-            tool: { kind: "file_list", path: "/tmp" },
-            risk_level: "low",
-          }],
+          steps: [
+            {
+              step: "Inspect the approved workspace.",
+              tool: { kind: "file_list", path: "/tmp" },
+              risk_level: "low",
+            },
+          ],
           exit_condition: "Stop after the approved step.",
           trusted_automatic_execution: false,
           model_route: {
@@ -5570,20 +4869,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={onDeleteSession}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={onDeleteSession} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "Modify the local workspace configuration safely." },
@@ -5595,21 +4881,23 @@ describe("ChatScreen", () => {
 
     const spawnCall = invokeMock.mock.calls.find(([command]) => command === "spawn_agent_execution");
     const spawnRequest = (spawnCall?.[1] as { request: Record<string, unknown> }).request;
-    expect(spawnRequest).toEqual(expect.objectContaining({
-      plan: expect.objectContaining({ id: "bound-plan" }),
-      turn_context: expect.objectContaining({
-        turnId: expect.any(String),
-        generationToken: expect.any(String),
-        sessionId: "session-1",
-        agentId: "agent-1",
-        providerId: "provider-1",
-        modelId: "model-1",
-        rootTurnId: expect.any(String),
-        turnKind: "root",
-        attachmentGrants: [],
-        createdAtMs: expect.any(Number),
+    expect(spawnRequest).toEqual(
+      expect.objectContaining({
+        plan: expect.objectContaining({ id: "bound-plan" }),
+        turn_context: expect.objectContaining({
+          turnId: expect.any(String),
+          generationToken: expect.any(String),
+          sessionId: "session-1",
+          agentId: "agent-1",
+          providerId: "provider-1",
+          modelId: "model-1",
+          rootTurnId: expect.any(String),
+          turnKind: "root",
+          attachmentGrants: [],
+          createdAtMs: expect.any(Number),
+        }),
       }),
-    }));
+    );
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Delete Debug chat" }));
     await waitFor(() => expect(onDeleteSession).toHaveBeenCalledWith("session-1"));
@@ -5656,25 +4944,19 @@ describe("ChatScreen", () => {
         return { text: "Paris.", session_id: "session-new" };
       }
       if (command === "list_chat_sessions") {
-        return [{ ...sessions[0], id: "session-new", providerId: "provider-1", modelId: "model-1" }];
+        return [
+          {
+            ...sessions[0],
+            id: "session-new",
+            providerId: "provider-1",
+            modelId: "model-1",
+          },
+        ];
       }
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId=""
-        agents={agents}
-        configuredProviders={configuredProviders}
-        onCreateSession={onCreateSession}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={[]}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="" agents={agents} configuredProviders={configuredProviders} onCreateSession={onCreateSession} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={[]} />, { wrapper: I18nProvider });
 
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
       target: { value: "What is the capital of France?" },
@@ -5740,19 +5022,7 @@ describe("ChatScreen", () => {
 
     function FirstTurnHarness() {
       const [activeSessionId, setActiveSessionId] = useState("");
-      return (
-        <ChatScreen
-          activeSessionId={activeSessionId}
-          agents={agents}
-          configuredProviders={configuredProviders}
-          onCreateSession={onCreateSession}
-          onDeleteSession={vi.fn()}
-          onSelectSession={setActiveSessionId}
-          onSessionsChange={vi.fn()}
-          privacySettings={null}
-          sessions={activeSessionId ? [createdSession] : []}
-        />
-      );
+      return <ChatScreen activeSessionId={activeSessionId} agents={agents} configuredProviders={configuredProviders} onCreateSession={onCreateSession} onDeleteSession={vi.fn()} onSelectSession={setActiveSessionId} onSessionsChange={vi.fn()} privacySettings={null} sessions={activeSessionId ? [createdSession] : []} />;
     }
 
     const view = render(<FirstTurnHarness />, { wrapper: I18nProvider });
@@ -5778,20 +5048,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId=""
-        agents={agents}
-        configuredProviders={[configuredProviders[0], geminiConfiguredProviders[0]]}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={[]}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="" agents={agents} configuredProviders={[configuredProviders[0], geminiConfiguredProviders[0]]} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={[]} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Tuning" }));
 
@@ -5853,20 +5110,7 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agentWithDifferentDefault}
-        configuredProviders={configuredProvidersWithModels}
-        onCreateSession={onCreateSession}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={[activeSessionOnModelOne]}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agentWithDifferentDefault} configuredProviders={configuredProvidersWithModels} onCreateSession={onCreateSession} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={[activeSessionOnModelOne]} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "New chat" }));
 
@@ -5889,10 +5133,7 @@ describe("ChatScreen", () => {
   });
 
   it("keeps tuning route changes stable while session config persistence is in flight", async () => {
-    const multiConfiguredProviders: ConfiguredProvider[] = [
-      configuredProviders[0],
-      geminiConfiguredProviders[0],
-    ];
+    const multiConfiguredProviders: ConfiguredProvider[] = [configuredProviders[0], geminiConfiguredProviders[0]];
     let resolveSaveSessionConfig: (() => void) | null = null;
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "list_chat_messages") {
@@ -5917,25 +5158,16 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={multiConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={multiConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Tuning" }));
 
-    const providerSelect = within(view.container).getByRole("combobox", { name: "Provider" }) as HTMLSelectElement;
-    fireEvent.change(providerSelect, { target: { value: "gemini-provider-1" } });
+    const providerSelect = within(view.container).getByRole("combobox", {
+      name: "Provider",
+    }) as HTMLSelectElement;
+    fireEvent.change(providerSelect, {
+      target: { value: "gemini-provider-1" },
+    });
 
     await waitFor(() => {
       expect(providerSelect.value).toBe("gemini-provider-1");
@@ -5957,7 +5189,9 @@ describe("ChatScreen", () => {
       <ChatScreen
         activeSessionId="session-1"
         agents={agents}
-        configuredProviders={multiConfiguredProviders.map((provider) => ({ ...provider }))}
+        configuredProviders={multiConfiguredProviders.map((provider) => ({
+          ...provider,
+        }))}
         onCreateSession={vi.fn()}
         onDeleteSession={vi.fn()}
         onSelectSession={vi.fn()}
@@ -5968,7 +5202,9 @@ describe("ChatScreen", () => {
     );
 
     const rerenderedProviderSelect = within(view.container).getByRole("combobox", { name: "Provider" }) as HTMLSelectElement;
-    const rerenderedModelSelect = within(view.container).getByRole("combobox", { name: "Model" }) as HTMLSelectElement;
+    const rerenderedModelSelect = within(view.container).getByRole("combobox", {
+      name: "Model",
+    }) as HTMLSelectElement;
     expect(rerenderedProviderSelect.value).toBe("gemini-provider-1");
     expect(rerenderedModelSelect.value).toBe("gemini-3.5-flash");
     expect(invokeMock.mock.calls.filter(([command]) => command === "get_session_config")).toHaveLength(initialConfigReads);
@@ -5977,10 +5213,7 @@ describe("ChatScreen", () => {
   });
 
   it("keeps tuning controls editable when stale config hydration follows a fast save", async () => {
-    const multiConfiguredProviders: ConfiguredProvider[] = [
-      configuredProviders[0],
-      geminiConfiguredProviders[0],
-    ];
+    const multiConfiguredProviders: ConfiguredProvider[] = [configuredProviders[0], geminiConfiguredProviders[0]];
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "list_chat_messages") {
         return [];
@@ -6002,25 +5235,16 @@ describe("ChatScreen", () => {
       return null;
     });
 
-    const view = render(
-      <ChatScreen
-        activeSessionId="session-1"
-        agents={agents}
-        configuredProviders={multiConfiguredProviders}
-        onCreateSession={vi.fn()}
-        onDeleteSession={vi.fn()}
-        onSelectSession={vi.fn()}
-        onSessionsChange={vi.fn()}
-        privacySettings={null}
-        sessions={sessions}
-      />,
-      { wrapper: I18nProvider },
-    );
+    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={multiConfiguredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
 
     fireEvent.click(within(view.container).getByRole("button", { name: "Tuning" }));
 
-    const providerSelect = within(view.container).getByRole("combobox", { name: "Provider" }) as HTMLSelectElement;
-    fireEvent.change(providerSelect, { target: { value: "gemini-provider-1" } });
+    const providerSelect = within(view.container).getByRole("combobox", {
+      name: "Provider",
+    }) as HTMLSelectElement;
+    fireEvent.change(providerSelect, {
+      target: { value: "gemini-provider-1" },
+    });
 
     await waitFor(() => {
       expect(providerSelect.value).toBe("gemini-provider-1");
@@ -6031,7 +5255,9 @@ describe("ChatScreen", () => {
       expect(within(view.container).getByRole("radio", { name: "High" })).toHaveAttribute("aria-checked", "true");
     });
 
-    const slider = within(view.container).getByRole("slider", { name: "Context budget" }) as HTMLInputElement;
+    const slider = within(view.container).getByRole("slider", {
+      name: "Context budget",
+    }) as HTMLInputElement;
     fireEvent.change(slider, { target: { value: "4" } });
     await waitFor(() => {
       expect(slider.value).toBe("4");
@@ -6043,7 +5269,9 @@ describe("ChatScreen", () => {
       <ChatScreen
         activeSessionId="session-1"
         agents={agents}
-        configuredProviders={multiConfiguredProviders.map((provider) => ({ ...provider }))}
+        configuredProviders={multiConfiguredProviders.map((provider) => ({
+          ...provider,
+        }))}
         onCreateSession={vi.fn()}
         onDeleteSession={vi.fn()}
         onSelectSession={vi.fn()}
@@ -6054,14 +5282,16 @@ describe("ChatScreen", () => {
     );
 
     await waitFor(() => {
-      expect(invokeMock.mock.calls.filter(([command]) => command === "get_session_config").length).toBeGreaterThan(
-        initialConfigReads,
-      );
+      expect(invokeMock.mock.calls.filter(([command]) => command === "get_session_config").length).toBeGreaterThan(initialConfigReads);
     });
 
     const rerenderedProviderSelect = within(view.container).getByRole("combobox", { name: "Provider" }) as HTMLSelectElement;
-    const rerenderedModelSelect = within(view.container).getByRole("combobox", { name: "Model" }) as HTMLSelectElement;
-    const rerenderedSlider = within(view.container).getByRole("slider", { name: "Context budget" }) as HTMLInputElement;
+    const rerenderedModelSelect = within(view.container).getByRole("combobox", {
+      name: "Model",
+    }) as HTMLSelectElement;
+    const rerenderedSlider = within(view.container).getByRole("slider", {
+      name: "Context budget",
+    }) as HTMLInputElement;
     expect(rerenderedProviderSelect.value).toBe("gemini-provider-1");
     expect(rerenderedModelSelect.value).toBe("gemini-3.5-flash");
     expect(rerenderedSlider.value).toBe("4");
@@ -6098,7 +5328,10 @@ describe("ChatScreen", () => {
       <ChatScreen
         activeSessionId="session-1"
         agents={agents}
-        configuredProviders={configuredProviders.map((provider) => ({ ...provider, providerId: "local_model" }))}
+        configuredProviders={configuredProviders.map((provider) => ({
+          ...provider,
+          providerId: "local_model",
+        }))}
         onCreateSession={vi.fn()}
         onDeleteSession={vi.fn()}
         onSelectSession={vi.fn()}

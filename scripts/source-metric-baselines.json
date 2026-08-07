@@ -68,7 +68,7 @@
     },
     "src-tauri/src/agentic_loop.rs": {
       "owner": "agents/planning-execution",
-      "bytes": 199108,
+      "bytes": 199098,
       "functionLines": 789,
       "complexity": 91
     },
@@ -434,7 +434,7 @@
     },
     "src-tauri/src/gemma.rs": {
       "owner": "inference/local-model-lifecycle",
-      "bytes": 117970,
+      "bytes": 117898,
       "maxLineBytes": 1293
     },
     "src-tauri/src/gemma/action_plan_prompt.rs": {
@@ -447,10 +447,10 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 259228,
+      "bytes": 256600,
       "maxLineBytes": 2053,
-      "functionLines": 1749,
-      "complexity": 217
+      "functionLines": 1708,
+      "complexity": 209
     },
     "src-tauri/src/inference/provider_stream.rs": {
       "owner": "native/inference",
@@ -752,9 +752,9 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 321255,
-      "functionLines": 5432,
-      "complexity": 136
+      "bytes": 309768,
+      "functionLines": 4490,
+      "complexity": 133
     },
     "src/app/components/HomeChrome.tsx": {
       "owner": "renderer/components",
@@ -816,8 +816,8 @@
     },
     "src/app/components/__tests__/ChatScreen.test.tsx": {
       "owner": "chat/real-component-tests",
-      "bytes": 225947,
-      "functionLines": 5982
+      "bytes": 221217,
+      "functionLines": 5243
     },
     "src/app/components/__tests__/ChatScreen.verified-execution-boundaries.test.tsx": {
       "owner": "renderer/components",

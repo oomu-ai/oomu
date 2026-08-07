@@ -23,6 +23,7 @@ mod local_usage;
 mod local_worker;
 mod openai;
 mod private_auto_route;
+mod project_chat;
 mod provider_error_diagnostics;
 mod provider_policy;
 mod provider_stream;
@@ -132,7 +133,6 @@ use std::{
     thread::{self, JoinHandle},
     time::{Duration, Instant},
 };
-use tauri::Manager;
 use zeroize::Zeroizing;
 
 const PROVIDER_BLOCKING_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
@@ -1014,6 +1014,8 @@ pub struct ChatTurnRequest {
     pub auto_route_cloud_confirmed: Option<bool>,
     #[serde(default, alias = "projectCloudConfirmed")]
     pub project_cloud_confirmed: Option<bool>,
+    #[serde(default)]
+    pub project_document_composition: Option<bool>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -1134,6 +1136,7 @@ async fn run_chat_turn(
     safe_mode: bool,
 ) -> Result<ChatTurnResponse, InferenceError> {
     let project_cloud_confirmed = request.project_cloud_confirmed.unwrap_or(false);
+    let document_requested = request.project_document_composition.unwrap_or(false);
     let requested_turn_id = clean_runtime_text(request.turn_id);
     let requested_generation_token = clean_runtime_text(request.generation_token);
     let requested_parent_turn_id = clean_runtime_text(request.parent_turn_id);
@@ -1204,23 +1207,13 @@ async fn run_chat_turn(
     };
     let queued_execution = request.queued_execution;
     let queued_auto_route_identity = request.queued_auto_route_identity;
-    let mcp_tool_capabilities = if let Some(catalog) =
-        app.try_state::<crate::native_app_ports::ConnectedToolCatalogPort>()
-    {
-        catalog
-            .connected_tool_catalog()
-            .await
-            .into_iter()
-            .map(|tool| ConversationalMcpToolCapability {
-                server_name: tool.server_name,
-                tool_name: tool.tool_name,
-                description: tool.description,
-                input_schema: tool.input_schema,
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
+    let project_document_turn = project_chat::verified(
+        document_requested,
+        display_message.as_deref(),
+        session_id.as_deref(),
+        &persistence,
+    );
+    let mcp_tool_capabilities = project_chat::tool_capabilities(&app, project_document_turn).await;
     let stream_id = request
         .stream_id
         .map(|value| value.trim().to_string())
@@ -1663,7 +1656,8 @@ async fn run_chat_turn(
         selected_model_id: Some(selected_model_id.clone()),
     };
 
-    let route_decision = if let Some(verified_route) = verified_approved_file_route_decision(
+    let route_decision = if let Some(verified_route) = project_chat::verified_route(
+        project_document_turn,
         &message,
         &attachments,
         has_verified_approved_file_context,
@@ -1731,66 +1725,26 @@ async fn run_chat_turn(
     })
     .await
     .map_err(|error| InferenceError::worker(error.to_string()))??;
-    let active_project_context = persistence
-        .project_inference_context_for_session(&active_session_id)
-        .map_err(InferenceError::worker)?;
-    let project_provider_policy = crate::projects::evaluate_project_provider_for_session(
+    let (project_context, project_folder_context, project_folder_context_error) =
+        project_chat::active_session_context(
+            &persistence,
+            &active_session_id,
+            &message,
+            selected_route_is_local,
+            route_decision.requires_local_access,
+            project_document_turn,
+            resolved_context_budget_tokens,
+        )
+        .await?;
+    project_chat::enforce_provider_policy(
         &persistence,
         &active_session_id,
+        &turn_id,
+        &generation_token,
         &selected_provider_route.route_provider_id,
         &selected_provider_route.catalog_provider_id,
-    )
-    .map_err(InferenceError::worker)?;
-    if !project_provider_policy.allowed {
-        if project_provider_policy.consent_required {
-            let project_id = project_provider_policy
-                .project_id
-                .as_deref()
-                .ok_or_else(|| {
-                    InferenceError::worker(
-                        "Project policy did not return the Project bound to this cloud route.",
-                    )
-                })?;
-            if !project_cloud_confirmed {
-                register_project_provider_confirmation_challenge(
-                    &active_session_id,
-                    &turn_id,
-                    &generation_token,
-                    project_id,
-                    &selected_provider_route.route_provider_id,
-                    &selected_provider_route.catalog_provider_id,
-                );
-                return Err(InferenceError::project_provider_consent_required());
-            }
-            if !consume_project_provider_confirmation_challenge(
-                &active_session_id,
-                &turn_id,
-                &generation_token,
-                project_id,
-                &selected_provider_route.route_provider_id,
-                &selected_provider_route.catalog_provider_id,
-            ) {
-                return Err(InferenceError::project_provider_confirmation_invalid());
-            }
-            let confirmed = crate::projects::evaluate_project_policy(
-                &persistence,
-                crate::projects::ProjectTransmissionRequest {
-                    project_id: project_id.to_string(),
-                    task_id: None,
-                    destination_kind: "provider".to_string(),
-                    destination_origin: selected_provider_route.route_provider_id.clone(),
-                    data_classes: vec!["chat_message".to_string(), "project_context".to_string()],
-                    consent: true,
-                },
-            )
-            .map_err(InferenceError::worker)?;
-            if !confirmed.allowed {
-                return Err(InferenceError::project_provider_blocked());
-            }
-        } else {
-            return Err(InferenceError::project_provider_blocked());
-        }
-    }
+        project_cloud_confirmed,
+    )?;
     if executable_intent_gate::requires_agentic_escalation(
         &route_decision,
         &message,
@@ -1900,7 +1854,7 @@ async fn run_chat_turn(
         &route_decision,
         !attachments.is_empty(),
         !effective_mcp_tool_capabilities.is_empty(),
-        active_project_context.is_some(),
+        project_context.is_some(),
         steering.is_some(),
     );
 
@@ -1955,7 +1909,7 @@ async fn run_chat_turn(
                 session_id: active_session_id.clone(),
                 user_message: message.clone(),
                 assistant_message: String::new(),
-                project_id: active_project_context.as_ref().map(|context| context.project_id.clone()),
+                project_id: project_context.as_ref().map(|context| context.project_id.clone()),
             },
             &identity,
         )?;
@@ -2050,7 +2004,7 @@ async fn run_chat_turn(
                     display_name: personality_profile.identity.display_name.clone(),
                     role: personality_profile.identity.role.clone(),
                     description: personality_profile.personality.summary.clone(),
-                    system_prompt: active_project_context.as_ref().map_or_else(
+                    system_prompt: project_context.as_ref().map_or_else(
                         || "The authoritative active-agent persona contract is prepended before this persistent context.".to_string(),
                         |context| format!("The authoritative active-agent persona contract is prepended before this persistent context.\n\nProject instructions:\n{}", context.instructions),
                     ),
@@ -2060,7 +2014,7 @@ async fn run_chat_turn(
                     tool_registry_offline: tool_registry_offline_for_prompt,
                     background_mod_event: false,
                     layout_schema: None,
-                    project_id: active_project_context.as_ref().map(|context| context.project_id.clone()),
+                    project_id: project_context.as_ref().map(|context| context.project_id.clone()),
                     verified_filesystem_context,
                 },
                 context_budget_tokens.unwrap_or(settings::DEFAULT_CONTEXT_BUDGET),
@@ -2091,7 +2045,7 @@ async fn run_chat_turn(
         let primary_knowledge_prompt_context = if lean_local_chat_context {
             None
         } else {
-            let primary_knowledge_result = match active_project_context.as_ref() {
+            let primary_knowledge_result = match project_context.as_ref() {
                 Some(context) => knowledge::retrieve_project_blocks_for_gateway_with_token_budget(
                     &knowledge_store, gemma.clone(), &context.project_id, &current_user_content,
                     jit_context_allocation.primary_rag_block_limit, jit_context_allocation.primary_rag_token_budget,
@@ -2115,6 +2069,12 @@ async fn run_chat_turn(
                 }
             }
         };
+        project_chat::require_project_document_evidence(
+            project_document_turn,
+            project_folder_context.as_deref(),
+            primary_knowledge_prompt_context.as_deref(),
+            project_folder_context_error,
+        )?;
         let mod_knowledge_contexts = if bound_mod_ids.is_empty() {
             Vec::new()
         } else {
@@ -2147,7 +2107,7 @@ async fn run_chat_turn(
                 context.len()
             );
         }
-        let static_core_blocks = build_chat_static_core_blocks(
+        let mut static_core_blocks = build_chat_static_core_blocks(
             &persona_prompt,
             &identity_context,
             active_mod_prompt.as_deref(),
@@ -2159,6 +2119,7 @@ async fn run_chat_turn(
             tool_registry_offline_for_prompt,
             lean_local_chat_context,
         );
+        project_chat::append_folder_context(&mut static_core_blocks, project_folder_context.as_deref());
         let long_term_blocks = if lean_local_chat_context {
             build_lean_chat_long_term_blocks(
                 &identity_context,
@@ -2700,7 +2661,7 @@ async fn run_chat_turn(
                     session_id: active_session_id.clone(),
                     user_message: message.clone(),
                     assistant_message: response.text.clone(),
-                    project_id: active_project_context
+                    project_id: project_context
                         .as_ref()
                         .map(|context| context.project_id.clone()),
                 },
@@ -4238,27 +4199,6 @@ impl PreflightPolicy {
             timeout: PREFLIGHT_TIMEOUT,
         }
     }
-}
-
-fn verified_approved_file_route_decision(
-    user_message: &str,
-    attachments: &[ChatAttachment],
-    has_verified_approved_file_context: bool,
-) -> Option<crate::agentic_loop::ChatIntentRouteDecision> {
-    if !has_verified_approved_file_context
-        || attachments.is_empty()
-        || !crate::agentic_loop::is_read_only_local_context_request(user_message)
-    {
-        return None;
-    }
-    Some(crate::agentic_loop::ChatIntentRouteDecision {
-        route: crate::agentic_loop::ChatIntentRoute::ConversationalStream,
-        requires_local_access: false,
-        decision_source: "verified_approved_file_context".to_string(),
-        reason: "The exact approved file is already attached as bounded local context.".to_string(),
-        matched_signals: vec!["verified approved file context".to_string()],
-        status_label: "OOMU is reading the approved file...".to_string(),
-    })
 }
 
 fn persisted_chat_user_content<'a>(

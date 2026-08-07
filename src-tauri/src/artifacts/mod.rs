@@ -6,6 +6,7 @@ mod exact_package_runtime;
 pub mod helper;
 mod package;
 pub mod presentations;
+mod project_chat_document;
 mod repository;
 mod runtime;
 mod validation;
@@ -14,6 +15,7 @@ pub mod workbooks;
 
 pub(crate) use agent_tool::register_task_tool as register_file_task_tool;
 pub use commands::*;
+pub use project_chat_document::*;
 
 use crate::sovereign_identity::SignatureBlock;
 use serde::{Deserialize, Serialize};

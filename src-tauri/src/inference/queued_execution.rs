@@ -64,6 +64,7 @@ pub(super) fn request_from_record(record: &QueuedMessageRecord) -> ChatTurnReque
         auto_route_choice: None,
         auto_route_cloud_confirmed: None,
         project_cloud_confirmed: None,
+        project_document_composition: None,
     }
 }
 

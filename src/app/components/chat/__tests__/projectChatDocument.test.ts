@@ -1,0 +1,69 @@
+import { describe, expect, it } from "vitest";
+import {
+  ensurePendingAssistantMessage,
+  projectChatDocumentRequest,
+  projectDocumentOutputRequested,
+  projectDocumentLocalExecutionRoute,
+  projectDocumentPendingAssistantId,
+  projectDocumentRouteDecision,
+} from "../projectChatDocument";
+
+const routeDecision = {
+  route: "agentic_planner" as const,
+  requires_local_access: true,
+  decision_source: "native_artifact_creation_filter",
+  reason: "Document creation requested.",
+  matched_signals: ["document"],
+  status_label: "Planning…",
+};
+
+describe("Project chat document composition", () => {
+  it("uses approved Project knowledge while removing the native output instruction", () => {
+    const request = projectChatDocumentRequest(
+      "Using only the files in this Project, prepare a two-page update. Create a results table. Produce an editable Word document and a PDF.",
+      routeDecision,
+      "project_11111111-1111-4111-8111-111111111111",
+    );
+    expect(request?.modelMessage).toContain("approved Project knowledge supplied with this turn");
+    expect(request?.modelMessage).toContain("Create a results table");
+    expect(request?.modelMessage).not.toContain("Produce an editable Word document");
+  });
+
+  it("does not claim Project context when the chat is not bound to a Project", () => {
+    expect(projectChatDocumentRequest("Produce an editable Word document and a PDF.", routeDecision, null)).toBeNull();
+  });
+
+  it("recognizes the bounded Project document request before native classification", () => {
+    const message = "Using only files in this Project, produce an editable Word document and a PDF.";
+    expect(projectDocumentOutputRequested(message, "project_11111111-1111-4111-8111-111111111111")).toBe(true);
+    expect(projectDocumentOutputRequested(message, null)).toBe(false);
+    expect(projectDocumentRouteDecision(message, "project_11111111-1111-4111-8111-111111111111", "Thinking…"))
+      .toMatchObject({ decision_source: "native_artifact_creation_filter" });
+  });
+
+  it("creates one reusable assistant-side progress message for the Project turn", () => {
+    const createId = () => 42;
+    const id = projectDocumentPendingAssistantId(
+      "Prepare a Word document and a PDF.",
+      "project_11111111-1111-4111-8111-111111111111",
+      createId,
+    );
+    const messages = ensurePendingAssistantMessage([], id);
+    expect(messages).toEqual([{ id: 42, role: "assistant", content: "", isPending: true }]);
+    expect(ensurePendingAssistantMessage(messages, id)).toBe(messages);
+  });
+
+  it("keeps approved Project-folder evidence on the saved local route", () => {
+    const request = { modelMessage: "Compose from the Project folder." };
+    expect(projectDocumentLocalExecutionRoute(request, {
+      localProviderId: "local-model", localModelId: "gemma-local",
+      recommendedLocalProviderId: null, recommendedLocalModelId: null,
+    }, { providerId: "dynamic", modelId: "dynamic" }, false)).toEqual({
+      providerId: "local-model", modelId: "gemma-local",
+    });
+    expect(projectDocumentLocalExecutionRoute(request, {
+      localProviderId: null, localModelId: null,
+      recommendedLocalProviderId: null, recommendedLocalModelId: null,
+    }, { providerId: "cloud", modelId: "cloud-model" }, false)).toBeNull();
+  });
+});

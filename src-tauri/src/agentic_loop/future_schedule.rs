@@ -191,7 +191,6 @@ fn scheduled_action_request(prompt: &str) -> Option<ScheduledActionRequest> {
     }
 
     let explicit_schedule = padded.contains(" schedule ")
-        || padded.contains(" create ")
         || normalized.contains("set up")
         || normalized.contains("every ")
         || normalized.contains("once per ");

@@ -120,6 +120,7 @@ fn main() {
             "control_browser_automation",
             "control_app_control_session",
             "create_artifact",
+            "create_project_chat_document",
             "create_presentation",
             "create_workbook",
             "create_workbook_from_template",

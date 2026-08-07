@@ -10,29 +10,59 @@ pub(crate) fn single_active_project_root(
     engine: &PersistenceEngine,
     project_id: &str,
 ) -> Result<PathBuf, String> {
-    let connection = engine
-        .open_connection()
-        .map_err(|error| error.to_string())?;
-    let load = |kind: &str| -> Result<Vec<String>, String> {
-        let mut statement = connection
-            .prepare(
-                "SELECT canonical_path FROM project_sources WHERE project_id=?1 AND source_kind=?2 AND grant_state='active' ORDER BY canonical_path",
-            )
-            .map_err(|error| error.to_string())?;
-        let rows = statement
-            .query_map(params![project_id, kind], |row| row.get::<_, String>(0))
-            .map_err(|error| error.to_string())?;
-        let values = rows
-            .collect::<rusqlite::Result<Vec<_>>>()
-            .map_err(|error| error.to_string())?;
-        Ok(values)
-    };
-    let local_roots = load("local_folder")?;
-    let stored = if local_roots.is_empty() {
-        load("knowledge_directory")?
+    let local_roots = active_project_roots_for_kind(engine, project_id, "local_folder")?;
+    let roots = if local_roots.is_empty() {
+        active_project_roots_for_kind(engine, project_id, "knowledge_directory")?
     } else {
         local_roots
     };
+    match roots.len() {
+        0 => Err(
+            "This Project has no available approved folder. Open the Project and choose its folder."
+                .to_string(),
+        ),
+        1 => Ok(roots.into_iter().next().expect("one checked Project root")),
+        _ => Err(
+            "This Project has more than one approved folder. Choose one Project folder before this work runs."
+                .to_string(),
+        ),
+    }
+}
+
+pub(crate) fn active_project_knowledge_roots(
+    engine: &PersistenceEngine,
+    project_id: &str,
+) -> Result<Vec<PathBuf>, String> {
+    let roots = active_project_roots_for_kind(engine, project_id, "knowledge_directory")?;
+    if roots.is_empty() {
+        return Err(
+            "This Project has no available Knowledge folder. Add a Knowledge folder and try again."
+                .to_string(),
+        );
+    }
+    Ok(roots.into_iter().collect())
+}
+
+fn active_project_roots_for_kind(
+    engine: &PersistenceEngine,
+    project_id: &str,
+    source_kind: &str,
+) -> Result<BTreeSet<PathBuf>, String> {
+    let connection = engine
+        .open_connection()
+        .map_err(|error| error.to_string())?;
+    let mut statement = connection
+        .prepare(
+            "SELECT canonical_path FROM project_sources WHERE project_id=?1 AND source_kind=?2 AND grant_state='active' ORDER BY canonical_path",
+        )
+        .map_err(|error| error.to_string())?;
+    let stored = statement
+        .query_map(params![project_id, source_kind], |row| {
+            row.get::<_, String>(0)
+        })
+        .map_err(|error| error.to_string())?
+        .collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(|error| error.to_string())?;
     let mut roots = BTreeSet::new();
     for value in stored {
         let path = PathBuf::from(value);
@@ -52,17 +82,7 @@ pub(crate) fn single_active_project_root(
         }
         roots.insert(canonical);
     }
-    match roots.len() {
-        0 => Err(
-            "This Project has no available approved folder. Open the Project and choose its folder."
-                .to_string(),
-        ),
-        1 => Ok(roots.into_iter().next().expect("one checked Project root")),
-        _ => Err(
-            "This Project has more than one approved folder. Choose one Project folder before this work runs."
-                .to_string(),
-        ),
-    }
+    Ok(roots)
 }
 
 pub(crate) fn resolve_project_output_path(root: &Path, raw_path: &str) -> Result<PathBuf, String> {

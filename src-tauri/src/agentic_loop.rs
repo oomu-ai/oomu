@@ -398,7 +398,7 @@ pub async fn classify_chat_intent_route_inner(
             status_label: "OOMU is planning local actions...".to_string(),
         });
     }
-    if crate::gemma::is_single_file_creation_objective(prompt) {
+    if crate::gemma::is_native_artifact_objective(prompt) {
         return Ok(ChatIntentRouteDecision {
             route: ChatIntentRoute::AgenticPlanner,
             requires_local_access: true,
@@ -1277,7 +1277,7 @@ pub(crate) fn has_executable_agent_objective(prompt: &str) -> bool {
         || is_explicit_protected_apple_library_read(prompt)
         || contains_explicit_web_search_intent(&normalized)
         || is_explicit_read_only_project_status_request(prompt)
-        || crate::gemma::is_single_file_creation_objective(prompt)
+        || crate::gemma::is_native_artifact_objective(prompt)
         || agent_owned_artifact::is_directory_only_markdown_request(prompt)
         || !explicit_action_request_signals(&normalized).is_empty()
     {

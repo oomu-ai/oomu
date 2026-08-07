@@ -12,7 +12,7 @@ mod model_identity;
 pub(crate) mod model_resolution;
 #[path = "gemma_output_integrity.rs"]
 mod output_integrity;
-mod single_file_creation;
+pub(crate) mod single_file_creation;
 mod terminal_tool;
 mod tool_parsing;
 mod workflow_decision_request;
@@ -30,9 +30,6 @@ use crate::{
 };
 pub(crate) use action_plan_prompt::action_plan_grammar;
 
-pub(crate) fn is_single_file_creation_objective(prompt: &str) -> bool {
-    single_file_creation::is_objective(&prompt.trim().to_ascii_lowercase())
-}
 pub use action_plan_prompt::planner_prompt;
 pub use classifier_health::{AutoRouteClassifierHealth, AutoRouteClassifierStatus};
 pub(crate) use model_identity::resolve_legacy_identity;
@@ -45,6 +42,7 @@ pub use model_resolution::*;
 use output_integrity as integrity;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+pub(crate) use single_file_creation::is_native_artifact_objective;
 use std::{
     collections::HashMap,
     env, fs,

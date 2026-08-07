@@ -581,7 +581,7 @@ fn verified_approved_file_context_bypasses_preflight_and_preserves_display_copy(
         approved_file_receipt: None,
     }];
 
-    let route = verified_approved_file_route_decision(safe_prompt, &attachments, true)
+    let route = project_chat::verified_route(false, safe_prompt, &attachments, true)
         .expect("verified bounded context must bypass preflight");
     assert!(matches!(
         route.route,
@@ -594,7 +594,8 @@ fn verified_approved_file_context_bypasses_preflight_and_preserves_display_copy(
         display_prompt
     );
 
-    assert!(verified_approved_file_route_decision(
+    assert!(project_chat::verified_route(
+        false,
         "View [approved file: Screenshot 2026-07-13 at 21.39.23.png] and delete it.",
         &attachments,
         true,

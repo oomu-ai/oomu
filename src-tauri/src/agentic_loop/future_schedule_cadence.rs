@@ -213,7 +213,7 @@ fn ambiguous_cadence_regex() -> Option<&'static Regex> {
 fn named_cadence_noun_regex() -> Option<&'static Regex> {
     static REGEX: OnceLock<Result<Regex, regex::Error>> = OnceLock::new();
     REGEX
-        .get_or_init(|| Regex::new(r"(?i)\b(?:minutely|hourly|daily|weekly|biweekly|bimonthly|fortnightly|monthly|quarterly|yearly|annual|nightly)\s+(?:rate|rates|wage|wages|pay|price|prices|report|newsletter|meeting|statement|bill)\b"))
+        .get_or_init(|| Regex::new(r"(?i)\b(?:minutely|hourly|daily|weekly|biweekly|bimonthly|fortnightly|monthly|quarterly|yearly|annual|nightly)\s+(?:rate|rates|wage|wages|pay|price|prices|report|newsletter|meeting|statement|bill|brief|program\s+update|update|summary|plan|document|presentation)\b"))
         .as_ref()
         .ok()
 }

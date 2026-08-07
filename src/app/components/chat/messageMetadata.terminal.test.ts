@@ -28,10 +28,10 @@ describe("terminal chat metadata", () => {
 
   it("clears the accepted state as soon as its turn fails", () => {
     expect(markAcceptedTurnTerminal([
-      { role: "user", metadata: { turnId: "turn-1", turnState: "accepted" } },
+      { role: "user", isPending: true, metadata: { turnId: "turn-1", turnState: "accepted" } },
       { role: "user", metadata: { turnId: "turn-2", turnState: "accepted" } },
     ], "turn-1", "failed")).toEqual([
-      { role: "user", metadata: { turnId: "turn-1", turnState: "failed" } },
+      { role: "user", isPending: false, metadata: { turnId: "turn-1", turnState: "failed" } },
       { role: "user", metadata: { turnId: "turn-2", turnState: "accepted" } },
     ]);
   });

@@ -13,7 +13,7 @@
   <key>LSMultipleInstancesProhibited</key>
   <true/>
   <key>OOMUBuildNumber</key>
-  <integer>11</integer>
+  <integer>12</integer>
   <key>NSCalendarsUsageDescription</key>
   <string>OOMU checks your schedule for conflicts and creates only the Calendar events you approve.</string>
   <key>NSCalendarsFullAccessUsageDescription</key>

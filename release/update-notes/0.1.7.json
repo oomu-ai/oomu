@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.7",
+  "notes": {
+    "de-DE": "Verbessert die Zuverlässigkeit von Updates, Auto-Route und Cloud-Antworten und ermöglicht das korrekte Anhängen und Verarbeiten von PDFs über die Dateiauswahl oder per Drag-and-drop.",
+    "en-US": "Improves update, Auto-route, and cloud-answer reliability, and lets PDFs attach and parse correctly from the file picker or drag-and-drop.",
+    "es-ES": "Mejora la fiabilidad de las actualizaciones, Auto-route y las respuestas en la nube, y permite adjuntar y procesar correctamente archivos PDF desde el selector de archivos o mediante arrastrar y soltar.",
+    "fr-FR": "Améliore la fiabilité des mises à jour, d’Auto-route et des réponses cloud, et permet de joindre et d’analyser correctement les PDF depuis le sélecteur de fichiers ou par glisser-déposer.",
+    "id-ID": "Meningkatkan keandalan pembaruan, Auto-route, dan jawaban cloud, serta memungkinkan PDF dilampirkan dan diproses dengan benar melalui pemilih file atau seret dan lepas.",
+    "ja-JP": "アップデート、Auto-route、クラウド回答の信頼性を向上し、ファイル選択またはドラッグ＆ドロップで PDF を正しく添付・解析できるようにしました。",
+    "pt-BR": "Melhora a confiabilidade das atualizações, do Auto-route e das respostas na nuvem, além de permitir anexar e processar PDFs corretamente pelo seletor de arquivos ou por arrastar e soltar.",
+    "ru-RU": "Повышена надёжность обновлений, Auto-route и облачных ответов, а PDF теперь корректно прикрепляются и обрабатываются как через выбор файла, так и перетаскиванием.",
+    "uk-UA": "Підвищено надійність оновлень, Auto-route і хмарних відповідей, а PDF тепер коректно прикріплюються та обробляються як через вибір файлу, так і перетягуванням.",
+    "vi-VN": "Cải thiện độ tin cậy của cập nhật, Auto-route và câu trả lời đám mây, đồng thời cho phép đính kèm và xử lý PDF chính xác từ bộ chọn tệp hoặc thao tác kéo thả.",
+    "zh-CN": "提升更新、Auto-route 和云端回答的可靠性，并支持通过文件选择器或拖放正确附加和解析 PDF。",
+    "zh-TW": "提升更新、Auto-route 和雲端回答的可靠性，並支援透過檔案選擇器或拖放正確附加與解析 PDF。"
+  }
+}

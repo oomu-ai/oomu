@@ -1,6 +1,6 @@
 [package]
 name = "oomu"
-version = "0.1.6"
+version = "0.1.7"
 description = "OOMU sovereign fleet command and tactical intelligence workstation"
 authors = ["Eldris"]
 edition = "2021"

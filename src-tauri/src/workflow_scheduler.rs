@@ -26,6 +26,7 @@ use std::{sync::OnceLock, time::Duration};
 use tauri::Manager;
 
 mod delivery;
+mod idle;
 mod notification;
 mod projection;
 mod recurrence;
@@ -39,6 +40,7 @@ use delivery::{
     reserve_authorized_routine_delivery, reserve_routine_delivery, routine_notice_copy,
     verified_routine_delivery_body, RoutineDeliveryReservationState,
 };
+use idle::scheduler_requires_polling;
 #[cfg(test)]
 use notification::background_notice_copy;
 use notification::{
@@ -144,16 +146,18 @@ pub fn spawn_background_worker(
                 knowledge.clone(),
                 mcp_registry.clone(),
                 gateway.clone(),
-            )
+            )?;
+            scheduler_requires_polling(&persistence).map_err(|error| error.to_string())
         }));
-        match tick_result {
-            Ok(Ok(())) => {
+        let should_poll = match tick_result {
+            Ok(Ok(should_poll)) => {
                 app.state::<crate::DegradedModeState>()
                     .clear_after_verified_recovery(
                         "workflowScheduler",
                         crate::persistence_health::BackingStoreClass::NotApplicable,
                         "Scheduler thread and persistence-backed tick completed successfully.",
                     );
+                should_poll
             }
             Ok(Err(error)) => {
                 eprintln!(
@@ -167,6 +171,7 @@ pub fn spawn_background_worker(
                     true,
                     "Scheduled workflows are paused until a scheduler probe succeeds.",
                 );
+                true
             }
             Err(payload) => {
                 let message = crate::panic_payload_message(payload);
@@ -181,14 +186,16 @@ pub fn spawn_background_worker(
                     true,
                     "Scheduled workflows are paused until a scheduler probe succeeds.",
                 );
+                true
             }
-        }
+        };
         if let Err(error) = persistence.run_sqlite_maintenance_if_due(unix_time_ms()) {
             eprintln!(
                 "SQLITE_MAINTENANCE_FAILED {}",
                 crate::redaction::redacted_log_text(&error.to_string())
             );
         }
+        should_poll
     })
 }
 
@@ -205,6 +212,7 @@ pub fn sync_workflow_schedule_from_visual_state(
         persistence
             .disable_workflow_schedule(&schedule_id)
             .map_err(|error| error.to_string())?;
+        WorkflowSchedulerRuntime::wake_current();
         return Ok(());
     };
 
@@ -212,6 +220,7 @@ pub fn sync_workflow_schedule_from_visual_state(
         persistence
             .disable_workflow_schedule(&schedule_id)
             .map_err(|error| error.to_string())?;
+        WorkflowSchedulerRuntime::wake_current();
         return Ok(());
     }
 
@@ -227,8 +236,9 @@ pub fn sync_workflow_schedule_from_visual_state(
             is_active: true,
             next_run_at_ms: Some(next_run_at_ms),
         })
-        .map(|_| ())
-        .map_err(|error| error.to_string())
+        .map_err(|error| error.to_string())?;
+    WorkflowSchedulerRuntime::wake_current();
+    Ok(())
 }
 
 fn run_scheduler_tick(

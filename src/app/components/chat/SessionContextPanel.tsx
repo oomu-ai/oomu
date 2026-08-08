@@ -209,12 +209,10 @@ export function useSessionContextController({
 
   useEffect(() => {
     const initialRefresh = window.setTimeout(() => void refresh(), 0);
-    const intervalId = window.setInterval(() => void refresh(), 15_000);
     const handleFocus = () => void refresh();
     window.addEventListener("focus", handleFocus);
     return () => {
       window.clearTimeout(initialRefresh);
-      window.clearInterval(intervalId);
       window.removeEventListener("focus", handleFocus);
     };
   }, [refresh, refreshSignal, sessionId]);

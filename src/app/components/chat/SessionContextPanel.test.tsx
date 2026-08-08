@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/context/I18nContext";
 import { invoke } from "@/lib/invoke";
@@ -29,7 +29,10 @@ describe("session Context panel", () => {
       return null;
     });
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it("is always visible with measured use, provider maximum, and an honest explanation", async () => {
     render(<Harness />, { wrapper: I18nProvider });
@@ -54,5 +57,18 @@ describe("session Context panel", () => {
     await waitFor(() => expect(compact).toBeEnabled());
     fireEvent.click(compact);
     expect(await screen.findByText("Estimated conversation history for the next request was reduced from 6,144 to 3,200 tokens.")).toBeVisible();
+  });
+
+  it("refreshes when state changes without polling encrypted storage while idle", async () => {
+    vi.useFakeTimers();
+    render(<Harness />, { wrapper: I18nProvider });
+    await act(async () => vi.advanceTimersByTimeAsync(0));
+    const initialChecks = vi.mocked(invoke).mock.calls
+      .filter(([command]) => command === "get_session_context_status").length;
+    expect(initialChecks).toBe(1);
+
+    await act(async () => vi.advanceTimersByTimeAsync(60_000));
+    expect(vi.mocked(invoke).mock.calls
+      .filter(([command]) => command === "get_session_context_status")).toHaveLength(initialChecks);
   });
 });

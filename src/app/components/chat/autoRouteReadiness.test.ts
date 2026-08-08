@@ -38,16 +38,16 @@ const readySnapshot = {
   failureBoundary: null,
 };
 
+beforeEach(() => {
+  invokeMock.mockReset();
+});
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
+
 describe("current-session Auto-route readiness", () => {
-  beforeEach(() => {
-    invokeMock.mockReset();
-  });
-
-  afterEach(() => {
-    cleanup();
-    vi.useRealTimers();
-  });
-
   it("reports ready only when the complete current-session snapshot is valid", () => {
     expect(normalizeAutoRouteSessionReadiness(readySnapshot, "session-301"))
       .toMatchObject({ status: "ready", sessionId: "session-301" });
@@ -105,8 +105,10 @@ describe("current-session Auto-route readiness", () => {
     expect(normalizeLocalModelStatus({ status: "ready" })).toBe("ready");
     expect(normalizeLocalModelStatus({ status: "excellent" })).toBe("unknown");
   });
+});
 
-  it("never overlaps native readiness polls when one check is still running", async () => {
+describe("Auto-route readiness refresh scheduling", () => {
+  it("never overlaps native readiness checks when one check is still running", async () => {
     vi.useFakeTimers();
     let resolvePoll: ((value: unknown) => void) | undefined;
     const pendingPoll = new Promise<unknown>((resolve) => {
@@ -125,6 +127,7 @@ describe("current-session Auto-route readiness", () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5_000);
+      window.dispatchEvent(new Event("focus"));
     });
     expect(invokeMock).toHaveBeenCalledTimes(2);
 
@@ -132,9 +135,52 @@ describe("current-session Auto-route readiness", () => {
       resolvePoll?.(null);
       await Promise.resolve();
     });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1_000);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(invokeMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("stops polling after native readiness is stable", async () => {
+    vi.useFakeTimers();
+    invokeMock.mockImplementation((command: string) => Promise.resolve(
+      command === "get_local_generation_health" ? { status: "ready" } : readySnapshot,
+    ));
+
+    renderHook(() => useAutoRouteReadiness({
+      sessionId: "session-301",
+      dynamicRoutingEnabled: true,
+      localModelId: "gemma-4-E2B-it-qat-q4_0-gguf",
+    }));
+
+    await act(async () => Promise.resolve());
+    expect(invokeMock).toHaveBeenCalledTimes(2);
+    await act(async () => vi.advanceTimersByTimeAsync(60_000));
+    expect(invokeMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rechecks transitional readiness and stops once it becomes stable", async () => {
+    vi.useFakeTimers();
+    let readinessChecks = 0;
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "get_local_generation_health") {
+        return Promise.resolve({ status: readinessChecks === 0 ? "loading" : "ready" });
+      }
+      readinessChecks += 1;
+      return Promise.resolve(readinessChecks === 1
+        ? { ...readySnapshot, status: "loading", classifierReady: false }
+        : readySnapshot);
     });
+
+    renderHook(() => useAutoRouteReadiness({
+      sessionId: "session-301",
+      dynamicRoutingEnabled: true,
+      localModelId: "gemma-4-E2B-it-qat-q4_0-gguf",
+    }));
+
+    await act(async () => Promise.resolve());
+    expect(invokeMock).toHaveBeenCalledTimes(2);
+    await act(async () => vi.advanceTimersByTimeAsync(5_000));
+    expect(invokeMock).toHaveBeenCalledTimes(4);
+    await act(async () => vi.advanceTimersByTimeAsync(30_000));
     expect(invokeMock).toHaveBeenCalledTimes(4);
   });
 });

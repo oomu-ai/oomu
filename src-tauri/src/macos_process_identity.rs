@@ -1,6 +1,6 @@
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use std::{fs, path::Path, process::Command};
+use std::{fs, path::Path, process::Command, sync::OnceLock};
 
 const PRODUCTION_IDENTIFIER: &str = "ai.eldris.oomu.gpd";
 const DEVELOPMENT_IDENTIFIER: &str = "ai.eldris.oomu.gpd.development";
@@ -29,7 +29,8 @@ pub(crate) struct MacosProcessIdentityEvidence {
 
 #[cfg(target_os = "macos")]
 pub(crate) fn current() -> MacosProcessIdentityEvidence {
-    compute_current()
+    static CURRENT: OnceLock<MacosProcessIdentityEvidence> = OnceLock::new();
+    CURRENT.get_or_init(compute_current).clone()
 }
 
 #[cfg(target_os = "macos")]
@@ -88,7 +89,8 @@ fn compute_current() -> MacosProcessIdentityEvidence {
 
 #[cfg(not(target_os = "macos"))]
 pub(crate) fn current() -> MacosProcessIdentityEvidence {
-    compute_current()
+    static CURRENT: OnceLock<MacosProcessIdentityEvidence> = OnceLock::new();
+    CURRENT.get_or_init(compute_current).clone()
 }
 
 #[cfg(not(target_os = "macos"))]

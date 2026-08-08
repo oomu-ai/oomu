@@ -33,6 +33,7 @@ mod channel_status;
 mod provider_receipts;
 pub(crate) mod runtime_activation;
 mod slack;
+mod supervisor;
 use activation::probe_telegram_bot;
 use channel_status::{
     active_connection_state, channel_label, inactive_connection_state,
@@ -43,7 +44,6 @@ use provider_receipts::{
     send_telegram_reply, send_telegram_reply_with_receipt,
 };
 use slack::{send_slack_message, slack_config_from_channel, spawn_slack_worker};
-const GATEWAY_WORKER_POLL_INTERVAL: Duration = Duration::from_secs(5);
 const TELEGRAM_LONG_POLL_TIMEOUT_SECONDS: u64 = 30;
 const TELEGRAM_INITIAL_BACKOFF: Duration = Duration::from_secs(2);
 const TELEGRAM_MAX_BACKOFF: Duration = Duration::from_secs(30);
@@ -412,28 +412,7 @@ impl SovereignGatewayService {
             }
         });
 
-        let supervisor_service = service.clone();
-        let supervisor_persistence = persistence.clone();
-        tauri::async_runtime::spawn(async move {
-            loop {
-                tokio::time::sleep(GATEWAY_WORKER_POLL_INTERVAL).await;
-                if supervisor_service.shutting_down.load(Ordering::Acquire) {
-                    break;
-                }
-                if !supervisor_service.workers_are_enabled() {
-                    continue;
-                }
-                if let Err(error) = supervisor_service
-                    .refresh_workers(&supervisor_persistence)
-                    .await
-                {
-                    eprintln!(
-                        "SOVEREIGN_GATEWAY_SUPERVISOR_REFRESH_FAILED error={}",
-                        compact_log_text(&error, 160)
-                    );
-                }
-            }
-        });
+        service.spawn_worker_supervisor(persistence.clone());
 
         eprintln!("SOVEREIGN_GATEWAY_SERVICE_READY");
         service

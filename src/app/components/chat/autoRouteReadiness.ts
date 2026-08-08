@@ -45,7 +45,10 @@ type AutoRouteReadinessOptions = {
   sessionId: string;
   dynamicRoutingEnabled: boolean;
   localModelId: string;
+  refreshKey?: string;
 };
+
+const TRANSITIONAL_READINESS_REFRESH_MS = 5_000;
 
 const readinessStatuses = new Set<AutoRouteReadinessStatus>([
   "loading",
@@ -205,6 +208,7 @@ export function useAutoRouteReadiness({
   sessionId,
   dynamicRoutingEnabled,
   localModelId,
+  refreshKey = "",
 }: AutoRouteReadinessOptions) {
   const [localGeneration, setLocalGeneration] = useState<{
     modelId: string;
@@ -231,9 +235,22 @@ export function useAutoRouteReadiness({
 
     let cancelled = false;
     let requestInFlight = false;
+    let refreshTimerId: number | null = null;
+
+    function scheduleTransitionalRefresh() {
+      if (cancelled || refreshTimerId !== null) return;
+      refreshTimerId = window.setTimeout(() => {
+        refreshTimerId = null;
+        void refreshReadiness();
+      }, TRANSITIONAL_READINESS_REFRESH_MS);
+    }
 
     async function refreshReadiness() {
       if (requestInFlight) return;
+      if (refreshTimerId !== null) {
+        window.clearTimeout(refreshTimerId);
+        refreshTimerId = null;
+      }
       requestInFlight = true;
       const generationPromise = invoke<unknown>("get_local_generation_health", {
         modelId: localModelId || null,
@@ -250,34 +267,49 @@ export function useAutoRouteReadiness({
         if (cancelled) {
           return;
         }
+        const nextLocalStatus = generationStatus.status === "fulfilled"
+          ? normalizeLocalModelStatus(generationStatus.value)
+          : "unknown";
+        const nextSessionReadiness = !dynamicRoutingEnabled || !sessionId
+          ? unavailableReadiness(sessionId)
+          : currentSessionReadiness.status === "fulfilled"
+            ? normalizeAutoRouteSessionReadiness(currentSessionReadiness.value, sessionId)
+            : unavailableReadiness(sessionId);
         setLocalGeneration({
           modelId: localModelId,
-          status: generationStatus.status === "fulfilled"
-            ? normalizeLocalModelStatus(generationStatus.value)
-            : "unknown",
+          status: nextLocalStatus,
         });
-        if (!dynamicRoutingEnabled || !sessionId) {
-          setSessionReadiness(unavailableReadiness(sessionId));
-        } else {
-          setSessionReadiness(
-            currentSessionReadiness.status === "fulfilled"
-              ? normalizeAutoRouteSessionReadiness(currentSessionReadiness.value, sessionId)
-              : unavailableReadiness(sessionId),
-          );
+        setSessionReadiness(nextSessionReadiness);
+        const readinessIsTransitioning = dynamicRoutingEnabled
+          && Boolean(sessionId)
+          && ["loading", "recovering"].includes(nextSessionReadiness.status);
+        if (nextLocalStatus === "loading" || readinessIsTransitioning) {
+          scheduleTransitionalRefresh();
         }
       } finally {
         requestInFlight = false;
       }
     }
 
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        void refreshReadiness();
+      }
+    }
+
     void refreshReadiness();
-    const intervalId = window.setInterval(() => void refreshReadiness(), 1000);
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
+      if (refreshTimerId !== null) {
+        window.clearTimeout(refreshTimerId);
+      }
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
-  }, [dynamicRoutingEnabled, localModelId, sessionId]);
+  }, [dynamicRoutingEnabled, localModelId, refreshKey, sessionId]);
 
   return {
     localModelStatus,

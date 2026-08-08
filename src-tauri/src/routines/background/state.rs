@@ -11,7 +11,8 @@ use status::derived_runtime_state;
 
 pub(super) use status::{menu_activation_ready, status};
 
-pub(super) const HEARTBEAT_VALID_FOR_MS: i64 = 15_000;
+pub(super) const HEARTBEAT_VALID_FOR: std::time::Duration = std::time::Duration::from_secs(15);
+pub(super) const HEARTBEAT_VALID_FOR_MS: i64 = HEARTBEAT_VALID_FOR.as_millis() as i64;
 const TURNING_GRACE_MS: i64 = 8_000;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -311,6 +312,7 @@ pub(super) fn registration_started(engine: &PersistenceEngine) -> Result<(), Str
     )
 }
 
+#[cfg(test)]
 pub(super) fn record_heartbeat(
     engine: &PersistenceEngine,
     generation: &str,
@@ -320,10 +322,30 @@ pub(super) fn record_heartbeat(
     profile_class: &str,
     process_id: i64,
 ) -> Result<BackgroundRow, String> {
-    let now = unix_time_ms_i64();
     let connection = engine
         .open_connection()
         .map_err(|error| error.to_string())?;
+    record_heartbeat_on_connection(
+        &connection,
+        generation,
+        profile_generation,
+        build_number,
+        build_identity,
+        profile_class,
+        process_id,
+    )
+}
+
+pub(super) fn record_heartbeat_on_connection(
+    connection: &rusqlite::Connection,
+    generation: &str,
+    profile_generation: &str,
+    build_number: i64,
+    build_identity: &str,
+    profile_class: &str,
+    process_id: i64,
+) -> Result<BackgroundRow, String> {
+    let now = unix_time_ms_i64();
     let previous = load_row(&connection)?;
     if !heartbeat_matches_active_generation(
         &previous,
@@ -380,10 +402,18 @@ pub(super) fn record_worker_stopped(
     generation: &str,
     intentional: bool,
 ) -> Result<BackgroundRow, String> {
-    let now = unix_time_ms_i64();
     let connection = engine
         .open_connection()
         .map_err(|error| error.to_string())?;
+    record_worker_stopped_on_connection(&connection, generation, intentional)
+}
+
+pub(super) fn record_worker_stopped_on_connection(
+    connection: &rusqlite::Connection,
+    generation: &str,
+    intentional: bool,
+) -> Result<BackgroundRow, String> {
+    let now = unix_time_ms_i64();
     let current = load_row(&connection)?;
     if current.registration_generation.as_deref() != Some(generation) {
         return Ok(current);

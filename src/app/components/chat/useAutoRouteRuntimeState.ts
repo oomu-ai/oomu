@@ -38,6 +38,7 @@ export function useAutoRouteRuntimeState({
     sessionId,
     dynamicRoutingEnabled,
     localModelId,
+    refreshKey: cloudModelId,
   });
 
   useEffect(() => {

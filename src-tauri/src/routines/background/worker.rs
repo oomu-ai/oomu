@@ -7,7 +7,7 @@ use std::{
         mpsc, Arc, Mutex, MutexGuard,
     },
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 use tauri::Emitter;
 
@@ -59,6 +59,44 @@ struct WorkerExpectation {
     build_identity: String,
     profile_class: String,
     process_id: u32,
+}
+
+struct WorkerLiveness {
+    last_persisted_heartbeat: Mutex<Instant>,
+    monitor_finished: AtomicBool,
+}
+
+impl WorkerLiveness {
+    fn new() -> Self {
+        Self {
+            last_persisted_heartbeat: Mutex::new(Instant::now()),
+            monitor_finished: AtomicBool::new(false),
+        }
+    }
+
+    fn record_persisted_heartbeat(&self) {
+        let mut last = self
+            .last_persisted_heartbeat
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        *last = Instant::now();
+    }
+
+    fn heartbeat_expired(&self) -> bool {
+        self.last_persisted_heartbeat
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .elapsed()
+            >= state::HEARTBEAT_VALID_FOR
+    }
+
+    fn finish_monitor(&self) {
+        self.monitor_finished.store(true, Ordering::Release);
+    }
+
+    fn monitor_finished(&self) -> bool {
+        self.monitor_finished.load(Ordering::Acquire)
+    }
 }
 
 impl BackgroundRuntimeSupervisor {
@@ -122,12 +160,14 @@ impl BackgroundRuntimeSupervisor {
             profile_class: profile_class.to_string(),
             process_id,
         };
+        let liveness = Arc::new(WorkerLiveness::new());
         if spawn_monitor(
             stdout,
             expectation,
             engine.clone(),
             app.clone(),
             self.stopping.clone(),
+            liveness.clone(),
         )
         .is_err()
         {
@@ -141,6 +181,7 @@ impl BackgroundRuntimeSupervisor {
             generation.to_string(),
             self.clone(),
             self.stopping.clone(),
+            liveness,
         )
         .is_err()
         {
@@ -247,10 +288,11 @@ fn spawn_monitor(
     engine: PersistenceEngine,
     app: tauri::AppHandle,
     stopping: Arc<AtomicBool>,
+    liveness: Arc<WorkerLiveness>,
 ) -> std::io::Result<()> {
     thread::Builder::new()
         .name("oomu-background-runtime-monitor".to_string())
-        .spawn(move || monitor_worker(stdout, expected, engine, app, stopping))
+        .spawn(move || monitor_worker(stdout, expected, engine, app, stopping, liveness))
         .map(|_| ())
 }
 
@@ -260,9 +302,11 @@ fn monitor_worker(
     engine: PersistenceEngine,
     app: tauri::AppHandle,
     stopping: Arc<AtomicBool>,
+    liveness: Arc<WorkerLiveness>,
 ) {
     let reader = BufReader::new(stdout);
     let mut verified_any = false;
+    let mut connection = None;
     for encoded in reader.lines().map_while(Result::ok) {
         let Some(heartbeat) = parse_heartbeat(&encoded) else {
             continue;
@@ -270,9 +314,25 @@ fn monitor_worker(
         if !heartbeat_matches(&heartbeat, &expected) {
             continue;
         }
-        verified_any = true;
-        if state::record_heartbeat(
-            &engine,
+        let first_verified_heartbeat = !verified_any;
+        let connection = match connection.as_ref() {
+            Some(connection) => connection,
+            None => match engine.open_connection() {
+                Ok(opened) => {
+                    let _ = connection.insert(opened);
+                    connection.as_ref().expect("connection was inserted")
+                }
+                Err(error) => {
+                    eprintln!(
+                        "OOMU_BACKGROUND_HEARTBEAT_PERSIST_FAILED {}",
+                        crate::redaction::redacted_log_text(&error.to_string())
+                    );
+                    continue;
+                }
+            },
+        };
+        if state::record_heartbeat_on_connection(
+            connection,
             &heartbeat.generation,
             &heartbeat.profile_generation,
             heartbeat.build_number,
@@ -282,13 +342,30 @@ fn monitor_worker(
         )
         .is_ok()
         {
-            publish_status(&app, &engine);
+            verified_any = true;
+            liveness.record_persisted_heartbeat();
+            if first_verified_heartbeat {
+                publish_status(&app, &engine);
+            }
         }
     }
-    let intentional =
-        stopping.load(Ordering::Acquire) || !state::requested(&engine).unwrap_or(false);
+    liveness.finish_monitor();
+    let requested = connection
+        .as_ref()
+        .and_then(|connection| state::load_row(connection).ok())
+        .map(|row| row.requested_enabled)
+        .unwrap_or_else(|| state::requested(&engine).unwrap_or(false));
+    let intentional = stopping.load(Ordering::Acquire) || !requested;
     if verified_any || !intentional {
-        let _ = state::record_worker_stopped(&engine, &expected.generation, intentional);
+        if let Some(connection) = connection.as_ref() {
+            let _ = state::record_worker_stopped_on_connection(
+                connection,
+                &expected.generation,
+                intentional,
+            );
+        } else {
+            let _ = state::record_worker_stopped(&engine, &expected.generation, intentional);
+        }
         publish_status(&app, &engine);
     }
 }
@@ -309,10 +386,11 @@ fn spawn_watchdog(
     generation: String,
     supervisor: BackgroundRuntimeSupervisor,
     stopping: Arc<AtomicBool>,
+    liveness: Arc<WorkerLiveness>,
 ) -> std::io::Result<()> {
     thread::Builder::new()
         .name("oomu-background-runtime-watchdog".to_string())
-        .spawn(move || watchdog_worker(engine, app, generation, supervisor, stopping))
+        .spawn(move || watchdog_worker(engine, app, generation, supervisor, stopping, liveness))
         .map(|_| ())
 }
 
@@ -322,11 +400,15 @@ fn watchdog_worker(
     generation: String,
     supervisor: BackgroundRuntimeSupervisor,
     stopping: Arc<AtomicBool>,
+    liveness: Arc<WorkerLiveness>,
 ) {
     loop {
         thread::sleep(WATCHDOG_INTERVAL);
-        if stopping.load(Ordering::Acquire) {
+        if stopping.load(Ordering::Acquire) || liveness.monitor_finished() {
             break;
+        }
+        if !liveness.heartbeat_expired() {
+            continue;
         }
         match state::expire_stale_heartbeat(&engine, &generation) {
             Ok(state::WatchdogObservation::Continue) => {}
@@ -620,6 +702,23 @@ mod tests {
     fn supervisor_starts_without_claiming_a_worker() {
         let supervisor = BackgroundRuntimeSupervisor::default();
         assert_eq!(supervisor.running_generation(), None);
+    }
+
+    #[test]
+    fn watchdog_uses_worker_liveness_without_database_polling() {
+        let liveness = WorkerLiveness {
+            last_persisted_heartbeat: Mutex::new(Instant::now() - state::HEARTBEAT_VALID_FOR),
+            monitor_finished: AtomicBool::new(false),
+        };
+
+        assert!(liveness.heartbeat_expired());
+        assert!(!liveness.monitor_finished());
+
+        liveness.record_persisted_heartbeat();
+        assert!(!liveness.heartbeat_expired());
+
+        liveness.finish_monitor();
+        assert!(liveness.monitor_finished());
     }
 
     #[test]

@@ -1985,7 +1985,9 @@
         "unchanged_status": "Sélection inchangée.",
         "waiting_status": "En attente de la sélection d’un dossier…",
         "load_error": "Impossible de charger le dossier des modèles locaux.",
-        "choose_error": "Impossible de choisir un dossier de modèles locaux."
+        "choose_error": "Impossible de choisir un dossier de modèles locaux.",
+        "multiple_models_error": "Placez chaque modèle dans son propre dossier. Ce dossier contient plusieurs fichiers de modèle (.gguf). Créez un dossier pour chaque modèle, placez un fichier .gguf dans chacun, puis vérifiez à nouveau.",
+        "check_again": "Vérifier à nouveau"
       },
       "default_prewarmed_model": {
         "title": "Modèle chargé au démarrage",
@@ -2001,6 +2003,7 @@
         "load_error": "Impossible de charger le modèle préchargé par défaut.",
         "save_error": "Impossible d’enregistrer le modèle préchargé par défaut.",
         "models_load_error": "Impossible de charger les modèles locaux.",
+        "fix_models_folder": "Corrigez le dossier des modèles ci-dessus pour afficher vos modèles.",
         "unavailable_option": "{modelId} (introuvable dans ce répertoire)"
       },
       "language": {

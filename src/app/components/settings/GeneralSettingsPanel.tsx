@@ -24,6 +24,8 @@ type DefaultPrewarmedModelSetting = {
 type AppearanceTheme = "light" | "dark" | "system";
 type ResolvedAppearanceTheme = Exclude<AppearanceTheme, "system">;
 
+const MODEL_FOLDER_LAYOUT_ERROR = "local_model_primary_gguf_ambiguous";
+
 const appearanceThemeLabelKeys: Record<AppearanceTheme, string> = {
   light: "settings.general.appearance.theme_options.light",
   dark: "settings.general.appearance.theme_options.dark",
@@ -34,6 +36,221 @@ function errorMessage(error: unknown, fallback: string) {
   return error && typeof error === "object" && "message" in error
     ? String(error.message)
     : fallback;
+}
+
+function errorCode(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = String(error.code).trim();
+    if (code) return code;
+  }
+
+  return errorMessage(error, "").match(/\(([a-z][a-z0-9_]*?)\)\s*$/i)?.[1];
+}
+
+type LocalModelSettingsSurfaceProps = {
+  browseForModelDirectory: () => Promise<void>;
+  checkModelDirectoryAgain: () => Promise<void>;
+  isBrowsingModelDirectory: boolean;
+  isDefaultModelDirectory: boolean;
+  isLoadingLocalModels: boolean;
+  isSavingPrewarmedModel: boolean;
+  localModelDirectory: string;
+  localModelsErrorCode: string | null;
+  modelDirectoryStatus: ModelDirectoryStatus;
+  prewarmedModelId: string;
+  prewarmedModelStatus: ModelDirectoryStatus;
+  readyLocalModels: LocalModelOption[];
+  saveDefaultPrewarmedModel: (modelId: string) => Promise<void>;
+  selectedPrewarmedModelIsAvailable: boolean;
+  t: ReturnType<typeof useI18n>["t"];
+};
+
+type Translate = LocalModelSettingsSurfaceProps["t"];
+
+function emptyModelsLabel(
+  t: Translate,
+  isLoading: boolean,
+  folderLayoutNeedsRepair: boolean,
+) {
+  if (isLoading) {
+    return t("settings.general.default_prewarmed_model.loading_models");
+  }
+  return t(
+    folderLayoutNeedsRepair
+      ? "settings.general.default_prewarmed_model.fix_models_folder"
+      : "settings.general.default_prewarmed_model.empty_models",
+  );
+}
+
+function prewarmedModelStatusText(
+  t: Translate,
+  status: ModelDirectoryStatus,
+  isSaving: boolean,
+  isLoading: boolean,
+  folderLayoutNeedsRepair: boolean,
+  hasReadyModels: boolean,
+) {
+  if ("message" in status) return status.message;
+  if (isSaving) return t("settings.general.default_prewarmed_model.saving_status");
+  if (isLoading) return t("settings.general.default_prewarmed_model.loading_models");
+  if (folderLayoutNeedsRepair) {
+    return t("settings.general.default_prewarmed_model.fix_models_folder");
+  }
+  if (!hasReadyModels) {
+    return t("settings.general.default_prewarmed_model.empty_status");
+  }
+  return t(status.key);
+}
+
+function LocalModelSettingsSurface({
+  browseForModelDirectory,
+  checkModelDirectoryAgain,
+  isBrowsingModelDirectory,
+  isDefaultModelDirectory,
+  isLoadingLocalModels,
+  isSavingPrewarmedModel,
+  localModelDirectory,
+  localModelsErrorCode,
+  modelDirectoryStatus,
+  prewarmedModelId,
+  prewarmedModelStatus,
+  readyLocalModels,
+  saveDefaultPrewarmedModel,
+  selectedPrewarmedModelIsAvailable,
+  t,
+}: LocalModelSettingsSurfaceProps) {
+  const folderLayoutNeedsRepair =
+    localModelsErrorCode === MODEL_FOLDER_LAYOUT_ERROR;
+
+  return (
+    <>
+      <section className="rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--background)] p-5">
+        <div className="flex flex-col gap-5">
+          <div>
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              {t("settings.general.model_directory.title")}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
+              {t("settings.general.model_directory.description")}
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <label className="sr-only" htmlFor="local-model-directory">
+              {t("settings.general.model_directory.title")}
+            </label>
+            <input
+              className="h-11 min-w-0 flex-1 cursor-pointer border border-[var(--border-strong)] bg-[var(--background)] px-3 font-mono text-sm text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--accent-background)]"
+              id="local-model-directory"
+              onClick={() => void browseForModelDirectory()}
+              placeholder={t("settings.general.model_directory.placeholder")}
+              readOnly
+              title={localModelDirectory}
+              value={isDefaultModelDirectory ? "" : localModelDirectory}
+            />
+            <button
+              className="h-11 shrink-0 bg-[var(--inverse-background)] px-6 text-sm font-semibold text-[var(--inverse-foreground)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-wait disabled:opacity-50"
+              disabled={isBrowsingModelDirectory}
+              onClick={() => void browseForModelDirectory()}
+              type="button"
+            >
+              {isBrowsingModelDirectory ? t("common.browsing") : t("common.browse")}
+            </button>
+          </div>
+          <p
+            aria-live="polite"
+            className={`text-xs font-medium ${
+              folderLayoutNeedsRepair
+                ? "text-[var(--destructive)]"
+                : "text-[var(--foreground-muted)]"
+            }`}
+          >
+            {"message" in modelDirectoryStatus
+              ? modelDirectoryStatus.message
+              : t(modelDirectoryStatus.key)}
+          </p>
+          {folderLayoutNeedsRepair ? (
+            <button
+              className="w-fit rounded-[var(--radius-sm)] border border-[var(--border-strong)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--fill-hover)] disabled:cursor-wait disabled:opacity-60"
+              disabled={isLoadingLocalModels}
+              onClick={() => void checkModelDirectoryAgain()}
+              type="button"
+            >
+              {t("settings.general.model_directory.check_again")}
+            </button>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--background)] p-5">
+        <div className="flex flex-col gap-5">
+          <div>
+            <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              {t("settings.general.default_prewarmed_model.title")}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
+              {t("settings.general.default_prewarmed_model.description")}
+            </p>
+          </div>
+          <div className="relative w-full lg:w-[24rem]">
+            <label className="sr-only" htmlFor="default-prewarmed-model">
+              {t("settings.general.default_prewarmed_model.select_label")}
+            </label>
+            <select
+              aria-label={t("settings.general.default_prewarmed_model.select_label")}
+              className="h-11 w-full cursor-pointer rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--background)] px-4 text-sm font-medium text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--fill-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                isLoadingLocalModels ||
+                isSavingPrewarmedModel ||
+                localModelsErrorCode !== null ||
+                readyLocalModels.length === 0
+              }
+              id="default-prewarmed-model"
+              onChange={(event) => void saveDefaultPrewarmedModel(event.target.value)}
+              value={prewarmedModelId}
+            >
+              {prewarmedModelId && !selectedPrewarmedModelIsAvailable ? (
+                <option value={prewarmedModelId}>
+                  {folderLayoutNeedsRepair
+                    ? prewarmedModelId
+                    : t("settings.general.default_prewarmed_model.unavailable_option", {
+                        modelId: prewarmedModelId,
+                      })}
+                </option>
+              ) : null}
+              {readyLocalModels.length > 0 ? (
+                readyLocalModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">
+                  {emptyModelsLabel(
+                    t,
+                    isLoadingLocalModels,
+                    folderLayoutNeedsRepair,
+                  )}
+                </option>
+              )}
+            </select>
+            <p
+              aria-live="polite"
+              className="mt-2 text-xs font-medium text-[var(--foreground-muted)]"
+            >
+              {prewarmedModelStatusText(
+                t,
+                prewarmedModelStatus,
+                isSavingPrewarmedModel,
+                isLoadingLocalModels,
+                folderLayoutNeedsRepair,
+                readyLocalModels.length > 0,
+              )}
+            </p>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
 
 export function GeneralSettingsPanel() {
@@ -57,6 +274,9 @@ export function GeneralSettingsPanel() {
     useState(false);
   const [localModels, setLocalModels] = useState<LocalModelOption[]>([]);
   const [isLoadingLocalModels, setIsLoadingLocalModels] = useState(false);
+  const [localModelsErrorCode, setLocalModelsErrorCode] = useState<string | null>(
+    null,
+  );
   const [prewarmedModelId, setPrewarmedModelId] = useState("");
   const [isDefaultPrewarmedModel, setIsDefaultPrewarmedModel] = useState(true);
   const [isSavingPrewarmedModel, setIsSavingPrewarmedModel] = useState(false);
@@ -87,15 +307,29 @@ export function GeneralSettingsPanel() {
         const models = await invoke<LocalModelOption[]>("list_local_models");
         if (!isActive()) return;
         setLocalModels(models);
+        setLocalModelsErrorCode(null);
+        return true;
       } catch (error) {
-        if (!isActive()) return;
+        if (!isActive()) return false;
+        const code = errorCode(error) ?? null;
         setLocalModels([]);
+        setLocalModelsErrorCode(code);
+        if (code === MODEL_FOLDER_LAYOUT_ERROR) {
+          setModelDirectoryStatus({
+            key: "settings.general.model_directory.multiple_models_error",
+          });
+          setPrewarmedModelStatus({
+            key: "settings.general.default_prewarmed_model.fix_models_folder",
+          });
+          return false;
+        }
         setPrewarmedModelStatus({
           message: errorMessage(
             error,
             t("settings.general.default_prewarmed_model.models_load_error"),
           ),
         });
+        return false;
       } finally {
         if (isActive()) {
           setIsLoadingLocalModels(false);
@@ -191,7 +425,13 @@ export function GeneralSettingsPanel() {
         setModelDirectoryStatus({
           key: "settings.general.model_directory.saved_status",
         });
-        await refreshLocalModels();
+        if (await refreshLocalModels()) {
+          setPrewarmedModelStatus(
+            isDefaultPrewarmedModel
+              ? { key: "settings.general.default_prewarmed_model.default_status" }
+              : { key: "settings.general.default_prewarmed_model.saved_status" },
+          );
+        }
       } else {
         setModelDirectoryStatus(
           isDefaultModelDirectory
@@ -208,6 +448,24 @@ export function GeneralSettingsPanel() {
       });
     } finally {
       setIsBrowsingModelDirectory(false);
+    }
+  };
+
+  const checkModelDirectoryAgain = async () => {
+    setModelDirectoryStatus({
+      key: "settings.general.model_directory.waiting_status",
+    });
+    if (await refreshLocalModels()) {
+      setModelDirectoryStatus(
+        isDefaultModelDirectory
+          ? { key: "settings.general.model_directory.default_status" }
+          : { key: "settings.general.model_directory.saved_status" },
+      );
+      setPrewarmedModelStatus(
+        isDefaultPrewarmedModel
+          ? { key: "settings.general.default_prewarmed_model.default_status" }
+          : { key: "settings.general.default_prewarmed_model.saved_status" },
+      );
     }
   };
 
@@ -328,113 +586,23 @@ export function GeneralSettingsPanel() {
         </div>
       </section>
 
-      <section className="rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--background)] p-5">
-        <div className="flex flex-col gap-5">
-          <div>
-            <h2 className="text-sm font-semibold text-[var(--foreground)]">
-              {t("settings.general.model_directory.title")}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
-              {t("settings.general.model_directory.description")}
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <label className="sr-only" htmlFor="local-model-directory">
-              {t("settings.general.model_directory.title")}
-            </label>
-            <input
-              className="h-11 min-w-0 flex-1 cursor-pointer border border-[var(--border-strong)] bg-[var(--background)] px-3 font-mono text-sm text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--accent-background)]"
-              id="local-model-directory"
-              onClick={browseForModelDirectory}
-              placeholder={t("settings.general.model_directory.placeholder")}
-              readOnly
-              title={localModelDirectory}
-              value={isDefaultModelDirectory ? "" : localModelDirectory}
-            />
-            <button
-              className="h-11 shrink-0 bg-[var(--inverse-background)] px-6 text-sm font-semibold text-[var(--inverse-foreground)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-wait disabled:opacity-50"
-              disabled={isBrowsingModelDirectory}
-              onClick={browseForModelDirectory}
-              type="button"
-            >
-              {isBrowsingModelDirectory ? t("common.browsing") : t("common.browse")}
-            </button>
-          </div>
-          <p
-            aria-live="polite"
-            className="text-xs font-medium text-[var(--foreground-muted)]"
-          >
-            {"message" in modelDirectoryStatus
-              ? modelDirectoryStatus.message
-              : t(modelDirectoryStatus.key)}
-          </p>
-        </div>
-      </section>
-
-      <section className="rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--background)] p-5">
-        <div className="flex flex-col gap-5">
-          <div>
-            <h2 className="text-sm font-semibold text-[var(--foreground)]">
-              {t("settings.general.default_prewarmed_model.title")}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
-              {t("settings.general.default_prewarmed_model.description")}
-            </p>
-          </div>
-          <div className="relative w-full lg:w-[24rem]">
-            <label className="sr-only" htmlFor="default-prewarmed-model">
-              {t("settings.general.default_prewarmed_model.select_label")}
-            </label>
-            <select
-              aria-label={t("settings.general.default_prewarmed_model.select_label")}
-              className="h-11 w-full cursor-pointer rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--background)] px-4 text-sm font-medium text-[var(--foreground)] outline-none transition-colors hover:bg-[var(--fill-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                isLoadingLocalModels ||
-                isSavingPrewarmedModel ||
-                readyLocalModels.length === 0
-              }
-              id="default-prewarmed-model"
-              onChange={(event) => void saveDefaultPrewarmedModel(event.target.value)}
-              value={prewarmedModelId}
-            >
-              {prewarmedModelId && !selectedPrewarmedModelIsAvailable ? (
-                <option value={prewarmedModelId}>
-                  {t("settings.general.default_prewarmed_model.unavailable_option", {
-                    modelId: prewarmedModelId,
-                  })}
-                </option>
-              ) : null}
-              {readyLocalModels.length > 0 ? (
-                readyLocalModels.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))
-              ) : (
-                <option value="">
-                  {isLoadingLocalModels
-                    ? t("settings.general.default_prewarmed_model.loading_models")
-                    : t("settings.general.default_prewarmed_model.empty_models")}
-                </option>
-              )}
-            </select>
-            <p
-              aria-live="polite"
-              className="mt-2 text-xs font-medium text-[var(--foreground-muted)]"
-            >
-              {"message" in prewarmedModelStatus
-                ? prewarmedModelStatus.message
-                : isSavingPrewarmedModel
-                  ? t("settings.general.default_prewarmed_model.saving_status")
-                  : isLoadingLocalModels
-                    ? t("settings.general.default_prewarmed_model.loading_models")
-                    : readyLocalModels.length === 0
-                      ? t("settings.general.default_prewarmed_model.empty_status")
-                      : t(prewarmedModelStatus.key)}
-            </p>
-          </div>
-        </div>
-      </section>
+      <LocalModelSettingsSurface
+        browseForModelDirectory={browseForModelDirectory}
+        checkModelDirectoryAgain={checkModelDirectoryAgain}
+        isBrowsingModelDirectory={isBrowsingModelDirectory}
+        isDefaultModelDirectory={isDefaultModelDirectory}
+        isLoadingLocalModels={isLoadingLocalModels}
+        isSavingPrewarmedModel={isSavingPrewarmedModel}
+        localModelDirectory={localModelDirectory}
+        localModelsErrorCode={localModelsErrorCode}
+        modelDirectoryStatus={modelDirectoryStatus}
+        prewarmedModelId={prewarmedModelId}
+        prewarmedModelStatus={prewarmedModelStatus}
+        readyLocalModels={readyLocalModels}
+        saveDefaultPrewarmedModel={saveDefaultPrewarmedModel}
+        selectedPrewarmedModelIsAvailable={selectedPrewarmedModelIsAvailable}
+        t={t}
+      />
 
       <PresentationCheckerSetup />
     </div>

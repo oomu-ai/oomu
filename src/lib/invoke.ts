@@ -47,6 +47,7 @@ const HANDLED_OPERATIONAL_ERROR_CODES = new Set([
   "project_provider_blocked",
   "project_provider_consent_required",
   "project_provider_confirmation_invalid",
+  "local_model_primary_gguf_ambiguous",
   "setup_storage_recovery_required",
   "search_not_authorized",
   "search_query_invalid",

@@ -2733,7 +2733,9 @@
         "unchanged_status": "Selection unchanged.",
         "waiting_status": "Waiting for a folder selection…",
         "load_error": "Unable to load the local models folder.",
-        "choose_error": "Unable to choose a local models folder."
+        "choose_error": "Unable to choose a local models folder.",
+        "multiple_models_error": "Put each model in its own folder. This folder has more than one model file (.gguf). Create one folder for each model, move one .gguf file into each folder, then check again.",
+        "check_again": "Check again"
       },
       "default_prewarmed_model": {
         "title": "Model loaded at startup",
@@ -2749,6 +2751,7 @@
         "load_error": "Unable to load the default prewarmed model.",
         "save_error": "Unable to save the default prewarmed model.",
         "models_load_error": "Unable to load local models.",
+        "fix_models_folder": "Fix the models folder above to see your models.",
         "unavailable_option": "{modelId} (not found in this directory)"
       },
       "language": {

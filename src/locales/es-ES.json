@@ -1985,7 +1985,9 @@
         "unchanged_status": "Selección sin cambios.",
         "waiting_status": "Esperando la selección de una carpeta…",
         "load_error": "No se pudo cargar la carpeta de modelos locales.",
-        "choose_error": "No se pudo elegir una carpeta de modelos locales."
+        "choose_error": "No se pudo elegir una carpeta de modelos locales.",
+        "multiple_models_error": "Coloca cada modelo en su propia carpeta. Esta carpeta contiene más de un archivo de modelo (.gguf). Crea una carpeta para cada modelo, mueve un archivo .gguf a cada carpeta y vuelve a comprobar.",
+        "check_again": "Volver a comprobar"
       },
       "default_prewarmed_model": {
         "title": "Modelo cargado al iniciar",
@@ -2001,6 +2003,7 @@
         "load_error": "No se pudo cargar el modelo precargado predeterminado.",
         "save_error": "No se pudo guardar el modelo precargado predeterminado.",
         "models_load_error": "No se pudieron cargar los modelos locales.",
+        "fix_models_folder": "Corrige la carpeta de modelos de arriba para ver tus modelos.",
         "unavailable_option": "{modelId} (no se encontró en este directorio)"
       },
       "language": {

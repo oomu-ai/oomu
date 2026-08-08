@@ -1985,7 +1985,9 @@
         "unchanged_status": "Seleção inalterada.",
         "waiting_status": "Aguardando a seleção de uma pasta…",
         "load_error": "Não foi possível carregar a pasta de modelos locais.",
-        "choose_error": "Não foi possível escolher uma pasta de modelos locais."
+        "choose_error": "Não foi possível escolher uma pasta de modelos locais.",
+        "multiple_models_error": "Coloque cada modelo em sua própria pasta. Esta pasta contém mais de um arquivo de modelo (.gguf). Crie uma pasta para cada modelo, mova um arquivo .gguf para cada pasta e verifique novamente.",
+        "check_again": "Verificar novamente"
       },
       "default_prewarmed_model": {
         "title": "Modelo carregado na inicialização",
@@ -2001,6 +2003,7 @@
         "load_error": "Não foi possível carregar o modelo pré-aquecido padrão.",
         "save_error": "Não foi possível salvar o modelo pré-aquecido padrão.",
         "models_load_error": "Não foi possível carregar os modelos locais.",
+        "fix_models_folder": "Corrija a pasta de modelos acima para ver seus modelos.",
         "unavailable_option": "{modelId} (não encontrado neste diretório)"
       },
       "language": {

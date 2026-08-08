@@ -1985,7 +1985,9 @@
         "unchanged_status": "Pilihan tidak berubah.",
         "waiting_status": "Menunggu pemilihan folder…",
         "load_error": "Tidak dapat memuat folder model lokal.",
-        "choose_error": "Tidak dapat memilih folder model lokal."
+        "choose_error": "Tidak dapat memilih folder model lokal.",
+        "multiple_models_error": "Letakkan setiap model di foldernya sendiri. Folder ini berisi lebih dari satu file model (.gguf). Buat satu folder untuk setiap model, pindahkan satu file .gguf ke setiap folder, lalu periksa lagi.",
+        "check_again": "Periksa lagi"
       },
       "default_prewarmed_model": {
         "title": "Model yang dimuat saat mulai",
@@ -2001,6 +2003,7 @@
         "load_error": "Tidak dapat memuat model prapemanasan default.",
         "save_error": "Tidak dapat menyimpan model prapemanasan default.",
         "models_load_error": "Tidak dapat memuat model lokal.",
+        "fix_models_folder": "Perbaiki folder model di atas untuk melihat model Anda.",
         "unavailable_option": "{modelId} (tidak ditemukan di direktori ini)"
       },
       "language": {

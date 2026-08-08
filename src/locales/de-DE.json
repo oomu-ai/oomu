@@ -1985,7 +1985,9 @@
         "unchanged_status": "Auswahl unverändert.",
         "waiting_status": "Warten auf die Auswahl eines Ordners…",
         "load_error": "Der Ordner für lokale Modelle konnte nicht geladen werden.",
-        "choose_error": "Es konnte kein Ordner für lokale Modelle gewählt werden."
+        "choose_error": "Es konnte kein Ordner für lokale Modelle gewählt werden.",
+        "multiple_models_error": "Lege jedes Modell in einen eigenen Ordner. Dieser Ordner enthält mehr als eine Modelldatei (.gguf). Erstelle für jedes Modell einen Ordner, verschiebe jeweils eine .gguf-Datei hinein und prüfe dann erneut.",
+        "check_again": "Erneut prüfen"
       },
       "default_prewarmed_model": {
         "title": "Beim Start geladenes Modell",
@@ -2001,6 +2003,7 @@
         "load_error": "Das standardmäßig vorgeladene Modell konnte nicht geladen werden.",
         "save_error": "Das standardmäßig vorgeladene Modell konnte nicht gespeichert werden.",
         "models_load_error": "Lokale Modelle konnten nicht geladen werden.",
+        "fix_models_folder": "Korrigiere oben den Modellordner, um deine Modelle anzuzeigen.",
         "unavailable_option": "{modelId} (in diesem Verzeichnis nicht gefunden)"
       },
       "language": {

@@ -72,7 +72,7 @@ fn is_primary_weight_candidate(path: &Path) -> bool {
         && !filename.ends_with(".part")
 }
 
-fn ambiguous_primary_error(model_dir: &Path, candidates: &[PathBuf]) -> GemmaError {
+fn ambiguous_primary_error(_model_dir: &Path, candidates: &[PathBuf]) -> GemmaError {
     let names = candidates
         .iter()
         .filter_map(|path| path.file_name())
@@ -82,8 +82,7 @@ fn ambiguous_primary_error(model_dir: &Path, candidates: &[PathBuf]) -> GemmaErr
     GemmaError {
         code: "local_model_primary_gguf_ambiguous",
         message: format!(
-            "The local model directory {} contains multiple non-canonical GGUF weights ({names}). Rename the intended primary weight to model.gguf or to the model directory basename with the trailing -gguf removed.",
-            model_dir.display()
+            "Put each model in its own folder. This models folder contains more than one model file ({names}). Create one folder for each model and move one GGUF file into each folder."
         ),
     }
 }
@@ -145,6 +144,8 @@ mod tests {
 
         let error = select_primary_gguf(&directory.path).expect_err("ambiguity must fail closed");
         assert_eq!(error.code, "local_model_primary_gguf_ambiguous");
+        assert!(error.message.starts_with("Put each model in its own folder."));
+        assert!(error.message.contains("one folder for each model"));
         assert!(error.message.contains("first.gguf"));
         assert!(error.message.contains("second.gguf"));
     }

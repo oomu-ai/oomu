@@ -1070,7 +1070,7 @@
     },
     "src/app/components/settings/GeneralSettingsPanel.tsx": {
       "owner": "renderer/components",
-      "functionLines": 404
+      "functionLines": 355
     },
     "src/app/components/settings/PrivacyPanel.tsx": {
       "owner": "renderer/components",

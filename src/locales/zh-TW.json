@@ -1985,7 +1985,9 @@
         "unchanged_status": "選擇未變更。",
         "waiting_status": "正在等待選擇資料夾…",
         "load_error": "無法載入本機模型資料夾。",
-        "choose_error": "無法選擇本機模型資料夾。"
+        "choose_error": "無法選擇本機模型資料夾。",
+        "multiple_models_error": "請將每個模型放入各自的資料夾。此資料夾中有多個模型檔案（.gguf）。請為每個模型建立一個資料夾，每個資料夾只放一個 .gguf 檔案，然後再次檢查。",
+        "check_again": "再次檢查"
       },
       "default_prewarmed_model": {
         "title": "啟動時載入的模型",
@@ -2001,6 +2003,7 @@
         "load_error": "無法載入預設預熱模型。",
         "save_error": "無法儲存預設預熱模型。",
         "models_load_error": "無法載入本機模型。",
+        "fix_models_folder": "請修正上方的模型資料夾，以查看您的模型。",
         "unavailable_option": "{modelId}（在此目錄中找不到）"
       },
       "language": {

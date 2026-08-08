@@ -1985,7 +1985,9 @@
         "unchanged_status": "Lựa chọn không thay đổi.",
         "waiting_status": "Đang chờ chọn một thư mục…",
         "load_error": "Không thể tải thư mục mô hình cục bộ.",
-        "choose_error": "Không thể chọn thư mục mô hình cục bộ."
+        "choose_error": "Không thể chọn thư mục mô hình cục bộ.",
+        "multiple_models_error": "Hãy đặt mỗi mô hình vào một thư mục riêng. Thư mục này có nhiều tệp mô hình (.gguf). Tạo một thư mục cho mỗi mô hình, chuyển một tệp .gguf vào từng thư mục, rồi kiểm tra lại.",
+        "check_again": "Kiểm tra lại"
       },
       "default_prewarmed_model": {
         "title": "Mô hình được tải khi khởi động",
@@ -2001,6 +2003,7 @@
         "load_error": "Không thể tải mô hình làm nóng sẵn mặc định.",
         "save_error": "Không thể lưu mô hình làm nóng sẵn mặc định.",
         "models_load_error": "Không thể tải các mô hình cục bộ.",
+        "fix_models_folder": "Hãy sửa thư mục mô hình ở trên để xem các mô hình của bạn.",
         "unavailable_option": "{modelId} (không tìm thấy trong thư mục này)"
       },
       "language": {

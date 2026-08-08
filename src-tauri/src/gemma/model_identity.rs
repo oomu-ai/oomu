@@ -2,11 +2,18 @@ use super::{
     gguf_selection, is_gguf_file, is_model_asset_file, local_model_label, model_name_from_config,
     GemmaError, MODEL_CONFIG, TOKENIZER, TOKENIZER_CONFIG,
 };
+use llama_cpp_2::gguf::GgufContext;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::{
-    fs,
+    fs::{self, File},
+    io::{Read, Seek, SeekFrom},
     path::{Path, PathBuf},
 };
+
+const IDENTITY_PREFIX_BYTES: u64 = 256 * 1024;
+const IDENTITY_SUFFIX_BYTES: u64 = 64 * 1024;
+const IDENTITY_DIGEST_HEX_BYTES: usize = 12;
 
 pub const GEMMA_E2B_CANONICAL_ID: &str = "gemma-4-E2B-it-qat-q4_0-gguf";
 pub const GEMMA_E2B_FULL_DISPLAY_NAME: &str = "Gemma 4 E2B IT QAT Q4_0 GGUF";
@@ -56,15 +63,24 @@ pub fn identity_for_model_directory(model_dir: &Path) -> Result<LocalModelIdenti
 
     let configured_name = model_name_from_config(model_dir);
     let selected_weight = gguf_selection::select_primary_gguf(model_dir)?;
+    let gguf_metadata = selected_weight
+        .as_deref()
+        .and_then(|path| gguf_identity_metadata(path).ok());
     let weight_stem = selected_weight
         .as_deref()
         .and_then(Path::file_stem)
         .and_then(|name| name.to_str())
         .map(str::trim)
         .filter(|name| !name.is_empty());
-    for candidate in [configured_name.as_deref(), weight_stem]
-        .into_iter()
-        .flatten()
+    for candidate in [
+        gguf_metadata
+            .as_ref()
+            .map(|metadata| metadata.name.as_str()),
+        configured_name.as_deref(),
+        weight_stem,
+    ]
+    .into_iter()
+    .flatten()
     {
         if let Some(canonical_id) = canonical_registry_match(candidate) {
             return Ok(LocalModelIdentity {
@@ -74,6 +90,10 @@ pub fn identity_for_model_directory(model_dir: &Path) -> Result<LocalModelIdenti
                 source: LocalModelIdentitySource::CanonicalRegistry,
             });
         }
+    }
+
+    if let Some(metadata) = gguf_metadata {
+        return Ok(metadata_identity(model_dir, metadata));
     }
 
     if let Some(configured_name) = configured_name {
@@ -97,6 +117,143 @@ pub fn identity_for_model_directory(model_dir: &Path) -> Result<LocalModelIdenti
         code: "local_model_identity_ambiguous",
         message: "OOMU could not verify a stable identity for this local model.".to_string(),
     })
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct GgufIdentityMetadata {
+    name: String,
+    architecture: String,
+    digest: String,
+}
+
+fn gguf_identity_metadata(weight_path: &Path) -> Result<GgufIdentityMetadata, GemmaError> {
+    let gguf = GgufContext::from_file(weight_path).ok_or_else(|| GemmaError {
+        code: "local_model_gguf_metadata_unavailable",
+        message: "OOMU could not read this model's GGUF metadata.".to_string(),
+    })?;
+    let architecture =
+        gguf_string(&gguf, "general.architecture").unwrap_or_else(|| "model".to_string());
+    let name = gguf_string(&gguf, "general.name")
+        .or_else(|| gguf_string(&gguf, "general.basename"))
+        .unwrap_or_else(|| "Local GGUF".to_string());
+    let digest = bounded_gguf_identity_digest(weight_path, &gguf, &architecture, &name)?;
+    Ok(GgufIdentityMetadata {
+        name,
+        architecture,
+        digest,
+    })
+}
+
+fn gguf_string(gguf: &GgufContext, key: &str) -> Option<String> {
+    let index = gguf.find_key(key);
+    (index >= 0)
+        .then(|| gguf.val_str(index))
+        .flatten()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+}
+
+fn bounded_gguf_identity_digest(
+    weight_path: &Path,
+    gguf: &GgufContext,
+    architecture: &str,
+    name: &str,
+) -> Result<String, GemmaError> {
+    let metadata = fs::metadata(weight_path)
+        .map_err(|error| GemmaError::io("local model identity metadata", error))?;
+    let mut file = File::open(weight_path)
+        .map_err(|error| GemmaError::io("local model identity open", error))?;
+    let mut hasher = Sha256::new();
+    for value in [
+        "oomu.gguf.identity.v1".to_string(),
+        architecture.to_string(),
+        name.to_string(),
+        gguf.n_tensors().to_string(),
+        metadata.len().to_string(),
+    ] {
+        hasher.update(value.len().to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    hash_file_window(&mut file, &mut hasher, 0, IDENTITY_PREFIX_BYTES)?;
+    if metadata.len() > IDENTITY_PREFIX_BYTES {
+        hash_file_window(
+            &mut file,
+            &mut hasher,
+            metadata.len().saturating_sub(IDENTITY_SUFFIX_BYTES),
+            IDENTITY_SUFFIX_BYTES,
+        )?;
+    }
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn hash_file_window(
+    file: &mut File,
+    hasher: &mut Sha256,
+    offset: u64,
+    maximum_bytes: u64,
+) -> Result<(), GemmaError> {
+    file.seek(SeekFrom::Start(offset))
+        .map_err(|error| GemmaError::io("local model identity seek", error))?;
+    let mut remaining = maximum_bytes;
+    let mut buffer = [0_u8; 16 * 1024];
+    while remaining > 0 {
+        let wanted = usize::try_from(remaining.min(buffer.len() as u64)).unwrap_or(buffer.len());
+        let read = file
+            .read(&mut buffer[..wanted])
+            .map_err(|error| GemmaError::io("local model identity read", error))?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..read]);
+        remaining = remaining.saturating_sub(read as u64);
+    }
+    Ok(())
+}
+
+fn metadata_identity(model_dir: &Path, metadata: GgufIdentityMetadata) -> LocalModelIdentity {
+    let architecture = stable_custom_id(&metadata.architecture.to_ascii_lowercase());
+    let digest_length = IDENTITY_DIGEST_HEX_BYTES * 2;
+    let digest = metadata
+        .digest
+        .get(..digest_length)
+        .unwrap_or(metadata.digest.as_str());
+    LocalModelIdentity {
+        canonical_id: format!(
+            "gguf-{}-{digest}",
+            if architecture.is_empty() {
+                "model"
+            } else {
+                architecture.as_str()
+            }
+        ),
+        display_name: metadata.name,
+        storage_directory: model_dir.to_path_buf(),
+        source: LocalModelIdentitySource::WeightMetadata,
+    }
+}
+
+pub(super) fn model_directory_matches_legacy_reference(model_dir: &Path, reference: &str) -> bool {
+    let reference = reference.trim();
+    if reference.is_empty() {
+        return false;
+    }
+    let configured_name = model_name_from_config(model_dir);
+    let weight_stem = gguf_selection::select_primary_gguf(model_dir)
+        .ok()
+        .flatten()
+        .as_deref()
+        .and_then(Path::file_stem)
+        .and_then(|name| name.to_str())
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(ToOwned::to_owned);
+    [configured_name, weight_stem]
+        .into_iter()
+        .flatten()
+        .map(|candidate| stable_custom_id(&candidate))
+        .any(|legacy_id| legacy_id.eq_ignore_ascii_case(reference))
 }
 
 pub(super) fn directory_has_model_evidence(model_dir: &Path) -> bool {
@@ -201,6 +358,7 @@ fn resolve_named_identity(
         .filter(|model| {
             model.id.eq_ignore_ascii_case(reference)
                 || canonical_reference.is_some_and(|canonical| model.id == canonical)
+                || model_directory_matches_legacy_reference(Path::new(&model.path), reference)
         })
         .map(|model| identity_for_model_directory(Path::new(&model.path)))
         .collect::<Result<Vec<_>, _>>()?;
@@ -319,6 +477,17 @@ fn identity_for_weight_path(weight_path: &Path) -> Result<LocalModelIdentity, Ge
             source: LocalModelIdentitySource::CanonicalRegistry,
         });
     }
+    if let Ok(metadata) = gguf_identity_metadata(weight_path) {
+        if let Some(canonical_id) = canonical_registry_match(&metadata.name) {
+            return Ok(LocalModelIdentity {
+                canonical_id: canonical_id.to_string(),
+                display_name: canonical_display_name(canonical_id),
+                storage_directory: parent.to_path_buf(),
+                source: LocalModelIdentitySource::CanonicalRegistry,
+            });
+        }
+        return Ok(metadata_identity(parent, metadata));
+    }
     let canonical_id = stable_custom_id(stem);
     Ok(LocalModelIdentity {
         display_name: local_model_label(&canonical_id),
@@ -347,6 +516,34 @@ fn stable_custom_id(value: &str) -> String {
 mod tests {
     use super::*;
 
+    fn parser_valid_gguf_fixture() -> Option<PathBuf> {
+        let mut registries = Vec::new();
+        if let Some(cargo_home) = std::env::var_os("CARGO_HOME") {
+            registries.push(PathBuf::from(cargo_home).join("registry/src"));
+        }
+        if let Some(home) = std::env::var_os("HOME") {
+            registries.push(PathBuf::from(home).join(".cargo/registry/src"));
+        }
+        registries
+            .into_iter()
+            .flat_map(|registry| fs::read_dir(registry).ok().into_iter().flatten())
+            .filter_map(Result::ok)
+            .map(|entry| {
+                entry
+                    .path()
+                    .join("llama-cpp-2-0.1.151/src/gguf/ggml-vocab-bert-bge.gguf")
+            })
+            .find(|candidate| candidate.is_file())
+    }
+
+    fn temporary_model_root(label: &str) -> PathBuf {
+        std::env::temp_dir().join(format!(
+            "oomu-{label}-{}-{}",
+            std::process::id(),
+            crate::foundation::clock::unix_time_ns_u128()
+        ))
+    }
+
     #[test]
     fn canonical_registry_recognizes_supported_gemma_storage_aliases() {
         assert_eq!(
@@ -361,6 +558,64 @@ mod tests {
             canonical_registry_match("gemma-4-12b-it-qat-q4_0"),
             Some(GEMMA_12B_CANONICAL_ID)
         );
+    }
+
+    #[test]
+    fn valid_custom_gguf_identity_survives_file_and_folder_renames() {
+        let Some(fixture) = parser_valid_gguf_fixture() else {
+            return;
+        };
+        let root = temporary_model_root("metadata-identity-rename");
+        let first = root.join("publisher-layout");
+        let second = root.join("renamed-by-user");
+        fs::create_dir_all(&first).expect("create first model directory");
+        fs::create_dir_all(&second).expect("create renamed model directory");
+        fs::copy(&fixture, first.join("original-release-name.gguf"))
+            .expect("copy parser-valid GGUF fixture");
+        fs::copy(&fixture, second.join("my-preferred-name.gguf"))
+            .expect("copy renamed parser-valid GGUF fixture");
+
+        let original = identity_for_model_directory(&first).expect("identify original model");
+        let renamed = identity_for_model_directory(&second).expect("identify renamed model");
+
+        assert_eq!(original.canonical_id, renamed.canonical_id);
+        assert_eq!(original.display_name, renamed.display_name);
+        assert!(original.canonical_id.starts_with("gguf-bert-"));
+        assert_eq!(original.source, LocalModelIdentitySource::WeightMetadata);
+        assert!(!original.display_name.contains("original-release-name"));
+        assert!(!renamed.display_name.contains("my-preferred-name"));
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn valid_custom_gguf_identity_ignores_mutable_config_labels() {
+        let Some(fixture) = parser_valid_gguf_fixture() else {
+            return;
+        };
+        let root = temporary_model_root("metadata-identity-config");
+        let model_dir = root.join("model");
+        fs::create_dir_all(&model_dir).expect("create model directory");
+        fs::copy(&fixture, model_dir.join("weights.gguf")).expect("copy parser-valid GGUF fixture");
+        fs::write(
+            model_dir.join(MODEL_CONFIG),
+            serde_json::json!({"_name_or_path": "First user label"}).to_string(),
+        )
+        .expect("write first model label");
+        let first = identity_for_model_directory(&model_dir).expect("identify first label");
+        fs::write(
+            model_dir.join(MODEL_CONFIG),
+            serde_json::json!({"_name_or_path": "Renamed user label"}).to_string(),
+        )
+        .expect("write renamed model label");
+        let renamed = identity_for_model_directory(&model_dir).expect("identify renamed label");
+
+        assert_eq!(first.canonical_id, renamed.canonical_id);
+        assert_eq!(first.display_name, renamed.display_name);
+        assert!(model_directory_matches_legacy_reference(
+            &model_dir,
+            "Renamed-user-label"
+        ));
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]

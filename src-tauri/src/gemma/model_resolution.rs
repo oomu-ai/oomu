@@ -1,3 +1,4 @@
+use super::model_identity::model_directory_matches_legacy_reference;
 use super::*;
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
@@ -106,6 +107,27 @@ pub(super) fn resolve_configured_local_model(
         }
     }
     let models = scan_models(model_root)?;
+    if let Some(model) = models
+        .iter()
+        .find(|model| is_ready_gguf(model) && model.id.eq_ignore_ascii_case(requested_model_id))
+        .cloned()
+    {
+        return Ok(model);
+    }
+    let legacy_matches = models
+        .iter()
+        .filter(|model| {
+            is_ready_gguf(model)
+                && model_directory_matches_legacy_reference(
+                    Path::new(&model.path),
+                    requested_model_id,
+                )
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if legacy_matches.len() == 1 {
+        return Ok(legacy_matches[0].clone());
+    }
     if is_legacy_default_model_alias(requested_model_id) {
         if let Some(model) = select_preferred_ready_chat_gguf(&models) {
             return Ok(model);
@@ -307,6 +329,26 @@ fn select_same_family_ready_gguf(
 mod tests {
     use super::*;
 
+    fn parser_valid_gguf_fixture() -> Option<PathBuf> {
+        let mut registries = Vec::new();
+        if let Some(cargo_home) = std::env::var_os("CARGO_HOME") {
+            registries.push(PathBuf::from(cargo_home).join("registry/src"));
+        }
+        if let Some(home) = std::env::var_os("HOME") {
+            registries.push(PathBuf::from(home).join(".cargo/registry/src"));
+        }
+        registries
+            .into_iter()
+            .flat_map(|registry| fs::read_dir(registry).ok().into_iter().flatten())
+            .filter_map(Result::ok)
+            .map(|entry| {
+                entry
+                    .path()
+                    .join("llama-cpp-2-0.1.151/src/gguf/ggml-vocab-bert-bge.gguf")
+            })
+            .find(|candidate| candidate.is_file())
+    }
+
     #[test]
     fn legacy_default_alias_is_not_an_explicit_e2b_or_12b_selection() {
         assert!(is_legacy_default_model_alias("gemma-4-2b"));
@@ -316,6 +358,57 @@ mod tests {
         assert!(!is_legacy_default_model_alias(
             "gemma-4-12B-it-qat-q4_0-gguf"
         ));
+    }
+
+    #[test]
+    fn metadata_identity_resolves_after_storage_rename_and_repairs_legacy_filename_id() {
+        let Some(fixture) = parser_valid_gguf_fixture() else {
+            return;
+        };
+        let root = std::env::temp_dir().join(format!(
+            "oomu-metadata-resolution-{}-{}",
+            std::process::id(),
+            unix_time_ns()
+        ));
+        let original_dir = root.join("publisher-folder");
+        fs::create_dir_all(&original_dir).expect("create original model directory");
+        fs::copy(&fixture, original_dir.join("publisher-model-q3.gguf"))
+            .expect("copy parser-valid GGUF fixture");
+
+        let original = inspect_local_model_directory(&original_dir, "publisher-folder")
+            .expect("inspect custom GGUF");
+        assert!(original.id.starts_with("gguf-bert-"));
+        assert_eq!(
+            resolve_configured_local_model(&root, &original.id)
+                .expect("resolve stable metadata ID")
+                .id,
+            original.id
+        );
+        assert_eq!(
+            resolve_configured_local_model(&root, "publisher-model-q3")
+                .expect("repair legacy filename-derived ID")
+                .id,
+            original.id
+        );
+
+        let renamed_dir = root.join("renamed-by-user");
+        fs::rename(&original_dir, &renamed_dir).expect("rename model directory");
+        fs::rename(
+            renamed_dir.join("publisher-model-q3.gguf"),
+            renamed_dir.join("short-name.gguf"),
+        )
+        .expect("rename model file");
+        let renamed = inspect_local_model_directory(&renamed_dir, "renamed-by-user")
+            .expect("inspect renamed custom GGUF");
+        assert_eq!(renamed.id, original.id);
+        assert_eq!(renamed.name, original.name);
+        assert_eq!(
+            resolve_configured_local_model(&root, &original.id)
+                .expect("stable ID still resolves after storage rename")
+                .id,
+            original.id
+        );
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]

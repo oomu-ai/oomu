@@ -1159,6 +1159,7 @@ pub(crate) fn scan_models(model_root: &Path) -> Result<Vec<LocalModelOption>, Ge
         models.push(local_model_option(
             model_root,
             identity.canonical_id,
+            identity.display_name,
             weights_bytes,
             gguf_path,
         )?);
@@ -1200,6 +1201,7 @@ fn is_instruction_tuned_id(id: &str) -> bool {
 fn local_model_option(
     model_dir: &Path,
     id: String,
+    display_name: String,
     weights_bytes: u64,
     gguf_path: Option<PathBuf>,
 ) -> Result<LocalModelOption, GemmaError> {
@@ -1211,8 +1213,7 @@ fn local_model_option(
                 Ok(profile) => profile,
                 Err(error) => {
                     return Ok(LocalModelOption {
-                        name: model_name_from_config(model_dir)
-                            .unwrap_or_else(|| local_model_label(&id)),
+                        name: display_name,
                         id,
                         path: model_dir.to_string_lossy().to_string(),
                         weights_bytes,
@@ -1276,7 +1277,7 @@ fn local_model_option(
         };
 
     Ok(LocalModelOption {
-        name: model_name_from_config(model_dir).unwrap_or_else(|| local_model_label(&id)),
+        name: display_name,
         id,
         path: model_dir.to_string_lossy().to_string(),
         weights_bytes,
@@ -1333,16 +1334,7 @@ pub fn resolve_exact_ready_local_model(
     model_root: &Path,
     requested_model_id: &str,
 ) -> Result<LocalModelOption, GemmaError> {
-    let requested_model_id = requested_model_id.trim();
-    let model_dir = local_model_dir_under_root(model_root, requested_model_id)?;
-    let model = inspect_local_model_directory(&model_dir, requested_model_id)?;
-    if !is_ready_gguf(&model) {
-        return Err(GemmaError {
-            code: "local_model_incompatible",
-            message: model.compatibility_message,
-        });
-    }
-    Ok(model)
+    model_resolution::resolve_canonical_ready_local_model(model_root, requested_model_id)
 }
 
 fn is_ready_gguf(model: &LocalModelOption) -> bool {
@@ -1398,9 +1390,10 @@ fn inspect_local_model_directory(
         .collect::<Vec<_>>();
     let identity = identity_for_model_directory(model_dir)?;
     let id = identity.canonical_id;
+    let display_name = identity.display_name;
     let gguf_path = gguf_selection::select_primary_gguf(model_dir)?;
     let weights_bytes = gguf_selection::selected_weight_bytes(&asset_files, gguf_path.as_deref())?;
-    local_model_option(model_dir, id, weights_bytes, gguf_path)
+    local_model_option(model_dir, id, display_name, weights_bytes, gguf_path)
 }
 
 pub fn format_gemma4_chat_prompt(system_prompt: &str, messages: &[(String, String)]) -> String {

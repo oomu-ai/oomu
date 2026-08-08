@@ -6,6 +6,7 @@ import {
   projectDocumentLocalExecutionRoute,
   projectDocumentNativeRequestRoute,
   projectDocumentPendingAssistantId,
+  projectDocumentRequestNeedsProjectScope,
   projectDocumentRouteDecision,
 } from "../projectChatDocument";
 
@@ -32,6 +33,18 @@ describe("Project chat document composition", () => {
 
   it("does not claim Project context when the chat is not bound to a Project", () => {
     expect(projectChatDocumentRequest("Produce an editable Word document and a PDF.", routeDecision, null)).toBeNull();
+  });
+
+  it("stops an unbound multi-file Project request before model routing", () => {
+    const message = [
+      "Funder_Questions.pdf",
+      "Cohort_Outcomes.xlsx",
+      "Program_Notes.docx",
+      "Produce an editable Word document and a PDF.",
+    ].join("\n");
+    expect(projectDocumentRequestNeedsProjectScope(message, null, 0)).toBe(true);
+    expect(projectDocumentRequestNeedsProjectScope(message, "project-1", 0)).toBe(false);
+    expect(projectDocumentRequestNeedsProjectScope(message, null, 1)).toBe(false);
   });
 
   it("recognizes the bounded Project document request before native classification", () => {

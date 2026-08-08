@@ -454,6 +454,16 @@ export function browserFeedbackIndicatesFailedNavigation(content: string) {
   return referencesPage && failureSignal;
 }
 
+export function reportBrowserNavigationFailure(
+  failure: { url: string; sessionId?: string | null } | null,
+  register: (url: string, sessionId?: string | null) => void,
+  reportStatus: () => void,
+) {
+  if (!failure) return;
+  register(failure.url, failure.sessionId);
+  reportStatus();
+}
+
 export function browserNavigationBlockPayload(url: string) {
   return {
     status: "navigation_blocked",

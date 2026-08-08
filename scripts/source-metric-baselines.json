@@ -752,8 +752,8 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 309768,
-      "functionLines": 4490,
+      "bytes": 309538,
+      "functionLines": 4489,
       "complexity": 133
     },
     "src/app/components/HomeChrome.tsx": {

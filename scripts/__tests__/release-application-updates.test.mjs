@@ -20,7 +20,7 @@ import {
 } from "../application-update-assets.mjs";
 import { createSanitizedChildEnvironment } from "../release-environment.mjs";
 import { assertDescriptorSourceIdentity } from "../application-update-candidate.mjs";
-import { validateUpdaterPublicKey } from "../release.mjs";
+import { assertDownloadReadmeCurrent, validateUpdaterPublicKey } from "../release.mjs";
 import {
   assertRemoteMainRevision,
   assertReleaseTagRevision,
@@ -50,6 +50,27 @@ function notes(version = "0.1.3") {
 }
 
 describe("application update release assets", () => {
+  it("refuses a release when the prominent download page points to another version", () => {
+    const directory = mkdtempSync(join(tmpdir(), "oomu-download-readme-test-"));
+    temporaryDirectories.push(directory);
+    mkdirSync(join(directory, "downloads"));
+    const version = {
+      productVersion: "0.1.7",
+      publicLabel: "OOMU 0.1.7 — Public Beta",
+    };
+    writeFileSync(
+      join(directory, "downloads", "README.md"),
+      "## OOMU 0.1.6 — Public Beta\n\nhttps://github.com/oomu-ai/oomu/releases/download/v0.1.6/OOMU-0.1.6.dmg\n",
+    );
+    expect(() => assertDownloadReadmeCurrent(directory, version, "OOMU"))
+      .toThrow(/must point only to the current/u);
+    writeFileSync(
+      join(directory, "downloads", "README.md"),
+      "## OOMU 0.1.7 — Public Beta\n\nhttps://github.com/oomu-ai/oomu/releases/download/v0.1.7/OOMU-0.1.7.dmg\n",
+    );
+    expect(() => assertDownloadReadmeCurrent(directory, version, "OOMU")).not.toThrow();
+  });
+
   it("keeps Tauri updater configuration deserializable without storing a release key", () => {
     const production = JSON.parse(
       readFileSync(join(process.cwd(), "src-tauri/tauri.conf.json"), "utf8"),

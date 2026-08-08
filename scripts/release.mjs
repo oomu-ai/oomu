@@ -146,8 +146,38 @@ export function assertNoRepositoryDotenvFiles(checkoutRoot = root) {
   return assertNoRepositoryDotenvFilesAt(checkoutRoot);
 }
 
+export function assertDownloadReadmeCurrent(
+  checkoutRoot = root,
+  currentRelease = releaseVersion,
+  productName = tauriConfig.productName,
+) {
+  const readmePath = join(checkoutRoot, "downloads", "README.md");
+  const readme = readFileSync(readmePath, "utf8");
+  const version = currentRelease.productVersion;
+  const expectedHeading = `## ${currentRelease.publicLabel}`;
+  const expectedUrl = `https://github.com/oomu-ai/oomu/releases/download/v${version}/${productName}-${version}.dmg`;
+  const releaseUrls = [...readme.matchAll(/https:\/\/github\.com\/oomu-ai\/oomu\/releases\/download\/v([^/\s)]+)/gu)]
+    .map((match) => match[1]);
+  if (
+    !readme.includes(expectedHeading)
+    || !readme.includes(expectedUrl)
+    || releaseUrls.length !== 1
+    || releaseUrls[0] !== version
+  ) {
+    throw new Error(
+      `downloads/README.md must point only to the current ${currentRelease.publicLabel} installer before release.`,
+    );
+  }
+}
+
 export function sanitizedChildEnvironment(overrides = {}, source = process.env) {
   return createSanitizedChildEnvironment(overrides, source, immutableReleaseToolchain);
+}
+
+function assertReleaseRepositoryReady() {
+  assertNoRepositoryDotenvFiles();
+  assertNoReleaseEnvironmentOverrides();
+  assertDownloadReadmeCurrent();
 }
 
 function sha256(value) {
@@ -770,8 +800,7 @@ function initializeReleaseContext() {
       `The canonical release runner must execute natively as ${EXPECTED_RELEASE_ARCHITECTURE}; found ${process.arch}.`,
     );
   }
-  assertNoRepositoryDotenvFiles();
-  assertNoReleaseEnvironmentOverrides();
+  assertReleaseRepositoryReady();
   immutableReleaseToolchain = collectReleaseToolchain({
     ciPhase: false,
     protectedPhase: false,

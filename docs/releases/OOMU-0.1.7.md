@@ -9,12 +9,15 @@ OOMU 0.1.7 is a focused reliability release for updates, Auto-route, cloud repli
 - **Cloud replies recover from an empty answer.** If Gemini or DeepSeek finishes without visible text, OOMU makes one bounded retry with extended reasoning turned off. The recovery cannot loop.
 - **PDF attachments work from either gesture.** PDFs selected with the file picker or dragged into Chat now pass through the dedicated PDF parser and remain available for summarizing and other grounded work.
 - **OpenRouter offers more current models.** The built-in OpenRouter list now includes DeepSeek V4 Flash 0731, DeepSeek V4 Flash, Tencent Hy3, Xiaomi MiMo-V2.5, Z.ai GLM 5.2, DeepSeek V4 Pro, NVIDIA Nemotron 3 Ultra (free), and MoonshotAI Kimi K3, with OpenRouter-specific context, output, pricing, and reasoning settings.
+- **Project chats make their scope obvious.** Every chat row now says whether it is global or connected to a named Project. Global and Project conversations stay in separate lists, so selecting an old chat cannot silently disconnect Project files.
+- **Missing Project context no longer fails silently.** If a file-based Project request begins in a global chat, OOMU preserves the request and immediately explains how to open the correct Project conversation instead of remaining stuck on “Thinking…”.
 
 ## Security and data integrity
 
 - The cloud retry applies only when no visible answer or tool result was produced, runs at most once, and never exposes hidden reasoning.
 - PDFs continue to use OOMU’s bounded, sandboxed extraction path. The fix removes only an incorrect raster-image header check that ran before PDF parsing.
 - Existing model isolation, native permission, approval, receipt, and local-data boundaries remain in force.
+- OOMU does not start model or tool work when a request depends on Project files but the chat is not connected to that Project.
 
 ## Install or upgrade
 

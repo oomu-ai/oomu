@@ -79,7 +79,7 @@
     "copyright": "Copyright 2026 Eldris / OOMU",
     "publisher": "Eldris",
     "macOS": {
-      "bundleVersion": "12",
+      "bundleVersion": "13",
       "hardenedRuntime": true,
       "entitlements": "entitlements.plist",
       "files": {

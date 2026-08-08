@@ -2622,8 +2622,11 @@
     "project_scope": {
       "label": "Chat scope",
       "active": "Project chat",
+      "global_session": "Global chat",
       "help": "New chats stay connected to this Project.",
       "new_project_chat": "New Project chat",
+      "project_session": "Project: {project}",
+      "required_for_files": "This chat isn’t connected to a Project. Open Projects, choose the Project with these files, then open its conversations.",
       "start_global": "Start global chat"
     }
   },

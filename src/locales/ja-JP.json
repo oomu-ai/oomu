@@ -1829,9 +1829,12 @@
     },
     "project_scope": {
       "active": "プロジェクトチャット",
+      "global_session": "グローバルチャット",
       "help": "新しいチャットはこのプロジェクトに接続されたままになります。",
       "label": "チャットの範囲",
       "new_project_chat": "新しいプロジェクトチャット",
+      "project_session": "プロジェクト：{project}",
+      "required_for_files": "このチャットはプロジェクトに接続されていません。［プロジェクト］を開き、これらのファイルがあるプロジェクトを選んで、その会話を開いてください。",
       "start_global": "グローバルチャットを開始"
     },
     "certificate": {

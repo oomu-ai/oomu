@@ -61,8 +61,18 @@ export function projectDocumentNativeRequestRoute<T>(
   };
 }
 
+export function projectDocumentOutputIntent(message: string) {
+  return /\b(?:word|docx)\b/i.test(message) && /\bpdf\b/i.test(message);
+}
+
 export function projectDocumentOutputRequested(message: string, projectId: string | null | undefined) {
-  return !!projectId && /\b(?:word|docx)\b/i.test(message) && /\bpdf\b/i.test(message);
+  return !!projectId && projectDocumentOutputIntent(message);
+}
+
+export function projectDocumentRequestNeedsProjectScope(message: string, projectId: string | null | undefined, attachmentCount: number) {
+  if (projectId || attachmentCount > 0 || !projectDocumentOutputIntent(message)) return false;
+  const namedSourceFiles = message.match(/\b[^\s/\\]+\.(?:csv|docx|html?|json|md|pdf|txt|xlsx?|xml|ya?ml)\b/gi) ?? [];
+  return namedSourceFiles.length >= 2;
 }
 
 export function projectDocumentRouteDecision(message: string, projectId: string | null | undefined, statusLabel: string): ChatIntentRouteDecision | null {

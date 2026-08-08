@@ -1829,9 +1829,12 @@
     },
     "project_scope": {
       "active": "Chat proyek",
+      "global_session": "Chat global",
       "help": "Chat baru tetap terhubung ke Proyek ini.",
       "label": "Cakupan chat",
       "new_project_chat": "Chat proyek baru",
+      "project_session": "Proyek: {project}",
+      "required_for_files": "Chat ini belum terhubung ke Proyek. Buka Proyek, pilih Proyek yang berisi file ini, lalu buka percakapannya.",
       "start_global": "Mulai chat global"
     },
     "certificate": {

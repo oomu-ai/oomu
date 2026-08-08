@@ -1829,9 +1829,12 @@
     },
     "project_scope": {
       "active": "Trò chuyện dự án",
+      "global_session": "Trò chuyện chung",
       "help": "Các cuộc trò chuyện mới vẫn kết nối với Dự án này.",
       "label": "Phạm vi trò chuyện",
       "new_project_chat": "Trò chuyện dự án mới",
+      "project_session": "Dự án: {project}",
+      "required_for_files": "Cuộc trò chuyện này chưa được kết nối với Dự án. Hãy mở Dự án, chọn Dự án chứa các tệp này, rồi mở các cuộc trò chuyện của Dự án đó.",
       "start_global": "Bắt đầu trò chuyện chung"
     },
     "certificate": {

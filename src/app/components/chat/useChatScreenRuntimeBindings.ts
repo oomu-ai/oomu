@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ChatSession } from "@/lib/chatSessions";
+import { invoke } from "@/lib/invoke";
 import type { ChatTranslate } from "./chatFailureNotice";
 import type { ChatSessionRouteBinding } from "./sessionRouting";
 
@@ -32,6 +33,19 @@ export function useProjectScopedChatSessionCreator(
         : createSession(agentId, route),
     [createSession, projectId],
   );
+}
+
+export function useProjectName(projectId: string | null) {
+  const [project, setProject] = useState<{ id: string; name: string } | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (!projectId) return () => { active = false; };
+    void invoke<{ name?: string }>("get_project", { request: { projectId } })
+      .then((record) => { if (active) setProject({ id: projectId, name: typeof record?.name === "string" ? record.name : "" }); })
+      .catch(() => { if (active) setProject({ id: projectId, name: "" }); });
+    return () => { active = false; };
+  }, [projectId]);
+  return project?.id === projectId ? project.name : "";
 }
 
 export function useVerifiedExecutionCopy(translate: ChatTranslate) {

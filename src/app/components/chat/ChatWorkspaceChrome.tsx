@@ -36,6 +36,7 @@ type SessionItemProps = {
   onEditingTitleChange: (title: string) => void;
   onSelect: (sessionId: string) => void;
   session: ChatSession;
+  scopeLabel: string;
   skipRenameCommitRef: MutableRefObject<boolean>;
 };
 
@@ -53,6 +54,7 @@ function ChatSessionListItem({
   onEditingTitleChange,
   onSelect,
   session,
+  scopeLabel,
   skipRenameCommitRef,
 }: SessionItemProps) {
   const { t } = useI18n();
@@ -116,7 +118,7 @@ function ChatSessionListItem({
         </div>
       )}
       <p className="mt-0.5 truncate text-xs text-[var(--foreground-muted)]">
-        {agentName}{formatChatSessionTime(session.updatedAtMs) ? ` · ${formatChatSessionTime(session.updatedAtMs)}` : ""}
+        {scopeLabel} · {agentName}{formatChatSessionTime(session.updatedAtMs) ? ` · ${formatChatSessionTime(session.updatedAtMs)}` : ""}
       </p>
       {!isEditing ? (
         <button
@@ -167,6 +169,7 @@ type ChatSessionsSidebarProps = {
   onSelectSession: (sessionId: string) => void;
   onStartGlobalChat?: () => void;
   projectId: string | null;
+  projectName: string;
   sessions: ChatSession[];
   skipRenameCommitRef: MutableRefObject<boolean>;
   width: number;
@@ -189,11 +192,15 @@ export function ChatSessionsSidebar({
   onSelectSession,
   onStartGlobalChat,
   projectId,
+  projectName,
   sessions,
   skipRenameCommitRef,
   width,
 }: ChatSessionsSidebarProps) {
   const { t } = useI18n();
+  const scopedSessions = sessions.filter(
+    (session) => (session.projectId ?? null) === projectId,
+  );
   return (
     <aside className="flex shrink-0 flex-col" style={{ width }}>
       <div className="flex shrink-0 items-center justify-between px-4 pb-2 pt-4">
@@ -214,13 +221,13 @@ export function ChatSessionsSidebar({
         <ProjectChatScopeBanner onStartGlobalChat={onStartGlobalChat} t={t} />
       ) : null}
       <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        {sessions.length === 0 ? (
+        {scopedSessions.length === 0 ? (
           <p className="px-3 py-2 text-xs leading-5 text-[var(--foreground-muted)]">
             {t("chat.no_conversations")}
           </p>
         ) : (
           <div className="flex flex-col gap-0.5">
-            {sessions.map((session) => {
+            {scopedSessions.map((session) => {
               const isActive = session.id === activeSessionId;
               return (
                 <ChatSessionListItem
@@ -238,6 +245,11 @@ export function ChatSessionsSidebar({
                   onEditingTitleChange={onEditingTitleChange}
                   onSelect={onSelectSession}
                   session={session}
+                  scopeLabel={projectId
+                    ? t("chat.project_scope.project_session", {
+                        project: projectName || t("chat.project_scope.active"),
+                      })
+                    : t("chat.project_scope.global_session")}
                   skipRenameCommitRef={skipRenameCommitRef}
                 />
               );

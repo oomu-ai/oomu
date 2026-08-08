@@ -1829,9 +1829,12 @@
     },
     "project_scope": {
       "active": "專案聊天",
+      "global_session": "全域聊天",
       "help": "新聊天將保持與此專案的連接。",
       "label": "聊天範圍",
       "new_project_chat": "新增專案聊天",
+      "project_session": "專案：{project}",
+      "required_for_files": "此聊天尚未連接到專案。請開啟「專案」，選擇包含這些檔案的專案，然後開啟該專案的聊天。",
       "start_global": "開始全域聊天"
     },
     "certificate": {

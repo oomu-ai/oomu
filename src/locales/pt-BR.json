@@ -1829,9 +1829,12 @@
     },
     "project_scope": {
       "active": "Chat do projeto",
+      "global_session": "Chat global",
       "help": "Novos chats permanecem conectados a este Projeto.",
       "label": "Escopo do chat",
       "new_project_chat": "Novo chat do projeto",
+      "project_session": "Projeto: {project}",
+      "required_for_files": "Este chat não está conectado a um Projeto. Abra Projetos, escolha o Projeto que contém esses arquivos e abra as conversas dele.",
       "start_global": "Iniciar chat global"
     },
     "certificate": {

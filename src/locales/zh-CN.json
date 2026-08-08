@@ -1829,9 +1829,12 @@
     },
     "project_scope": {
       "active": "项目聊天",
+      "global_session": "全局聊天",
       "help": "新聊天将保持与此项目的连接。",
       "label": "聊天范围",
       "new_project_chat": "新建项目聊天",
+      "project_session": "项目：{project}",
+      "required_for_files": "此聊天尚未连接到项目。请打开“项目”，选择包含这些文件的项目，然后打开该项目的聊天。",
       "start_global": "开始全局聊天"
     },
     "certificate": {

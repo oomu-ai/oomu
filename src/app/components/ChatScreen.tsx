@@ -21,6 +21,7 @@ import {
   localizedModText,
   mergeBrowserDirectiveGrants,
   normalizedBrowserNavigationKey,
+  reportBrowserNavigationFailure,
   splitViewDirectiveMessageIds,
   useVerticalTemplateParser,
   verticalTemplateMessageIds,
@@ -29,7 +30,7 @@ import {
   type VerticalTemplateSection,
   type VerticalTemplateRoute,
 } from "./chat/browserRouting";
-import { createProjectChatDocumentForTurn, ensurePendingAssistantMessage, prepareProjectChatDocumentTurn, preferProjectDocumentRoute, projectDocumentMcpCapabilities, projectDocumentNativeRequestRoute, projectDocumentPendingAssistantId, projectDocumentRouteDecision, type ProjectChatDocumentRequest } from "./chat/projectChatDocument";
+import { createProjectChatDocumentForTurn, ensurePendingAssistantMessage, prepareProjectChatDocumentTurn, preferProjectDocumentRoute, projectDocumentMcpCapabilities, projectDocumentNativeRequestRoute, projectDocumentPendingAssistantId, projectDocumentRequestNeedsProjectScope, projectDocumentRouteDecision, type ProjectChatDocumentRequest } from "./chat/projectChatDocument";
 import { resolveTurnProjectId, shouldDelegateToTaskFlow, unlessRecovery, type ChatIntentRouteDecision, type WorkspaceDataResource } from "./chat/chatIntentRouting";
 import { surfaceStoppedChatTurn, visibleCancelledTurnMessages } from "./chat/chatTurnCancellation";
 import { useModelRoutingPreferences, type PersistedModelRoute } from "@/app/hooks/useModelRoute";
@@ -62,7 +63,7 @@ import { AutoRouteActivationRecoveryCard } from "./chat/AutoRouteActivationRecov
 import { useAutoRouteActivation } from "./chat/useAutoRouteActivation";
 import { authoritativeSessionConfigRouteIdentity, buildAutoRouteBaseline, legacySessionConfigWriteAllowed, persistLegacySessionConfigIfAllowed, providerClassIdForRoute, routeUsesLocalModel, sessionConfigContextBudget, sessionConfigReasoning, sessionUsesDynamicBinding, supportedReasoningLevelsForRoute, typedProviderClassIdForRoute, type SessionConfigRecord } from "./chat/autoRouteSessionIdentity"; // Typed routing.
 import { ChatConsentCards } from "./chat/ChatConsentCards";
-import { useProjectScopedChatSessionCreator, useRemoteMcpCancellation, useVerifiedExecutionCopy } from "./chat/useChatScreenRuntimeBindings";
+import { useProjectName, useProjectScopedChatSessionCreator, useRemoteMcpCancellation, useVerifiedExecutionCopy } from "./chat/useChatScreenRuntimeBindings";
 import { resolveChatCloudConsentBoundary } from "./chat/chatCloudConsentFlow";
 import { completeOneTimeRoutineHandoff } from "./chat/chatRoutineHandoff";
 import { assistantExecutionIsLocal, assistantExecutionModelLabel, isLocalModelProviderId } from "./chat/assistantExecutionMetadata";
@@ -83,6 +84,7 @@ import { inferenceProgressStatus } from "./chat/inferenceProgressStatus";
 import { chatStreamResponseMatches, createProjectedChatStreamController } from "./chat/chatStreamController";
 import { isAutoRouteAttentionError, stableErrorCode } from "./chat/inferenceErrors";
 import { chatSessionStateScope, NEW_CHAT_SESSION_SCOPE, upsertByNumericId, useSessionScopedState, useStableEvent } from "./chat/sessionScopedState";
+import type { CompactSessionHistoryResponse, QueuedMessageExecutionRecord, QueuedMessageRecord } from "./chat/chatPersistenceTypes";
 import { ChatEmptyState, type ChatStarterHandler } from "./chat/ChatEmptyState";
 import { CheckIcon, CopyIcon } from "./chat/ChatScreenIcons";
 import { ChatSessionsSidebar, ChatWorkspaceHeader } from "./chat/ChatWorkspaceChrome";
@@ -538,14 +540,6 @@ type ConversationalMcpTurnContext = {
   outstandingNativeEffect: NativeEffectExpectation | null;
 };
 
-type CompactSessionHistoryResponse = {
-  session_id: string;
-  agent_id: string;
-  analyzed_turns: number;
-  skipped_messages: number;
-  captured_memories: unknown[];
-};
-
 type SystemDiagnosticsReport = {
   status: string;
   summary: string;
@@ -562,32 +556,6 @@ type SystemDiagnosticsReport = {
   databaseFragmentation: { status: string }[];
   configurationHealth: { status: string }[];
   logs: { status: string }[];
-};
-
-type QueuedMessageRecord = {
-  id: number;
-  sessionId?: string | null;
-  agentId: string;
-  message: string;
-  attachments: ChatAttachment[];
-  providerId?: string | null;
-  modelId?: string | null;
-  reasoning?: ReasoningLevel | string | null;
-  context?: string | null;
-  steering?: string | null;
-  status: string;
-  createdAtMs: number;
-  updatedAtMs: number;
-  executedAtMs?: number | null;
-  errorMessage?: string | null;
-};
-
-type QueuedMessageExecutionRecord = {
-  queueId: number;
-  status: string;
-  sessionId?: string | null;
-  text?: string | null;
-  error?: string | null;
 };
 
 type OomuBypassEvent = {
@@ -1900,6 +1868,7 @@ export function ChatScreen({
   verifiedStartupModelId?: string | null;
 }) {
   const { t, language } = useI18n();
+  const projectName = useProjectName(projectId);
   const { getRiskLevelLabel, getToolKindLabel } = useHumanTrust();
   const createSessionInContext = useProjectScopedChatSessionCreator(onCreateSession, projectId);
   const verifiedExecutionCopy = useVerifiedExecutionCopy(t);
@@ -3732,10 +3701,7 @@ export function ChatScreen({
             searchQuery: browserSearchFallbackQuery(nextMessage, messages, activeBrowserRoute),
           }
         : null;
-    if (browserNavigationFailure) {
-      registerFailedBrowserNavigation(browserNavigationFailure.url, browserNavigationFailure.sessionId);
-      setChatStatus(t("chat.browser.navigation_blocked_status"));
-    }
+    reportBrowserNavigationFailure(browserNavigationFailure, registerFailedBrowserNavigation, () => setChatStatus(t("chat.browser.navigation_blocked_status")));
     let localMailAssistantText: string | null = null;
     let localCalendarResultText = "";
     let sessionId = activeSessionId;
@@ -3870,7 +3836,7 @@ export function ChatScreen({
       };
       nextMessageIdRef.current = Math.max(nextMessageIdRef.current, userMessage.id + 1);
       acknowledgedUserMessageId = userMessage.id;
-      if (!resume) setMessagesForSession(sessionId, (current) => upsertByNumericId(current, userMessage));
+      void unlessRecovery(Boolean(resume), () => setMessagesForSession(sessionId, (current) => upsertByNumericId(current, userMessage)));
       if (!submitSession) {
         clearSessionMessages(NEW_CHAT_SESSION_SCOPE);
         clearSessionSending(NEW_CHAT_SESSION_SCOPE);
@@ -3956,6 +3922,7 @@ export function ChatScreen({
       releaseTurnAttachments();
       continueAfterTurn(acceptedTurnContext.sessionId);
     }
+    if (projectDocumentRequestNeedsProjectScope(nextMessage, acceptedTurnContext.projectId, attachmentsForTurn.length)) { const guidance = t("chat.project_scope.required_for_files"); await endAcceptedTurnWithFailure(guidance, guidance, true); return; }
     if (calendarFollowup) {
       const outcome = await resolveCalendarRecoveryFollowup(calendarFollowup, handleResolveCalendarRecovery);
       const content = t(outcome.contentKey, outcome.contentVariables);
@@ -6062,7 +6029,7 @@ export function ChatScreen({
         onEditingTitleChange={setEditingSessionTitle}
         onSelectSession={onSelectSession}
         onStartGlobalChat={onStartGlobalChat}
-        projectId={projectId}
+        projectId={projectId} projectName={projectName}
         sessions={sessions}
         skipRenameCommitRef={skipRenameCommitRef}
         width={fittedPanels.sessions}

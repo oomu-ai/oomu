@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/context/I18nContext";
 import { ChatScreen } from "../ChatScreen";
@@ -55,16 +55,17 @@ describe("ChatScreen Project scope", () => {
     cleanup();
   });
 
-  it("makes Project chat scope explicit and offers a global-chat escape", () => {
+  it("makes Project chat scope explicit and offers a global-chat escape", async () => {
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "list_chat_messages" || command === "get_queued_messages") return [];
       if (command === "get_session_config") return null;
+      if (command === "get_project") return { name: "OOMU Test Project" };
       return null;
     });
     const onStartGlobalChat = vi.fn();
     render(
       <ChatScreen
-        activeSessionId="session-1"
+        activeSessionId="project-session"
         agents={agents}
         configuredProviders={configuredProviders}
         onCreateSession={vi.fn()}
@@ -74,15 +75,60 @@ describe("ChatScreen Project scope", () => {
         onStartGlobalChat={onStartGlobalChat}
         privacySettings={null}
         projectId="project-1"
-        sessions={[{ ...sessions[0], projectId: "project-1" }]}
+        sessions={[
+          { ...sessions[0], id: "project-session", title: "Project work", projectId: "project-1" },
+          { ...sessions[0], id: "global-session", title: "Global work", projectId: null },
+          { ...sessions[0], id: "other-project-session", title: "Other Project", projectId: "project-2" },
+        ]}
       />,
       { wrapper: I18nProvider },
     );
 
     expect(screen.getByRole("button", { name: "New Project chat" })).toBeVisible();
+    const projectSession = document.getElementById("oomu-chat-session-project-session");
+    expect(projectSession).toBeVisible();
+    expect(await screen.findByText(/Project: OOMU Test Project/)).toBeVisible();
+    expect(screen.queryByText("Global work")).not.toBeInTheDocument();
+    expect(screen.queryByText("Other Project")).not.toBeInTheDocument();
     const scope = screen.getByRole("region", { name: "Chat scope" });
     expect(scope).toHaveTextContent("New chats stay connected to this Project.");
     fireEvent.click(within(scope).getByRole("button", { name: "Start global chat" }));
     expect(onStartGlobalChat).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains how to recover instead of silently running a Project-file request globally", async () => {
+    invokeMock.mockImplementation(async (command: string) => {
+      if (command === "list_chat_messages" || command === "get_queued_messages") return [];
+      if (command === "get_session_config") return null;
+      if (command === "list_chat_sessions") return sessions;
+      return null;
+    });
+    const view = render(
+      <ChatScreen
+        activeSessionId="global-session"
+        agents={agents}
+        configuredProviders={configuredProviders}
+        onCreateSession={vi.fn()}
+        onDeleteSession={vi.fn()}
+        onSelectSession={vi.fn()}
+        onSessionsChange={vi.fn()}
+        privacySettings={null}
+        sessions={[{ ...sessions[0], id: "global-session", projectId: null }]}
+      />,
+      { wrapper: I18nProvider },
+    );
+
+    fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
+      target: {
+        value: "Funder_Questions.pdf\nCohort_Outcomes.xlsx\nProgram_Notes.docx\nProduce an editable Word document and a PDF.",
+      },
+    });
+    fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByText(/This chat isn’t connected to a Project/)).toBeVisible();
+    expect(document.getElementById("oomu-chat-session-global-session")).toHaveTextContent("Global chat");
+    await waitFor(() => expect(invokeMock.mock.calls.some(([command]) => command === "accept_chat_turn")).toBe(true));
+    expect(invokeMock.mock.calls.some(([command]) => command === "classify_chat_intent_route")).toBe(false);
+    expect(invokeMock.mock.calls.some(([command]) => command === "chat_turn")).toBe(false);
   });
 });

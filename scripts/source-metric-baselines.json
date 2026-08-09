@@ -1074,7 +1074,7 @@
     },
     "src/app/components/settings/PrivacyPanel.tsx": {
       "owner": "renderer/components",
-      "functionLines": 264
+      "functionLines": 218
     },
     "src/app/components/settings/RemoteDevicesPanel.tsx": {
       "owner": "renderer/components",

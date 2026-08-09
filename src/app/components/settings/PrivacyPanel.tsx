@@ -58,6 +58,85 @@ function PrivacySwitch({
   );
 }
 
+function DeviceIdentityDetails({
+  copiedFingerprint,
+  copiedKey,
+  onCopy,
+  onToggleKey,
+  profile,
+  showFullKey,
+}: {
+  copiedFingerprint: boolean;
+  copiedKey: boolean;
+  onCopy: (text: string, type: "fingerprint" | "key") => void;
+  onToggleKey: () => void;
+  profile: SovereignIdentityProfile;
+  showFullKey: boolean;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-start justify-between gap-4 border-b border-[var(--border-soft)] pb-3">
+        <div>
+          <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.fingerprint")}</span>
+          <p className="mt-1 font-mono text-sm text-[var(--foreground)]">{profile.fingerprint.slice(0, 16)}...</p>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+            {t("settings.privacy.fingerprint_description")}
+          </p>
+        </div>
+        <button
+          className="rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--background)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--fill-hover)]"
+          onClick={() => onCopy(profile.fingerprint, "fingerprint")}
+          type="button"
+        >
+          {copiedFingerprint ? t("common.copied") : t("common.copy")}
+        </button>
+      </div>
+      <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
+        <div>
+          <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.hardware_binding")}</span>
+          <p className="mt-1 text-sm text-[var(--foreground)]">{profile.hardware_binding || t("settings.privacy.default_hardware_binding")}</p>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+            {t("settings.privacy.hardware_binding_description")}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
+        <div>
+          <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.storage_backend")}</span>
+          <p className="mt-1 text-sm text-[var(--foreground)]">{humanizeStorageBackend(profile.storage_backend, t("settings.privacy.default_storage_backend"))}</p>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+            {t("settings.privacy.storage_backend_description")}
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 pt-1">
+        <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.public_key")}</span>
+        <p className="max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+          {t("settings.privacy.public_key_description")}
+        </p>
+        <div className="flex gap-2">
+          <button className="text-xs font-medium text-[var(--accent)] hover:underline" onClick={onToggleKey} type="button">
+            {showFullKey ? t("settings.privacy.hide_public_key") : t("settings.privacy.show_public_key")}
+          </button>
+          <button
+            className="ml-2 text-xs font-medium text-[var(--accent)] hover:underline"
+            onClick={() => onCopy(profile.public_key, "key")}
+            type="button"
+          >
+            {copiedKey ? t("common.copied") : t("common.copy_key")}
+          </button>
+        </div>
+        {showFullKey && (
+          <div className="mt-2 rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--accent-background)] p-3">
+            <p className="break-all font-mono text-xs text-[var(--foreground-muted)] select-all">{profile.public_key}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PrivacyPanel({
   onPrivacySettingsChange,
 }: {
@@ -261,72 +340,14 @@ export function PrivacyPanel({
             </details>
           </div>
         ) : profile ? (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start justify-between gap-4 border-b border-[var(--border-soft)] pb-3">
-              <div>
-                <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.fingerprint")}</span>
-                <p className="mt-1 font-mono text-sm text-[var(--foreground)]">{profile.fingerprint.slice(0, 16)}...</p>
-                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
-                  {t("settings.privacy.fingerprint_description")}
-                </p>
-              </div>
-              <button
-                className="rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--background)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--fill-hover)]"
-                onClick={() => copyToClipboard(profile.fingerprint, "fingerprint")}
-                type="button"
-              >
-                {copiedFingerprint ? t("common.copied") : t("common.copy")}
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
-              <div>
-                <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.hardware_binding")}</span>
-                <p className="mt-1 text-sm text-[var(--foreground)]">{profile.hardware_binding || t("settings.privacy.default_hardware_binding")}</p>
-                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
-                  {t("settings.privacy.hardware_binding_description")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
-              <div>
-                <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.storage_backend")}</span>
-                <p className="mt-1 text-sm text-[var(--foreground)]">{humanizeStorageBackend(profile.storage_backend, t("settings.privacy.default_storage_backend"))}</p>
-                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
-                  {t("settings.privacy.storage_backend_description")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 pt-1">
-              <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.public_key")}</span>
-              <p className="max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
-                {t("settings.privacy.public_key_description")}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  className="text-xs font-medium text-[var(--accent)] hover:underline"
-                  onClick={() => setShowFullKey(!showFullKey)}
-                  type="button"
-                >
-                  {showFullKey ? t("settings.privacy.hide_public_key") : t("settings.privacy.show_public_key")}
-                </button>
-                <button
-                  className="ml-2 text-xs font-medium text-[var(--accent)] hover:underline"
-                  onClick={() => copyToClipboard(profile.public_key, "key")}
-                  type="button"
-                >
-                  {copiedKey ? t("common.copied") : t("common.copy_key")}
-                </button>
-              </div>
-              {showFullKey && (
-                <div className="mt-2 rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--accent-background)] p-3">
-                  <p className="break-all font-mono text-xs text-[var(--foreground-muted)] select-all">{profile.public_key}</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <DeviceIdentityDetails
+            copiedFingerprint={copiedFingerprint}
+            copiedKey={copiedKey}
+            onCopy={copyToClipboard}
+            onToggleKey={() => setShowFullKey(!showFullKey)}
+            profile={profile}
+            showFullKey={showFullKey}
+          />
         ) : (
           <p className="text-xs text-[var(--foreground-muted)]">{t("settings.privacy.retrieving_identity")}</p>
         )}

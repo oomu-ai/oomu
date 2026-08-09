@@ -467,7 +467,7 @@
     },
     "src-tauri/src/lib.rs": {
       "owner": "app-shell/command-handler-wiring",
-      "functionLines": 342,
+      "functionLines": 340,
       "complexity": 57
     },
     "src-tauri/src/local_context.rs": {
@@ -709,7 +709,7 @@
     },
     "src-tauri/src/workflow_runtime.rs": {
       "owner": "workflows/runtime",
-      "bytes": 165786,
+      "bytes": 166430,
       "functionLines": 388,
       "complexity": 54
     },

@@ -1,17 +1,11 @@
+use crate::scheduler_control::{register_current, SchedulerControl};
 use std::{
-    sync::{mpsc, Mutex, OnceLock},
+    sync::{mpsc, Mutex},
     thread::{self, JoinHandle},
     time::Duration,
 };
 
 const SHUTDOWN_WAIT: Duration = Duration::from_secs(5);
-
-enum SchedulerControl {
-    Wake,
-    Stop,
-}
-
-static CURRENT_SCHEDULER: OnceLock<Mutex<Option<mpsc::Sender<SchedulerControl>>>> = OnceLock::new();
 
 pub(crate) struct WorkflowSchedulerRuntime {
     control: mpsc::Sender<SchedulerControl>,
@@ -50,11 +44,7 @@ impl WorkflowSchedulerRuntime {
                 let _ = completed.send(());
             })
             .map_err(|error| error.to_string())?;
-        *CURRENT_SCHEDULER
-            .get_or_init(|| Mutex::new(None))
-            .lock()
-            .map_err(|_| "workflow_scheduler_control_lock_failed".to_string())? =
-            Some(control.clone());
+        register_current(control.clone())?;
         Ok(Self {
             control,
             worker: Mutex::new(Some((handle, completion))),
@@ -62,14 +52,7 @@ impl WorkflowSchedulerRuntime {
     }
 
     pub(super) fn wake_current() {
-        let Some(current) = CURRENT_SCHEDULER.get() else {
-            return;
-        };
-        if let Ok(current) = current.lock() {
-            if let Some(control) = current.as_ref() {
-                let _ = control.send(SchedulerControl::Wake);
-            }
-        }
+        crate::scheduler_control::wake_current();
     }
 
     pub(crate) fn shutdown(&self) -> Result<(), String> {

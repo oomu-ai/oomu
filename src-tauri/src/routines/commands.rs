@@ -37,7 +37,7 @@ pub async fn create_routine(
 ) -> Result<RoutineRecord, String> {
     let engine = persistence.inner().clone();
     let routine = blocking(move || repository::create(&engine, request)).await?;
-    crate::workflow_scheduler::wake_current();
+    crate::scheduler_control::wake_current();
     Ok(routine)
 }
 
@@ -116,7 +116,7 @@ pub async fn run_routine_now(
         queue_routine_run_now_at(&engine, &request.routine_id, unix_time_ms_i64())
     })
     .await?;
-    crate::workflow_scheduler::wake_current();
+    crate::scheduler_control::wake_current();
     Ok(routine)
 }
 

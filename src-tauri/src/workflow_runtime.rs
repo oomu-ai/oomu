@@ -41,10 +41,10 @@ mod system_action;
 mod task_tools;
 pub(crate) use approval_events::dispatch_approval_request;
 use model_resolution::resolved_gemma_runtime_model;
-use scheduled_execution::ScheduledExecutionContext;
-#[cfg(test)]
-use scheduled_execution::{resolve_scheduled_project_context, scheduled_run_request};
-pub(crate) use scheduled_execution::{retry_scheduled_workflow, run_scheduled_workflow};
+pub(crate) use scheduled_execution::retry_scheduled_workflow;
+use scheduled_execution::{
+    resolve_scheduled_project_context, scheduled_run_request, ScheduledExecutionContext,
+};
 use system_action::{execute_system_action_node, SystemActionFailureContext};
 #[cfg(test)]
 use system_action::{high_risk_action, run_system_action};
@@ -249,8 +249,7 @@ trait RuntimeExternalTools: Clone + Send + Sync + 'static {
     }
 }
 
-// Bound at each Workflow entry boundary from the user's generation setting; never inferred from
-// the compiler identity or whichever classifier model happens to be resident.
+// Bound from the user's generation setting, never from a classifier identity.
 #[derive(Clone)]
 struct GemmaRuntimeModel {
     gemma: GemmaService,
@@ -737,6 +736,46 @@ pub async fn reveal_workflow_output_file(path: String) -> Result<(), WorkflowRun
         .map_err(|error| WorkflowRuntimeError::runtime(error.to_string()))?
 }
 
+pub fn run_scheduled_workflow(
+    schedule: &WorkflowScheduleRecord,
+    persistence: &PersistenceEngine,
+    gemma: GemmaService,
+    _knowledge: KnowledgeStore,
+    mcp_registry: McpClientRegistry,
+    app: tauri::AppHandle,
+    workspace_root: &Path,
+) -> Result<RunWorkflowResponse, WorkflowRuntimeError> {
+    require_durable_workflow_actuation(persistence, "scheduled workflow actuation")?;
+    let compiled = persistence
+        .load_compiled_workflow(&schedule.workflow_id, schedule.workflow_version)
+        .map_err(WorkflowRuntimeError::database)?;
+    let capabilities =
+        crate::workflow_ir::review::workflow_review_capabilities(&compiled.workflow_ir);
+    let scheduled_context = resolve_scheduled_project_context(
+        schedule,
+        persistence,
+        capabilities.project_file_read || capabilities.project_file_write,
+        workspace_root,
+    )?;
+    let request = scheduled_run_request(schedule, &compiled, &scheduled_context)?;
+    let model = resolved_gemma_runtime_model(&app, gemma)?;
+    let external_tools = McpRuntimeTools {
+        registry: mcp_registry,
+        persistence: persistence.clone(),
+        knowledge_tools: Some(KnowledgeRuntimeTools),
+        app: Some(app.clone()),
+    };
+    run_persisted_workflow(
+        request,
+        persistence,
+        &model,
+        &external_tools,
+        workspace_root,
+        None,
+        Some(&scheduled_context),
+    )
+}
+
 pub(crate) fn resolve_scheduled_permission_without_reconciliation(
     request: ResolvePermissionRequest,
     persistence: &PersistenceEngine,
@@ -976,10 +1015,7 @@ fn run_workflow_response(
 }
 
 fn recorded_execution_order(ir: &WorkflowIr, instance: &ExecutionInstance) -> Vec<String> {
-    // A failed run is still a run. Every completed and failed node is durably
-    // checkpointed before the error returns, so project that persisted truth in
-    // the same stable topological order used by execution. Returning an empty
-    // list here used to make the everyday run report contradict the inspector.
+    // Preserve the stable order of durably checkpointed failed runs.
     topological_sort(ir)
         .unwrap_or_else(|_| {
             let mut node_ids = instance.node_payloads.keys().cloned().collect::<Vec<_>>();
@@ -3447,12 +3483,7 @@ fn resolve_memory_reference(
         return direct;
     }
 
-    // Compatibility for workflows saved before MCP results were wrapped in
-    // PayloadEnvelope.data.structuredContent. Canonical templates use the full
-    // path, but an existing trusted workflow may still refer to a structured
-    // field directly beneath `output` (for example `emails`). A root field,
-    // including a malformed one, always wins; fallback occurs only when that
-    // first field is absent and remains confined to structuredContent.
+    // Legacy workflows may expose fields under output; fall back only when absent.
     let first_segment = path.split('.').next().unwrap_or_default();
     let root_field_is_absent = base_value
         .as_object()

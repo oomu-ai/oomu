@@ -90,6 +90,7 @@ mod runtime_profile;
 mod runtime_window_lifecycle; // Only the main window owns process-wide runtime teardown.
 mod scenario_one_e2e_profile;
 mod schedule_expression;
+mod scheduler_control;
 mod secret_store;
 pub mod security;
 pub mod settings;
@@ -710,9 +711,7 @@ fn try_run(launch_opts: OomuLaunchOptions) -> Result<(), OomuError> {
         .on_window_event(move |window, event| match event {
             tauri::WindowEvent::ThemeChanged(theme) => update_window_icon_for_event(window, theme),
             tauri::WindowEvent::DragDrop(drag_event) if window.label() == "main" => {
-                // Non-unstable Tauri builds synthesize the same drop as a
-                // window event. The shared handler keeps both runtime modes
-                // correct without exposing host paths to the renderer.
+                // The shared drop handler keeps runtime modes aligned without exposing host paths.
                 emit_local_context_drag(window, drag_event);
             }
             tauri::WindowEvent::CloseRequested { api, .. } if window.label() == "main" => {

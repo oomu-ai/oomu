@@ -137,7 +137,7 @@ describe("presentation review", () => {
       />,
       { wrapper: I18nProvider },
     );
-    expect(await screen.findByText("Office file export needs LibreOffice on this Mac.")).toBeVisible();
+    expect(await screen.findByText("PowerPoint export needs a one-time checker setup on this Mac.")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Set up Office export" }));
     expect(openSetup).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole("button", { name: "Check presentation again" }));

@@ -2015,29 +2015,29 @@
       },
       "presentation_checker": {
         "title": "Exportação de arquivos do Office",
-        "description": "Configuração única para o OOMU verificar apresentações do PowerPoint e pastas de trabalho do Excel antes de você salvá-las. O OOMU usa o LibreOffice, um aplicativo gratuito, para abrir cada arquivo e confirmar que ele está correto.",
+        "description": "Necessário apenas se você pedir ao OOMU para criar apresentações do PowerPoint. É uma configuração única para que o OOMU possa abrir cada slide do arquivo real do PowerPoint no seu Mac e confirmar que a apresentação está correta antes de exportá-la.",
         "status": {
           "loading": "Verificando este Mac...",
           "ready": "Pronto para exportar PowerPoint e Excel",
           "not_installed": "É necessária uma configuração única",
-          "not_qualified": "O LibreOffice precisa ser atualizado",
+          "not_qualified": "É necessário atualizar o verificador",
           "app_component_unavailable": "É necessário atualizar o OOMU",
           "unsupported_platform": "Indisponível neste dispositivo"
         },
         "detail": {
           "loading": "O OOMU está verificando a exportação de arquivos do Office neste Mac.",
           "ready": "Tudo pronto — o OOMU pode verificar e exportar apresentações do PowerPoint e pastas de trabalho do Excel neste Mac.",
-          "not_installed": "Instale o LibreOffice {version} em Aplicativos e verifique novamente.",
-          "not_qualified": "Esta versão do OOMU precisa do LibreOffice {version}. Instale-o e verifique novamente.",
+          "not_installed": "Instale o verificador de apresentações oficial {version} em Aplicativos e verifique novamente.",
+          "not_qualified": "O verificador instalado não é exatamente a versão aprovada por esta versão do OOMU. Instale {version} e verifique novamente.",
           "app_component_unavailable": "Um componente necessário para exportar arquivos do Office está ausente. Atualize ou reinstale o OOMU; a exportação continuará indisponível.",
           "unsupported_platform": "A verificação de arquivos do Office está disponível no momento apenas no OOMU para Mac."
         },
-        "open_download": "Abrir download do LibreOffice {version}",
+        "open_download": "Abrir o download oficial de {version}",
         "check_again": "Verificar novamente",
         "checking": "Verificando...",
         "errors": {
           "probe_failed": "O OOMU não conseguiu verificar se a exportação do Office está pronta. Tente novamente.",
-          "download_failed": "O OOMU não conseguiu abrir a página de download do LibreOffice. Tente novamente."
+          "download_failed": "O OOMU não conseguiu abrir a página de download oficial. Tente novamente."
         }
       }
     },
@@ -3974,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "Verificar a apresentação novamente",
     "checking": "Verificando a apresentação...",
-    "missing": "A exportação de arquivos do Office precisa do LibreOffice neste Mac.",
-    "next_step": "Configure o LibreOffice uma vez, volte a esta apresentação e verifique novamente.",
+    "missing": "A exportação para PowerPoint precisa de uma configuração única do verificador neste Mac.",
+    "next_step": "Configure uma vez, volte a esta apresentação e verifique novamente.",
     "open_setup": "Configurar exportação do Office",
-    "recheck_failed": "Esta apresentação não pôde ser verificada novamente. Abra a configuração de exportação do Office, confirme que o LibreOffice está pronto e tente novamente."
+    "recheck_failed": "Esta apresentação não pôde ser verificada novamente. Abra a configuração, confirme que o verificador está pronto e tente novamente."
   },
   "presentation_template": {
     "choose": "Usar um design do PowerPoint",

@@ -2015,29 +2015,29 @@
       },
       "presentation_checker": {
         "title": "Xuất tệp Office",
-        "description": "Thiết lập một lần để OOMU kiểm tra bản trình chiếu PowerPoint và sổ làm việc Excel trước khi bạn lưu. OOMU dùng LibreOffice, một ứng dụng miễn phí, để mở từng tệp và xác nhận tệp hiển thị đúng.",
+        "description": "Chỉ cần thiết nếu bạn yêu cầu OOMU tạo bản trình chiếu PowerPoint. Đây là thiết lập một lần để OOMU có thể mở từng trang chiếu từ tệp PowerPoint thực trên máy Mac của bạn và xác nhận bản trình chiếu hiển thị đúng trước khi xuất.",
         "status": {
           "loading": "Đang kiểm tra máy Mac này...",
           "ready": "Sẵn sàng xuất PowerPoint và Excel",
           "not_installed": "Cần thiết lập một lần",
-          "not_qualified": "Cần cập nhật LibreOffice",
+          "not_qualified": "Cần cập nhật trình kiểm tra",
           "app_component_unavailable": "Cần cập nhật OOMU",
           "unsupported_platform": "Không khả dụng trên thiết bị này"
         },
         "detail": {
           "loading": "OOMU đang kiểm tra khả năng xuất tệp Office trên máy Mac này.",
           "ready": "Mọi thứ đã sẵn sàng — OOMU có thể kiểm tra và xuất bản trình chiếu PowerPoint cùng sổ làm việc Excel trên máy Mac này.",
-          "not_installed": "Cài đặt LibreOffice {version} trong Ứng dụng, sau đó kiểm tra lại.",
-          "not_qualified": "Phiên bản OOMU này cần LibreOffice {version}. Hãy cài đặt rồi kiểm tra lại.",
+          "not_installed": "Cài đặt trình kiểm tra trình chiếu chính thức {version} trong Ứng dụng, rồi kiểm tra lại.",
+          "not_qualified": "Trình kiểm tra đã cài không phải đúng bản dựng được phiên bản OOMU này phê duyệt. Cài {version}, rồi kiểm tra lại.",
           "app_component_unavailable": "Thiếu một thành phần cần thiết để xuất Office. Hãy cập nhật hoặc cài đặt lại OOMU; tính năng xuất vẫn chưa khả dụng.",
           "unsupported_platform": "Kiểm tra tệp Office hiện chỉ khả dụng trong OOMU cho Mac."
         },
-        "open_download": "Mở trang tải LibreOffice {version}",
+        "open_download": "Mở trang tải xuống chính thức {version}",
         "check_again": "Kiểm tra lại",
         "checking": "Đang kiểm tra...",
         "errors": {
           "probe_failed": "OOMU không thể kiểm tra khả năng xuất Office. Hãy thử lại.",
-          "download_failed": "OOMU không thể mở trang tải LibreOffice. Hãy thử lại."
+          "download_failed": "OOMU không thể mở trang tải xuống chính thức. Hãy thử lại."
         }
       }
     },
@@ -3974,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "Kiểm tra bản trình chiếu lại",
     "checking": "Đang kiểm tra bản trình chiếu...",
-    "missing": "Xuất tệp Office cần LibreOffice trên máy Mac này.",
-    "next_step": "Thiết lập LibreOffice một lần, quay lại bản trình chiếu này, rồi kiểm tra lại.",
+    "missing": "Xuất PowerPoint cần thiết lập trình kiểm tra một lần trên máy Mac này.",
+    "next_step": "Thiết lập một lần, quay lại bản trình chiếu này, rồi kiểm tra lại.",
     "open_setup": "Thiết lập xuất Office",
-    "recheck_failed": "Không thể kiểm tra lại bản trình chiếu này. Hãy mở phần thiết lập xuất Office, xác nhận LibreOffice đã sẵn sàng, rồi thử lại."
+    "recheck_failed": "Không thể kiểm tra lại bản trình chiếu này. Hãy mở thiết lập, xác nhận trình kiểm tra đã sẵn sàng, rồi thử lại."
   },
   "presentation_template": {
     "choose": "Dùng một thiết kế PowerPoint",

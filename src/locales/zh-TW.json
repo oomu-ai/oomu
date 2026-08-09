@@ -2015,29 +2015,29 @@
       },
       "presentation_checker": {
         "title": "Office 檔案匯出",
-        "description": "一次性設定，讓 OOMU 在儲存前檢查 PowerPoint 簡報和 Excel 活頁簿。OOMU 使用免費的 LibreOffice App 開啟每個檔案並確認顯示正常。",
+        "description": "僅當你要求 OOMU 製作 PowerPoint 簡報時才需要。這是一次性設定，讓 OOMU 能從你 Mac 上真實的 PowerPoint 檔案開啟每張投影片，並在匯出前確認你的簡報顯示正確。",
         "status": {
           "loading": "正在檢查此 Mac...",
           "ready": "已準備好匯出 PowerPoint 和 Excel",
           "not_installed": "需要一次性設定",
-          "not_qualified": "需要更新 LibreOffice",
+          "not_qualified": "需要更新檢查器",
           "app_component_unavailable": "需要更新 OOMU",
           "unsupported_platform": "在此裝置上無法使用"
         },
         "detail": {
           "loading": "OOMU 正在檢查這台 Mac 的 Office 檔案匯出功能。",
           "ready": "一切就緒——OOMU 可以在這台 Mac 上檢查並匯出 PowerPoint 簡報和 Excel 活頁簿。",
-          "not_installed": "請在「應用程式」中安裝 LibreOffice {version}，然後再次檢查。",
-          "not_qualified": "此版本的 OOMU 需要 LibreOffice {version}。請安裝後再次檢查。",
+          "not_installed": "在「應用程式」中安裝官方簡報檢查器 {version}，然後重新檢查。",
+          "not_qualified": "已安裝的檢查器並非此 OOMU 版本所核准的確切組建。請安裝 {version}，然後重新檢查。",
           "app_component_unavailable": "缺少 Office 匯出所需的元件。請更新或重新安裝 OOMU；在此之前無法匯出。",
           "unsupported_platform": "Office 檔案檢查目前僅適用於 Mac 版 OOMU。"
         },
-        "open_download": "開啟 LibreOffice {version} 下載頁面",
+        "open_download": "開啟官方 {version} 下載",
         "check_again": "重新檢查",
         "checking": "正在檢查...",
         "errors": {
           "probe_failed": "OOMU 無法檢查 Office 匯出是否就緒。請再試一次。",
-          "download_failed": "OOMU 無法開啟 LibreOffice 下載頁面。請再試一次。"
+          "download_failed": "OOMU 無法開啟官方下載頁面。請重試。"
         }
       }
     },
@@ -3974,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "再次檢查簡報",
     "checking": "正在檢查簡報…",
-    "missing": "在這台 Mac 上匯出 Office 檔案需要 LibreOffice。",
-    "next_step": "設定一次 LibreOffice，返回此簡報，然後再次檢查。",
+    "missing": "PowerPoint 匯出需要在此 Mac 上進行一次性的檢查器設定。",
+    "next_step": "設定一次，返回此簡報，然後再次檢查。",
     "open_setup": "設定 Office 匯出",
-    "recheck_failed": "無法再次檢查此簡報。請開啟 Office 匯出設定，確認 LibreOffice 已就緒，然後再試一次。"
+    "recheck_failed": "無法再次檢查此簡報。請開啟設定，確認檢查器已就緒，然後再試一次。"
   },
   "presentation_template": {
     "choose": "使用 PowerPoint 設計",

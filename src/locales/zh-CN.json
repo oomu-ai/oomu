@@ -2015,29 +2015,29 @@
       },
       "presentation_checker": {
         "title": "Office 文件导出",
-        "description": "一次性设置，让 OOMU 在保存前检查 PowerPoint 演示文稿和 Excel 工作簿。OOMU 使用免费的 LibreOffice 应用打开每个文件并确认显示正常。",
+        "description": "仅当你要求 OOMU 制作 PowerPoint 演示文稿时才需要。这是一次性设置，以便 OOMU 能从你 Mac 上真实的 PowerPoint 文件打开每张幻灯片，并在导出前确认你的演示文稿显示正确。",
         "status": {
           "loading": "正在检查此 Mac...",
           "ready": "已准备好导出 PowerPoint 和 Excel",
           "not_installed": "需要一次性设置",
-          "not_qualified": "需要更新 LibreOffice",
+          "not_qualified": "需要更新检查器",
           "app_component_unavailable": "需要更新 OOMU",
           "unsupported_platform": "在此设备上不可用"
         },
         "detail": {
           "loading": "OOMU 正在检查这台 Mac 的 Office 文件导出功能。",
           "ready": "一切就绪——OOMU 可以在这台 Mac 上检查并导出 PowerPoint 演示文稿和 Excel 工作簿。",
-          "not_installed": "请在“应用程序”中安装 LibreOffice {version}，然后再次检查。",
-          "not_qualified": "此版本的 OOMU 需要 LibreOffice {version}。请安装后再次检查。",
+          "not_installed": "在“应用程序”中安装官方演示文稿检查器 {version}，然后重新检查。",
+          "not_qualified": "已安装的检查器不是此 OOMU 版本所批准的确切构建。请安装 {version}，然后重新检查。",
           "app_component_unavailable": "缺少 Office 导出所需的组件。请更新或重新安装 OOMU；在此之前无法导出。",
           "unsupported_platform": "Office 文件检查目前仅适用于 Mac 版 OOMU。"
         },
-        "open_download": "打开 LibreOffice {version} 下载页面",
+        "open_download": "打开官方 {version} 下载",
         "check_again": "重新检查",
         "checking": "正在检查...",
         "errors": {
           "probe_failed": "OOMU 无法检查 Office 导出是否就绪。请重试。",
-          "download_failed": "OOMU 无法打开 LibreOffice 下载页面。请重试。"
+          "download_failed": "OOMU 无法打开官方下载页面。请重试。"
         }
       }
     },
@@ -3974,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "再次检查演示文稿",
     "checking": "正在检查演示文稿…",
-    "missing": "在这台 Mac 上导出 Office 文件需要 LibreOffice。",
-    "next_step": "设置一次 LibreOffice，返回此演示文稿，然后再次检查。",
+    "missing": "PowerPoint 导出需要在此 Mac 上进行一次性的检查器设置。",
+    "next_step": "设置一次，返回此演示文稿，然后再次检查。",
     "open_setup": "设置 Office 导出",
-    "recheck_failed": "无法再次检查此演示文稿。请打开 Office 导出设置，确认 LibreOffice 已就绪，然后重试。"
+    "recheck_failed": "无法再次检查此演示文稿。请打开设置，确认检查器已就绪，然后重试。"
   },
   "presentation_template": {
     "choose": "使用 PowerPoint 设计",

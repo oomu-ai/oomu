@@ -2015,29 +2015,29 @@
       },
       "presentation_checker": {
         "title": "Ekspor berkas Office",
-        "description": "Pengaturan satu kali agar OOMU dapat memeriksa presentasi PowerPoint dan buku kerja Excel sebelum Anda menyimpannya. OOMU menggunakan LibreOffice, aplikasi gratis, untuk membuka setiap berkas dan memastikan tampilannya benar.",
+        "description": "Hanya diperlukan jika Anda meminta OOMU membuat presentasi PowerPoint. Ini pengaturan sekali saja agar OOMU dapat membuka setiap slide dari berkas PowerPoint asli di Mac Anda dan memastikan presentasi Anda tampil dengan benar sebelum diekspor.",
         "status": {
           "loading": "Memeriksa Mac ini...",
           "ready": "Siap mengekspor PowerPoint dan Excel",
           "not_installed": "Perlu pengaturan sekali saja",
-          "not_qualified": "LibreOffice perlu diperbarui",
+          "not_qualified": "Perlu memperbarui pemeriksa",
           "app_component_unavailable": "Perlu memperbarui OOMU",
           "unsupported_platform": "Tidak tersedia di perangkat ini"
         },
         "detail": {
           "loading": "OOMU sedang memeriksa ekspor berkas Office di Mac ini.",
           "ready": "Semua siap — OOMU dapat memeriksa dan mengekspor presentasi PowerPoint serta buku kerja Excel di Mac ini.",
-          "not_installed": "Instal LibreOffice {version} di folder Applications, lalu periksa lagi.",
-          "not_qualified": "Versi OOMU ini memerlukan LibreOffice {version}. Instal, lalu periksa lagi.",
+          "not_installed": "Instal pemeriksa presentasi resmi {version} di Aplikasi, lalu periksa lagi.",
+          "not_qualified": "Pemeriksa yang terinstal bukan build persis yang disetujui oleh versi OOMU ini. Instal {version}, lalu periksa lagi.",
           "app_component_unavailable": "Komponen yang diperlukan untuk ekspor Office tidak tersedia. Perbarui atau instal ulang OOMU; ekspor tetap tidak tersedia.",
           "unsupported_platform": "Pemeriksaan berkas Office saat ini hanya tersedia di OOMU untuk Mac."
         },
-        "open_download": "Buka unduhan LibreOffice {version}",
+        "open_download": "Buka unduhan resmi {version}",
         "check_again": "Periksa lagi",
         "checking": "Memeriksa...",
         "errors": {
           "probe_failed": "OOMU tidak dapat memeriksa kesiapan ekspor Office. Coba lagi.",
-          "download_failed": "OOMU tidak dapat membuka halaman unduhan LibreOffice. Coba lagi."
+          "download_failed": "OOMU tidak dapat membuka halaman unduhan resmi. Coba lagi."
         }
       }
     },
@@ -3974,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "Periksa presentasi lagi",
     "checking": "Memeriksa presentasi...",
-    "missing": "Ekspor berkas Office memerlukan LibreOffice di Mac ini.",
-    "next_step": "Siapkan LibreOffice sekali, kembali ke presentasi ini, lalu periksa lagi.",
+    "missing": "Ekspor PowerPoint memerlukan penyiapan pemeriksa sekali di Mac ini.",
+    "next_step": "Siapkan sekali, kembali ke presentasi ini, lalu periksa lagi.",
     "open_setup": "Siapkan ekspor Office",
-    "recheck_failed": "Presentasi ini tidak dapat diperiksa lagi. Buka penyiapan ekspor Office, pastikan LibreOffice siap, lalu coba lagi."
+    "recheck_failed": "Presentasi ini tidak dapat diperiksa lagi. Buka penyiapan, konfirmasikan pemeriksa siap, lalu coba lagi."
   },
   "presentation_template": {
     "choose": "Gunakan desain PowerPoint",

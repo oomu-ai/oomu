@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "Siapkan OOMU di Mac ini",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "Model di perangkat yang dioptimalkan untuk OOMU.",
     "local_download_size": "Berjalan di Mac ini · Unduhan 4,34 GB",
     "downloading": "Mengunduh",
@@ -40,7 +40,7 @@
     "choose_existing": "Pilih folder model yang sudah ada…",
     "set_up_later": "Siapkan nanti",
     "about_build": "Tentang model ini",
-    "about_build_help": "Ini adalah build GGUF Q4_0 yang disetel untuk instruksi dan sadar kuantisasi, yang telah diverifikasi OOMU untuk penggunaan di perangkat.",
+    "about_build_help": "Ini adalah build model di perangkat yang telah diuji OOMU untuk versi ini.",
     "errors": {
       "destination": "OOMU tidak dapat menggunakan lokasi itu. Pilih folder lain lalu coba lagi.",
       "storage": "Mac ini memerlukan lebih banyak ruang kosong untuk menyelesaikan unduhan. Kosongkan ruang lalu lanjutkan.",
@@ -1013,10 +1013,10 @@
       "unavailable": "OOMU tidak dapat melampirkan “{name}”. Pilih kembali file tersebut."
     },
     "shield_gate": {
-      "title": "Perlu Persetujuan Keamanan",
-      "description": "OOMU menahan sebuah tindakan yang perlu Anda tinjau dan setujui secara jelas sesuai proses keamanan mandiri.",
-      "approve": "Setujui Tindakan",
-      "deny": "Tolak Tindakan"
+      "title": "Izinkan tindakan ini?",
+      "description": "Tinjau apa yang akan dilakukan OOMU. Tidak ada yang terjadi sampai Anda mengizinkannya.",
+      "approve": "Izinkan",
+      "deny": "Jangan izinkan"
     },
     "routing_tag": "Diarahkan ke: {model}",
     "chats": "Obrolan",
@@ -1746,7 +1746,7 @@
       "needs_attention": "Perutean otomatis perlu perhatian",
       "preparing": "Menyiapkan perutean otomatis…",
       "ready": "Perutean otomatis siap",
-      "sovereign": "Berdaulat"
+      "sovereign": "Di perangkat"
     },
     "memory": {
       "almost_full": "Hampir penuh",
@@ -2000,8 +2000,8 @@
         "default_status": "Menggunakan default bawaan.",
         "saved_status": "Tersimpan otomatis.",
         "saving_status": "Menyimpan pilihan...",
-        "load_error": "Tidak dapat memuat model prapemanasan default.",
-        "save_error": "Tidak dapat menyimpan model prapemanasan default.",
+        "load_error": "Tidak dapat memuat model awal Anda.",
+        "save_error": "Tidak dapat menyimpan model awal Anda.",
         "models_load_error": "Tidak dapat memuat model lokal.",
         "fix_models_folder": "Perbaiki folder model di atas untuk melihat model Anda.",
         "unavailable_option": "{modelId} (tidak ditemukan di direktori ini)"
@@ -2014,30 +2014,30 @@
         "available_count": "{count} berkas bahasa terverifikasi tersedia."
       },
       "presentation_checker": {
-        "title": "Ekspor PowerPoint",
-        "description": "Hanya diperlukan jika Anda meminta OOMU membuat presentasi PowerPoint. Ini pengaturan sekali saja agar OOMU dapat membuka setiap slide dari berkas PowerPoint asli di Mac Anda dan memastikan presentasi Anda tampil dengan benar sebelum diekspor.",
+        "title": "Ekspor berkas Office",
+        "description": "Pengaturan satu kali agar OOMU dapat memeriksa presentasi PowerPoint dan buku kerja Excel sebelum Anda menyimpannya. OOMU menggunakan LibreOffice, aplikasi gratis, untuk membuka setiap berkas dan memastikan tampilannya benar.",
         "status": {
           "loading": "Memeriksa Mac ini...",
-          "ready": "Siap mengekspor ke PowerPoint",
+          "ready": "Siap mengekspor PowerPoint dan Excel",
           "not_installed": "Perlu pengaturan sekali saja",
-          "not_qualified": "Perlu memperbarui pemeriksa",
+          "not_qualified": "LibreOffice perlu diperbarui",
           "app_component_unavailable": "Perlu memperbarui OOMU",
           "unsupported_platform": "Tidak tersedia di perangkat ini"
         },
         "detail": {
-          "loading": "OOMU sedang memeriksa alat presentasi di Mac ini.",
-          "ready": "Semua siap — OOMU dapat memeriksa dan mengekspor presentasi PowerPoint di Mac ini.",
-          "not_installed": "Instal pemeriksa presentasi resmi {version} di Aplikasi, lalu periksa lagi.",
-          "not_qualified": "Pemeriksa yang terinstal bukan build persis yang disetujui oleh versi OOMU ini. Instal {version}, lalu periksa lagi.",
-          "app_component_unavailable": "Pemeriksa halaman bawaan tidak ada pada build OOMU ini. Perbarui atau instal ulang OOMU; ekspor tetap tidak tersedia.",
-          "unsupported_platform": "Pemeriksa presentasi ini saat ini hanya tersedia di OOMU untuk Mac."
+          "loading": "OOMU sedang memeriksa ekspor berkas Office di Mac ini.",
+          "ready": "Semua siap — OOMU dapat memeriksa dan mengekspor presentasi PowerPoint serta buku kerja Excel di Mac ini.",
+          "not_installed": "Instal LibreOffice {version} di folder Applications, lalu periksa lagi.",
+          "not_qualified": "Versi OOMU ini memerlukan LibreOffice {version}. Instal, lalu periksa lagi.",
+          "app_component_unavailable": "Komponen yang diperlukan untuk ekspor Office tidak tersedia. Perbarui atau instal ulang OOMU; ekspor tetap tidak tersedia.",
+          "unsupported_platform": "Pemeriksaan berkas Office saat ini hanya tersedia di OOMU untuk Mac."
         },
-        "open_download": "Buka unduhan resmi {version}",
+        "open_download": "Buka unduhan LibreOffice {version}",
         "check_again": "Periksa lagi",
         "checking": "Memeriksa...",
         "errors": {
-          "probe_failed": "OOMU tidak dapat memeriksa kesiapan presentasi. Coba lagi.",
-          "download_failed": "OOMU tidak dapat membuka halaman unduhan resmi. Coba lagi."
+          "probe_failed": "OOMU tidak dapat memeriksa kesiapan ekspor Office. Coba lagi.",
+          "download_failed": "OOMU tidak dapat membuka halaman unduhan LibreOffice. Coba lagi."
         }
       }
     },
@@ -2130,9 +2130,13 @@
       "retrieving_identity": "Mengambil detail identitas...",
       "identity_section": "Profil Identitas Mandiri",
       "fingerprint": "Sidik Jari",
+      "fingerprint_description": "Pengenal singkat untuk kunci penandatanganan OOMU di Mac ini.",
       "hardware_binding": "Perangkat Tertaut",
+      "hardware_binding_description": "Kode teknis yang disertakan OOMU dengan identitas penandatanganan Mac ini.",
       "storage_backend": "Lokasi Penyimpanan",
+      "storage_backend_description": "Tempat OOMU melindungi kunci privat yang digunakan untuk menandatangani pekerjaan Anda.",
       "public_key": "Kunci Publik untuk Tanda Tangan",
+      "public_key_description": "Bagikan kunci ini agar orang lain dapat memverifikasi pekerjaan yang ditandatangani OOMU. Kunci privat Anda tidak akan terungkap.",
       "show_key": "Tampilkan kunci lengkap",
       "hide_key": "Sembunyikan kunci lengkap",
       "show_public_key": "Tampilkan kunci publik",
@@ -2250,10 +2254,10 @@
     }
   },
   "import": {
-    "title": "Impor Asisten",
-    "description": "Impor profil asisten yang sudah ada dan pilih berapa banyak riwayat yang ingin dibawa.",
+    "title": "Impor agen",
+    "description": "Impor profil agen yang sudah ada dan pilih berapa banyak riwayat yang ingin dibawa.",
     "step_folder": "1. Pilih Folder Sumber",
-    "step_folder_desc": "Pilih folder yang berisi asisten yang ingin Anda impor ke OOMU.",
+    "step_folder_desc": "Pilih folder yang berisi agen yang ingin Anda bawa ke OOMU.",
     "step_folder_placeholder": "Pilih folder atau tempelkan jalurnya",
     "review_button": "Tinjau Impor",
     "reviewing_button": "Meninjau...",
@@ -2262,27 +2266,27 @@
     "selected_count": "{selected} dari {total} dipilih",
     "select_all": "Pilih Semua",
     "clear_all": "Hapus Semua Pilihan",
-    "files_desc": "Nonaktifkan apa pun yang tidak ingin Anda bawa ke asisten ini.",
-    "no_files_found": "Tidak ada detail asisten yang ditemukan di folder ini.",
+    "files_desc": "Nonaktifkan apa pun yang tidak ingin Anda bawa ke agen ini.",
+    "no_files_found": "Tidak ada detail agen yang ditemukan di folder ini.",
     "journals_title": "Catatan Berdasarkan Waktu",
     "journals_clean": "Mulai dengan riwayat kosong",
     "journals_selected": "{selected} dari {total} catatan dipilih",
     "journals_range": "Rentang Impor Catatan",
     "journals_no_past": "Tidak ada catatan lama yang akan diimpor.",
-    "step_setup": "3. Selesaikan Pengaturan Asisten",
-    "step_setup_desc": "Beri nama asisten dan pilih cara OOMU menjalankannya.",
-    "name_label": "Nama Asisten",
-    "name_placeholder": "Beri nama asisten ini",
+    "step_setup": "3. Selesaikan pengaturan agen",
+    "step_setup_desc": "Beri nama agen dan pilih cara OOMU menjalankannya.",
+    "name_label": "Nama agen",
+    "name_placeholder": "Beri nama agen ini",
     "desc_label": "Deskripsi",
-    "desc_placeholder": "Jelaskan bantuan yang diberikan asisten ini...",
+    "desc_placeholder": "Jelaskan bantuan yang diberikan agen ini...",
     "style_label": "Gaya",
     "provider_label": "Penyedia",
     "model_label": "Model",
-    "import_button": "Impor Asisten Mandiri",
+    "import_button": "Impor agen",
     "complete_button": "Selesaikan Impor",
     "importing_button": "Mengimpor...",
     "import_failed": "Impor gagal: {error}",
-    "imported_description": "Profil asisten diimpor dari {name}.",
+    "imported_description": "Profil agen diimpor dari {name}.",
     "journal_from_date": "Jurnal dari {date}",
     "journal_number": "Jurnal {index}",
     "log_range": {
@@ -3756,7 +3760,7 @@
     }
   },
   "ledger": {
-    "title": "Buku Besar Berdaulat",
+    "title": "Buku besar",
     "subtitle": "Seberapa banyak pekerjaan Anda yang tetap di perangkat dan apa yang tetap privat karenanya.",
     "period_label": "Periode buku besar",
     "period_today": "Hari ini",
@@ -3772,7 +3776,7 @@
     "reset": "Atur ulang",
     "resetting": "Mengatur ulang…",
     "reset_dialog_title": "Atur ulang statistik buku besar?",
-    "reset_dialog_body": "Ini akan menghapus semua statistik penggunaan dari Buku Besar Berdaulat. Tindakan ini tidak dapat dibatalkan.",
+    "reset_dialog_body": "Tindakan ini akan menghapus semua statistik penggunaan dari Buku besar. Tindakan ini tidak dapat dibatalkan.",
     "reset_confirm_action": "Atur ulang statistik",
     "error": "Tidak dapat memuat buku besar Anda.",
     "loading": "Mengumpulkan buku besar Anda…",
@@ -3970,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "Periksa presentasi lagi",
     "checking": "Memeriksa presentasi...",
-    "missing": "Ekspor PowerPoint memerlukan penyiapan pemeriksa sekali di Mac ini.",
-    "next_step": "Siapkan sekali, kembali ke presentasi ini, lalu periksa lagi.",
-    "open_setup": "Siapkan pemeriksa",
-    "recheck_failed": "Presentasi ini tidak dapat diperiksa lagi. Buka penyiapan, konfirmasikan pemeriksa siap, lalu coba lagi."
+    "missing": "Ekspor berkas Office memerlukan LibreOffice di Mac ini.",
+    "next_step": "Siapkan LibreOffice sekali, kembali ke presentasi ini, lalu periksa lagi.",
+    "open_setup": "Siapkan ekspor Office",
+    "recheck_failed": "Presentasi ini tidak dapat diperiksa lagi. Buka penyiapan ekspor Office, pastikan LibreOffice siap, lalu coba lagi."
   },
   "presentation_template": {
     "choose": "Gunakan desain PowerPoint",

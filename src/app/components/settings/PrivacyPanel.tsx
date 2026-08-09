@@ -262,10 +262,13 @@ export function PrivacyPanel({
           </div>
         ) : profile ? (
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--border-soft)] pb-3">
               <div>
                 <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.fingerprint")}</span>
                 <p className="mt-1 font-mono text-sm text-[var(--foreground)]">{profile.fingerprint.slice(0, 16)}...</p>
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+                  {t("settings.privacy.fingerprint_description")}
+                </p>
               </div>
               <button
                 className="rounded-[var(--radius-sm)] border border-[var(--border-strong)] bg-[var(--background)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--fill-hover)]"
@@ -280,6 +283,9 @@ export function PrivacyPanel({
               <div>
                 <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.hardware_binding")}</span>
                 <p className="mt-1 text-sm text-[var(--foreground)]">{profile.hardware_binding || t("settings.privacy.default_hardware_binding")}</p>
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+                  {t("settings.privacy.hardware_binding_description")}
+                </p>
               </div>
             </div>
 
@@ -287,11 +293,17 @@ export function PrivacyPanel({
               <div>
                 <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.storage_backend")}</span>
                 <p className="mt-1 text-sm text-[var(--foreground)]">{humanizeStorageBackend(profile.storage_backend, t("settings.privacy.default_storage_backend"))}</p>
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+                  {t("settings.privacy.storage_backend_description")}
+                </p>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 pt-1">
               <span className="text-xs font-semibold text-[var(--foreground-muted)]">{t("settings.privacy.public_key")}</span>
+              <p className="max-w-2xl text-xs leading-5 text-[var(--foreground-muted)]">
+                {t("settings.privacy.public_key_description")}
+              </p>
               <div className="flex gap-2">
                 <button
                   className="text-xs font-medium text-[var(--accent)] hover:underline"

@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "在这台 Mac 上设置 OOMU",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "OOMU 专门优化的本机模型。",
     "local_download_size": "在这台 Mac 上运行 · 下载 4.34 GB",
     "downloading": "正在下载",
@@ -40,7 +40,7 @@
     "choose_existing": "选择现有模型文件夹…",
     "set_up_later": "稍后设置",
     "about_build": "关于此模型",
-    "about_build_help": "这是 OOMU 针对本机使用验证过的精确指令微调、量化感知 Q4_0 GGUF 构建。",
+    "about_build_help": "这是 OOMU 为当前版本测试过的本机模型版本。",
     "errors": {
       "destination": "OOMU 无法使用该位置。请选择其他文件夹并重试。",
       "storage": "这台 Mac 需要更多可用空间才能完成下载。请释放空间后继续。",
@@ -1013,10 +1013,10 @@
       "unavailable": "OOMU 无法添加“{name}”。请重新选择该文件。"
     },
     "shield_gate": {
-      "title": "需要安全审批",
-      "description": "根据自主安全流程，OOMU 拦截了一个需要你明确审核和确认的操作。",
-      "approve": "允许操作",
-      "deny": "拒绝操作"
+      "title": "允许此操作？",
+      "description": "请查看 OOMU 即将执行的操作。只有在你允许后才会继续。",
+      "approve": "允许",
+      "deny": "不允许"
     },
     "routing_tag": "已分配给：{model}",
     "chats": "聊天",
@@ -1746,7 +1746,7 @@
       "needs_attention": "自动路由需要处理",
       "preparing": "正在准备自动路由…",
       "ready": "自动路由就绪",
-      "sovereign": "主权"
+      "sovereign": "在本机"
     },
     "memory": {
       "almost_full": "接近占满",
@@ -2000,8 +2000,8 @@
         "default_status": "正在使用内置默认值。",
         "saved_status": "已自动保存。",
         "saving_status": "正在保存选择...",
-        "load_error": "无法加载默认预热模型。",
-        "save_error": "无法保存默认预热模型。",
+        "load_error": "无法加载你的启动模型。",
+        "save_error": "无法保存你的启动模型。",
         "models_load_error": "无法加载本地模型。",
         "fix_models_folder": "请修正上方的模型文件夹，以查看您的模型。",
         "unavailable_option": "{modelId}（在此目录中未找到）"
@@ -2014,30 +2014,30 @@
         "available_count": "有 {count} 个已验证的语言文件可用。"
       },
       "presentation_checker": {
-        "title": "PowerPoint 导出",
-        "description": "仅当你要求 OOMU 制作 PowerPoint 演示文稿时才需要。这是一次性设置，以便 OOMU 能从你 Mac 上真实的 PowerPoint 文件打开每张幻灯片，并在导出前确认你的演示文稿显示正确。",
+        "title": "Office 文件导出",
+        "description": "一次性设置，让 OOMU 在保存前检查 PowerPoint 演示文稿和 Excel 工作簿。OOMU 使用免费的 LibreOffice 应用打开每个文件并确认显示正常。",
         "status": {
           "loading": "正在检查此 Mac...",
-          "ready": "已准备好导出到 PowerPoint",
+          "ready": "已准备好导出 PowerPoint 和 Excel",
           "not_installed": "需要一次性设置",
-          "not_qualified": "需要更新检查器",
+          "not_qualified": "需要更新 LibreOffice",
           "app_component_unavailable": "需要更新 OOMU",
           "unsupported_platform": "在此设备上不可用"
         },
         "detail": {
-          "loading": "OOMU 正在检查此 Mac 上的演示文稿工具。",
-          "ready": "一切就绪——OOMU 可以在此 Mac 上检查并导出 PowerPoint 演示文稿。",
-          "not_installed": "在“应用程序”中安装官方演示文稿检查器 {version}，然后重新检查。",
-          "not_qualified": "已安装的检查器不是此 OOMU 版本所批准的确切构建。请安装 {version}，然后重新检查。",
-          "app_component_unavailable": "此 OOMU 构建缺少内置页面检查器。请更新或重新安装 OOMU；导出仍不可用。",
-          "unsupported_platform": "此演示文稿检查器目前仅在 Mac 版 OOMU 中可用。"
+          "loading": "OOMU 正在检查这台 Mac 的 Office 文件导出功能。",
+          "ready": "一切就绪——OOMU 可以在这台 Mac 上检查并导出 PowerPoint 演示文稿和 Excel 工作簿。",
+          "not_installed": "请在“应用程序”中安装 LibreOffice {version}，然后再次检查。",
+          "not_qualified": "此版本的 OOMU 需要 LibreOffice {version}。请安装后再次检查。",
+          "app_component_unavailable": "缺少 Office 导出所需的组件。请更新或重新安装 OOMU；在此之前无法导出。",
+          "unsupported_platform": "Office 文件检查目前仅适用于 Mac 版 OOMU。"
         },
-        "open_download": "打开官方 {version} 下载",
+        "open_download": "打开 LibreOffice {version} 下载页面",
         "check_again": "重新检查",
         "checking": "正在检查...",
         "errors": {
-          "probe_failed": "OOMU 无法检查演示文稿就绪情况。请重试。",
-          "download_failed": "OOMU 无法打开官方下载页面。请重试。"
+          "probe_failed": "OOMU 无法检查 Office 导出是否就绪。请重试。",
+          "download_failed": "OOMU 无法打开 LibreOffice 下载页面。请重试。"
         }
       }
     },
@@ -2117,9 +2117,13 @@
       "policy_link": "查看隐私政策",
       "identity_section": "自主身份资料",
       "fingerprint": "指纹",
+      "fingerprint_description": "这台 Mac 上 OOMU 签名密钥的简短标识。",
       "hardware_binding": "绑定设备",
+      "hardware_binding_description": "OOMU 随这台 Mac 的签名身份记录的技术代码。",
       "storage_backend": "存储位置",
+      "storage_backend_description": "OOMU 用来保护工作签名私钥的位置。",
       "public_key": "公开签名密钥",
+      "public_key_description": "分享此密钥可让他人验证 OOMU 签名的工作，且不会泄露你的私钥。",
       "show_key": "显示完整密钥",
       "hide_key": "隐藏完整密钥",
       "overview_title": "隐私与安全",
@@ -2250,10 +2254,10 @@
     }
   },
   "import": {
-    "title": "导入助手",
-    "description": "导入现有助手资料，并选择要带入多少历史记录。",
+    "title": "导入智能体",
+    "description": "导入现有智能体资料，并选择要保留多少历史记录。",
     "step_folder": "1. 选择来源文件夹",
-    "step_folder_desc": "选择保存要导入的助手的文件夹。",
+    "step_folder_desc": "选择包含要导入 OOMU 的智能体的文件夹。",
     "step_folder_placeholder": "选择文件夹或粘贴路径",
     "review_button": "查看导入内容",
     "reviewing_button": "正在查看...",
@@ -2262,27 +2266,27 @@
     "selected_count": "已选择 {selected} 项，共 {total} 项",
     "select_all": "全选",
     "clear_all": "取消全选",
-    "files_desc": "取消勾选你不想带入此助手的内容。",
-    "no_files_found": "在此文件夹中未找到助手信息。",
+    "files_desc": "关闭不想带入此智能体的内容。",
+    "no_files_found": "此文件夹中未找到智能体信息。",
     "journals_title": "按时间排列的日志",
     "journals_clean": "从空白历史记录开始",
     "journals_selected": "已选择 {selected} 条，共 {total} 条",
     "journals_range": "日志导入范围",
     "journals_no_past": "不会导入过去的记录。",
-    "step_setup": "3. 完成助手设置",
-    "step_setup_desc": "为助手命名，并选择 OOMU 如何运行它。",
-    "name_label": "助手名称",
-    "name_placeholder": "给这个助手命名",
+    "step_setup": "3. 完成智能体设置",
+    "step_setup_desc": "为智能体命名，并选择 OOMU 应如何运行它。",
+    "name_label": "智能体名称",
+    "name_placeholder": "为此智能体命名",
     "desc_label": "描述",
-    "desc_placeholder": "描述这个助手可以帮助你做什么...",
+    "desc_placeholder": "描述此智能体可以提供的帮助...",
     "style_label": "风格",
     "provider_label": "提供方",
     "model_label": "模型",
-    "import_button": "导入自主助手",
+    "import_button": "导入智能体",
     "complete_button": "完成导入",
     "importing_button": "正在导入...",
     "import_failed": "导入失败：{error}",
-    "imported_description": "已从 {name} 导入助手配置。",
+    "imported_description": "已从 {name} 导入智能体资料。",
     "journal_from_date": "{date} 的日志",
     "journal_number": "日志 {index}",
     "log_range": {
@@ -3756,7 +3760,7 @@
     }
   },
   "ledger": {
-    "title": "主权账本",
+    "title": "账本",
     "subtitle": "您有多少工作保留在本设备上，以及由此保持了哪些隐私。",
     "period_label": "账本周期",
     "period_today": "今天",
@@ -3772,7 +3776,7 @@
     "reset": "重置",
     "resetting": "正在重置…",
     "reset_dialog_title": "重置账本统计数据？",
-    "reset_dialog_body": "这将删除主权账本中的所有使用统计数据。此操作无法撤销。",
+    "reset_dialog_body": "这将删除账本中的所有使用统计数据。此操作无法撤销。",
     "reset_confirm_action": "重置统计数据",
     "error": "无法加载您的账本。",
     "loading": "正在汇总您的账本…",
@@ -3970,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "再次检查演示文稿",
     "checking": "正在检查演示文稿…",
-    "missing": "PowerPoint 导出需要在此 Mac 上进行一次性的检查器设置。",
-    "next_step": "设置一次，返回此演示文稿，然后再次检查。",
-    "open_setup": "设置检查器",
-    "recheck_failed": "无法再次检查此演示文稿。请打开设置，确认检查器已就绪，然后重试。"
+    "missing": "在这台 Mac 上导出 Office 文件需要 LibreOffice。",
+    "next_step": "设置一次 LibreOffice，返回此演示文稿，然后再次检查。",
+    "open_setup": "设置 Office 导出",
+    "recheck_failed": "无法再次检查此演示文稿。请打开 Office 导出设置，确认 LibreOffice 已就绪，然后重试。"
   },
   "presentation_template": {
     "choose": "使用 PowerPoint 设计",

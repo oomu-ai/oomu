@@ -72,11 +72,11 @@ describe("RecommendedLocalModelSetup", () => {
     expect(listeners.has("recommended-model-install-progress")).toBe(false);
   });
 
-  it("presents the exact approved model with a managed default and one primary action", async () => {
+  it("presents the recommended model clearly with a managed default and one primary action", async () => {
     renderSetup();
 
     expect(screen.getByRole("heading", {
-      name: "Gemma 4 E2B IT QAT Q4_0 GGUF",
+      name: "Gemma 4 E2B",
     })).toBeVisible();
     expect(screen.getByText("The on-device model OOMU is optimized for.")).toBeVisible();
     expect(await screen.findByText("OOMU Models · Managed by OOMU")).toBeVisible();

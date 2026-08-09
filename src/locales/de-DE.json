@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "OOMU auf diesem Mac einrichten",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "Das On-Device-Modell, für das OOMU optimiert ist.",
     "local_download_size": "Läuft auf diesem Mac · 4,34 GB Download",
     "downloading": "Wird geladen",
@@ -40,7 +40,7 @@
     "choose_existing": "Vorhandenen Modellordner auswählen…",
     "set_up_later": "Später einrichten",
     "about_build": "Über dieses Modell",
-    "about_build_help": "Dies ist genau der anweisungsoptimierte, quantisierungsbewusste Q4_0-GGUF-Build, den OOMU für die Nutzung auf dem Gerät geprüft hat.",
+    "about_build_help": "Dies ist die On-Device-Modellversion, die OOMU für diese Version getestet hat.",
     "errors": {
       "destination": "OOMU kann diesen Speicherort nicht verwenden. Wähle einen anderen Ordner und versuche es erneut.",
       "storage": "Für den Download wird mehr freier Speicher benötigt. Schaffe Platz und setze ihn dann fort.",
@@ -1013,10 +1013,10 @@
       "unavailable": "OOMU konnte „{name}“ nicht anhängen. Wähle die Datei erneut aus."
     },
     "shield_gate": {
-      "title": "Sicherheitsfreigabe erforderlich",
-      "description": "OOMU hat eine Aktion angehalten, die Sie nach dem eigenständigen Sicherheitsprozess ausdrücklich prüfen und bestätigen müssen.",
-      "approve": "Aktion freigeben",
-      "deny": "Aktion ablehnen"
+      "title": "Darf diese Aktion ausgeführt werden?",
+      "description": "Prüfen Sie, was OOMU gleich tun wird. Es geschieht nichts, bis Sie es erlauben.",
+      "approve": "Erlauben",
+      "deny": "Nicht erlauben"
     },
     "routing_tag": "Weitergeleitet an: {model}",
     "chats": "Chats",
@@ -1746,7 +1746,7 @@
       "needs_attention": "Automatisches Routing erfordert Aufmerksamkeit",
       "preparing": "Automatisches Routing wird vorbereitet…",
       "ready": "Automatisches Routing bereit",
-      "sovereign": "Souverän"
+      "sovereign": "Auf diesem Gerät"
     },
     "memory": {
       "almost_full": "Fast voll",
@@ -2000,8 +2000,8 @@
         "default_status": "Der integrierte Standard wird verwendet.",
         "saved_status": "Automatisch gespeichert.",
         "saving_status": "Auswahl wird gespeichert...",
-        "load_error": "Das standardmäßig vorgeladene Modell konnte nicht geladen werden.",
-        "save_error": "Das standardmäßig vorgeladene Modell konnte nicht gespeichert werden.",
+        "load_error": "Ihr Startmodell konnte nicht geladen werden.",
+        "save_error": "Ihr Startmodell konnte nicht gespeichert werden.",
         "models_load_error": "Lokale Modelle konnten nicht geladen werden.",
         "fix_models_folder": "Korrigiere oben den Modellordner, um deine Modelle anzuzeigen.",
         "unavailable_option": "{modelId} (in diesem Verzeichnis nicht gefunden)"
@@ -2014,30 +2014,30 @@
         "available_count": "{count} geprüfte Sprachdateien verfügbar."
       },
       "presentation_checker": {
-        "title": "PowerPoint-Export",
-        "description": "Nur erforderlich, wenn Sie OOMU bitten, PowerPoint-Präsentationen zu erstellen. Es ist eine einmalige Einrichtung, damit OOMU jede Folie aus der echten PowerPoint-Datei auf Ihrem Mac öffnen und bestätigen kann, dass Ihre Präsentation korrekt aussieht, bevor Sie sie exportieren.",
+        "title": "Export von Office-Dateien",
+        "description": "Einmalige Einrichtung, damit OOMU PowerPoint-Präsentationen und Excel-Arbeitsmappen vor dem Speichern prüfen kann. OOMU verwendet die kostenlose App LibreOffice, um jede Datei zu öffnen und ihr Aussehen zu bestätigen.",
         "status": {
           "loading": "Dieser Mac wird geprüft...",
-          "ready": "Bereit zum Export nach PowerPoint",
+          "ready": "Bereit für den Export nach PowerPoint und Excel",
           "not_installed": "Einmalige Einrichtung erforderlich",
-          "not_qualified": "Aktualisierung des Prüfers erforderlich",
+          "not_qualified": "LibreOffice muss aktualisiert werden",
           "app_component_unavailable": "Aktualisierung von OOMU erforderlich",
           "unsupported_platform": "Auf diesem Gerät nicht verfügbar"
         },
         "detail": {
-          "loading": "OOMU prüft die Präsentationswerkzeuge auf diesem Mac.",
-          "ready": "Alles bereit – OOMU kann PowerPoint-Präsentationen auf diesem Mac prüfen und exportieren.",
-          "not_installed": "Installieren Sie den offiziellen Präsentationsprüfer {version} in „Programme“ und prüfen Sie erneut.",
-          "not_qualified": "Der installierte Prüfer ist nicht genau die von dieser OOMU-Version freigegebene Version. Installieren Sie {version} und prüfen Sie erneut.",
-          "app_component_unavailable": "Der integrierte Seitenprüfer fehlt in dieser OOMU-Version. Aktualisieren oder installieren Sie OOMU neu; der Export bleibt nicht verfügbar.",
-          "unsupported_platform": "Dieser Präsentationsprüfer ist derzeit nur in OOMU für Mac verfügbar."
+          "loading": "OOMU prüft den Export von Office-Dateien auf diesem Mac.",
+          "ready": "Alles bereit — OOMU kann PowerPoint-Präsentationen und Excel-Arbeitsmappen auf diesem Mac prüfen und exportieren.",
+          "not_installed": "Installieren Sie LibreOffice {version} im Ordner „Programme“ und prüfen Sie erneut.",
+          "not_qualified": "Diese OOMU-Version benötigt LibreOffice {version}. Installieren Sie es und prüfen Sie erneut.",
+          "app_component_unavailable": "Eine erforderliche Komponente für den Office-Export fehlt. Aktualisieren oder installieren Sie OOMU neu; der Export bleibt bis dahin nicht verfügbar.",
+          "unsupported_platform": "Die Prüfung von Office-Dateien ist derzeit nur in OOMU für Mac verfügbar."
         },
-        "open_download": "Offiziellen {version}-Download öffnen",
+        "open_download": "LibreOffice {version} herunterladen",
         "check_again": "Erneut prüfen",
         "checking": "Wird geprüft...",
         "errors": {
-          "probe_failed": "OOMU konnte die Bereitschaft für Präsentationen nicht prüfen. Versuchen Sie es erneut.",
-          "download_failed": "OOMU konnte die offizielle Download-Seite nicht öffnen. Versuchen Sie es erneut."
+          "probe_failed": "OOMU konnte die Bereitschaft für den Office-Export nicht prüfen. Versuchen Sie es erneut.",
+          "download_failed": "OOMU konnte die LibreOffice-Downloadseite nicht öffnen. Versuchen Sie es erneut."
         }
       }
     },
@@ -2117,9 +2117,13 @@
       "policy_link": "Datenschutzerklärung ansehen",
       "identity_section": "Eigenständiges Identitätsprofil",
       "fingerprint": "Fingerabdruck",
+      "fingerprint_description": "Eine kurze Kennung für den OOMU-Signaturschlüssel auf diesem Mac.",
       "hardware_binding": "Gerätebindung",
+      "hardware_binding_description": "Ein technischer Code, den OOMU der Signaturidentität dieses Mac hinzufügt.",
       "storage_backend": "Speicherort",
+      "storage_backend_description": "Hier schützt OOMU den privaten Schlüssel, mit dem Ihre Arbeit signiert wird.",
       "public_key": "Öffentlicher Signaturschlüssel",
+      "public_key_description": "Geben Sie diesen Schlüssel weiter, damit andere von OOMU signierte Arbeit prüfen können. Ihr privater Schlüssel bleibt verborgen.",
       "show_key": "Vollständigen Schlüssel anzeigen",
       "hide_key": "Vollständigen Schlüssel ausblenden",
       "overview_title": "Datenschutz und Sicherheit",
@@ -2250,10 +2254,10 @@
     }
   },
   "import": {
-    "title": "Assistent importieren",
-    "description": "Importieren Sie ein vorhandenes Assistentenprofil und wählen Sie aus, wie viel Verlauf übernommen werden soll.",
+    "title": "Agent importieren",
+    "description": "Importieren Sie ein vorhandenes Agentenprofil und wählen Sie, wie viel Verlauf übernommen werden soll.",
     "step_folder": "1. Quellordner auswählen",
-    "step_folder_desc": "Wählen Sie den Ordner aus, der den Assistenten enthält, den Sie in OOMU übernehmen möchten.",
+    "step_folder_desc": "Wählen Sie den Ordner mit dem Agenten, den Sie in OOMU übernehmen möchten.",
     "step_folder_placeholder": "Ordner auswählen oder Pfad einfügen",
     "review_button": "Import prüfen",
     "reviewing_button": "Prüfen...",
@@ -2262,27 +2266,27 @@
     "selected_count": "{selected} von {total} ausgewählt",
     "select_all": "Alles auswählen",
     "clear_all": "Auswahl löschen",
-    "files_desc": "Deaktivieren Sie alles, was Sie nicht in diesen Assistenten übernehmen möchten.",
-    "no_files_found": "In diesem Ordner wurden keine Assistentendetails gefunden.",
+    "files_desc": "Deaktivieren Sie alles, was Sie nicht in diesen Agenten übernehmen möchten.",
+    "no_files_found": "In diesem Ordner wurden keine Agentendaten gefunden.",
     "journals_title": "Nach Datum sortierte Protokolle",
     "journals_clean": "Mit leerem Verlauf starten",
     "journals_selected": "{selected} von {total} Einträgen ausgewählt",
     "journals_range": "Zeitraum für den Protokollimport",
     "journals_no_past": "Es werden keine früheren Einträge importiert.",
-    "step_setup": "3. Einrichtung des Assistenten abschließen",
-    "step_setup_desc": "Geben Sie dem Assistenten einen Namen und wählen Sie aus, wie OOMU ihn ausführen soll.",
-    "name_label": "Name des Assistenten",
-    "name_placeholder": "Diesen Assistenten benennen",
+    "step_setup": "3. Agenteneinrichtung abschließen",
+    "step_setup_desc": "Benennen Sie den Agenten und wählen Sie, wie OOMU ihn ausführen soll.",
+    "name_label": "Name des Agenten",
+    "name_placeholder": "Diesen Agenten benennen",
     "desc_label": "Beschreibung",
-    "desc_placeholder": "Beschreiben Sie, wobei dieser Assistent hilft...",
+    "desc_placeholder": "Beschreiben Sie, wobei dieser Agent hilft...",
     "style_label": "Stil",
     "provider_label": "Anbieter",
     "model_label": "Modell",
-    "import_button": "Eigenständigen Assistenten importieren",
+    "import_button": "Agent importieren",
     "complete_button": "Import abschließen",
     "importing_button": "Wird importiert...",
     "import_failed": "Import fehlgeschlagen: {error}",
-    "imported_description": "Assistentenprofil aus {name} importiert.",
+    "imported_description": "Agentenprofil von {name} importiert.",
     "journal_from_date": "Journal vom {date}",
     "journal_number": "Journal {index}",
     "log_range": {
@@ -3756,7 +3760,7 @@
     }
   },
   "ledger": {
-    "title": "Souveränes Journal",
+    "title": "Journal",
     "subtitle": "Wie viel Ihrer Arbeit auf Ihrem Gerät geblieben ist und was dadurch privat blieb.",
     "period_label": "Journalzeitraum",
     "period_today": "Heute",
@@ -3772,7 +3776,7 @@
     "reset": "Zurücksetzen",
     "resetting": "Wird zurückgesetzt…",
     "reset_dialog_title": "Journal-Statistiken zurücksetzen?",
-    "reset_dialog_body": "Dadurch werden alle Nutzungsstatistiken aus dem Souveränen Journal gelöscht. Dies kann nicht rückgängig gemacht werden.",
+    "reset_dialog_body": "Dadurch werden alle Nutzungsstatistiken aus dem Journal gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "reset_confirm_action": "Statistiken zurücksetzen",
     "error": "Ihr Journal konnte nicht geladen werden.",
     "loading": "Ihr Journal wird zusammengestellt…",
@@ -3970,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "Präsentation erneut prüfen",
     "checking": "Präsentation wird geprüft...",
-    "missing": "Der PowerPoint-Export erfordert eine einmalige Einrichtung des Prüfers auf diesem Mac.",
-    "next_step": "Richte ihn einmal ein, kehre zu dieser Präsentation zurück und prüfe sie dann erneut.",
-    "open_setup": "Prüfer einrichten",
-    "recheck_failed": "Diese Präsentation konnte nicht erneut geprüft werden. Öffne die Einrichtung, bestätige, dass der Prüfer bereit ist, und versuche es erneut."
+    "missing": "Für den Export von Office-Dateien ist LibreOffice auf diesem Mac erforderlich.",
+    "next_step": "Richten Sie LibreOffice einmal ein, kehren Sie zu dieser Präsentation zurück und prüfen Sie sie erneut.",
+    "open_setup": "Office-Export einrichten",
+    "recheck_failed": "Diese Präsentation konnte nicht erneut geprüft werden. Öffnen Sie die Einrichtung für den Office-Export, prüfen Sie, ob LibreOffice bereit ist, und versuchen Sie es erneut."
   },
   "presentation_template": {
     "choose": "Ein PowerPoint-Design verwenden",

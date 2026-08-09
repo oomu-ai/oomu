@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "在這台 Mac 上設定 OOMU",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "OOMU 專門最佳化的本機模型。",
     "local_download_size": "在這台 Mac 上執行 · 下載 4.34 GB",
     "downloading": "正在下載",
@@ -40,7 +40,7 @@
     "choose_existing": "選擇現有模型資料夾…",
     "set_up_later": "稍後設定",
     "about_build": "關於此模型",
-    "about_build_help": "這是 OOMU 針對本機使用驗證過的精確指令微調、量化感知 Q4_0 GGUF 組建。",
+    "about_build_help": "這是 OOMU 為目前版本測試過的本機模型版本。",
     "errors": {
       "destination": "OOMU 無法使用該位置。請選擇其他資料夾並重試。",
       "storage": "這台 Mac 需要更多可用空間才能完成下載。請釋放空間後繼續。",
@@ -1013,10 +1013,10 @@
       "unavailable": "OOMU 無法附加「{name}」。請重新選擇該檔案。"
     },
     "shield_gate": {
-      "title": "需要安全審核",
-      "description": "基於安全流程，OOMU 已攔截一個需要你明確審查和確認的操作。",
-      "approve": "允許操作",
-      "deny": "拒絕操作"
+      "title": "允許此操作？",
+      "description": "請查看 OOMU 即將執行的操作。只有在你允許後才會繼續。",
+      "approve": "允許",
+      "deny": "不允許"
     },
     "routing_tag": "已分配給：{model}",
     "chats": "聊天",
@@ -1746,7 +1746,7 @@
       "needs_attention": "自動路由需要處理",
       "preparing": "正在準備自動路由…",
       "ready": "自動路由就緒",
-      "sovereign": "主權"
+      "sovereign": "在本機"
     },
     "memory": {
       "almost_full": "接近佔滿",
@@ -2000,8 +2000,8 @@
         "default_status": "正在使用內建預設值。",
         "saved_status": "已自動儲存。",
         "saving_status": "正在儲存選擇...",
-        "load_error": "無法載入預設預熱模型。",
-        "save_error": "無法儲存預設預熱模型。",
+        "load_error": "無法載入你的啟動模型。",
+        "save_error": "無法儲存你的啟動模型。",
         "models_load_error": "無法載入本機模型。",
         "fix_models_folder": "請修正上方的模型資料夾，以查看您的模型。",
         "unavailable_option": "{modelId}（在此目錄中找不到）"
@@ -2014,30 +2014,30 @@
         "available_count": "有 {count} 個已驗證的語言檔案可用。"
       },
       "presentation_checker": {
-        "title": "PowerPoint 匯出",
-        "description": "僅當你要求 OOMU 製作 PowerPoint 簡報時才需要。這是一次性設定，讓 OOMU 能從你 Mac 上真實的 PowerPoint 檔案開啟每張投影片，並在匯出前確認你的簡報顯示正確。",
+        "title": "Office 檔案匯出",
+        "description": "一次性設定，讓 OOMU 在儲存前檢查 PowerPoint 簡報和 Excel 活頁簿。OOMU 使用免費的 LibreOffice App 開啟每個檔案並確認顯示正常。",
         "status": {
           "loading": "正在檢查此 Mac...",
-          "ready": "已準備好匯出至 PowerPoint",
+          "ready": "已準備好匯出 PowerPoint 和 Excel",
           "not_installed": "需要一次性設定",
-          "not_qualified": "需要更新檢查器",
+          "not_qualified": "需要更新 LibreOffice",
           "app_component_unavailable": "需要更新 OOMU",
           "unsupported_platform": "在此裝置上無法使用"
         },
         "detail": {
-          "loading": "OOMU 正在檢查此 Mac 上的簡報工具。",
-          "ready": "一切就緒——OOMU 可以在此 Mac 上檢查並匯出 PowerPoint 簡報。",
-          "not_installed": "在「應用程式」中安裝官方簡報檢查器 {version}，然後重新檢查。",
-          "not_qualified": "已安裝的檢查器並非此 OOMU 版本所核准的確切組建。請安裝 {version}，然後重新檢查。",
-          "app_component_unavailable": "此 OOMU 組建缺少內建的頁面檢查器。請更新或重新安裝 OOMU；匯出仍無法使用。",
-          "unsupported_platform": "此簡報檢查器目前僅在 Mac 版 OOMU 中提供。"
+          "loading": "OOMU 正在檢查這台 Mac 的 Office 檔案匯出功能。",
+          "ready": "一切就緒——OOMU 可以在這台 Mac 上檢查並匯出 PowerPoint 簡報和 Excel 活頁簿。",
+          "not_installed": "請在「應用程式」中安裝 LibreOffice {version}，然後再次檢查。",
+          "not_qualified": "此版本的 OOMU 需要 LibreOffice {version}。請安裝後再次檢查。",
+          "app_component_unavailable": "缺少 Office 匯出所需的元件。請更新或重新安裝 OOMU；在此之前無法匯出。",
+          "unsupported_platform": "Office 檔案檢查目前僅適用於 Mac 版 OOMU。"
         },
-        "open_download": "開啟官方 {version} 下載",
+        "open_download": "開啟 LibreOffice {version} 下載頁面",
         "check_again": "重新檢查",
         "checking": "正在檢查...",
         "errors": {
-          "probe_failed": "OOMU 無法檢查簡報就緒情況。請重試。",
-          "download_failed": "OOMU 無法開啟官方下載頁面。請重試。"
+          "probe_failed": "OOMU 無法檢查 Office 匯出是否就緒。請再試一次。",
+          "download_failed": "OOMU 無法開啟 LibreOffice 下載頁面。請再試一次。"
         }
       }
     },
@@ -2117,9 +2117,13 @@
       "policy_link": "查看隱私權政策",
       "identity_section": "自主身分資料",
       "fingerprint": "指紋",
+      "fingerprint_description": "這台 Mac 上 OOMU 簽署金鑰的簡短識別碼。",
       "hardware_binding": "綁定裝置",
+      "hardware_binding_description": "OOMU 隨這台 Mac 的簽署身分記錄的技術代碼。",
       "storage_backend": "儲存位置",
+      "storage_backend_description": "OOMU 用來保護工作簽署私密金鑰的位置。",
       "public_key": "公開簽署金鑰",
+      "public_key_description": "分享此金鑰可讓他人驗證 OOMU 簽署的工作，且不會洩露你的私密金鑰。",
       "show_key": "顯示完整金鑰",
       "hide_key": "隱藏完整金鑰",
       "overview_title": "隱私與安全",
@@ -2250,10 +2254,10 @@
     }
   },
   "import": {
-    "title": "匯入助手",
-    "description": "匯入現有助手資料，並選擇要帶入多少歷史記錄。",
+    "title": "匯入代理程式",
+    "description": "匯入現有代理程式設定檔，並選擇要保留多少歷史記錄。",
     "step_folder": "1. 選擇來源資料夾",
-    "step_folder_desc": "選擇存放要匯入助手的資料夾。",
+    "step_folder_desc": "選擇包含要匯入 OOMU 的代理程式的資料夾。",
     "step_folder_placeholder": "選擇資料夾或貼上路徑",
     "review_button": "檢視匯入內容",
     "reviewing_button": "正在檢視...",
@@ -2262,27 +2266,27 @@
     "selected_count": "已選取 {selected} 項，共 {total} 項",
     "select_all": "全選",
     "clear_all": "取消全選",
-    "files_desc": "取消勾選你不想帶入此助手的內容。",
-    "no_files_found": "在此資料夾中找不到助手資訊。",
+    "files_desc": "關閉不想帶入此代理程式的內容。",
+    "no_files_found": "此資料夾中找不到代理程式資訊。",
     "journals_title": "按時間排列的日誌",
     "journals_clean": "從空白歷史記錄開始",
     "journals_selected": "已選取 {selected} 筆，共 {total} 筆",
     "journals_range": "日誌匯入範圍",
     "journals_no_past": "不會匯入過去的記錄。",
-    "step_setup": "3. 完成助手設定",
-    "step_setup_desc": "為助手命名，並選擇 OOMU 如何執行它。",
-    "name_label": "助手名稱",
-    "name_placeholder": "為這個助手命名",
+    "step_setup": "3. 完成代理程式設定",
+    "step_setup_desc": "為代理程式命名，並選擇 OOMU 應如何執行它。",
+    "name_label": "代理程式名稱",
+    "name_placeholder": "為此代理程式命名",
     "desc_label": "描述",
-    "desc_placeholder": "描述這個助手可以幫你做什麼...",
+    "desc_placeholder": "描述此代理程式可以提供的協助...",
     "style_label": "風格",
     "provider_label": "提供者",
     "model_label": "模型",
-    "import_button": "匯入自主助手",
+    "import_button": "匯入代理程式",
     "complete_button": "完成匯入",
     "importing_button": "正在匯入...",
     "import_failed": "匯入失敗：{error}",
-    "imported_description": "已從 {name} 匯入助理設定檔。",
+    "imported_description": "已從 {name} 匯入代理程式設定檔。",
     "journal_from_date": "{date} 的日誌",
     "journal_number": "日誌 {index}",
     "log_range": {
@@ -3756,7 +3760,7 @@
     }
   },
   "ledger": {
-    "title": "主權帳本",
+    "title": "帳本",
     "subtitle": "您有多少工作保留在本裝置上，以及因此保持了哪些隱私。",
     "period_label": "帳本週期",
     "period_today": "今天",
@@ -3772,7 +3776,7 @@
     "reset": "重設",
     "resetting": "正在重設…",
     "reset_dialog_title": "重設帳本統計資料？",
-    "reset_dialog_body": "這將刪除主權帳本中的所有使用統計資料。此操作無法復原。",
+    "reset_dialog_body": "這將刪除帳本中的所有使用統計資料。此操作無法復原。",
     "reset_confirm_action": "重設統計資料",
     "error": "無法載入您的帳本。",
     "loading": "正在彙整您的帳本…",
@@ -3970,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "再次檢查簡報",
     "checking": "正在檢查簡報…",
-    "missing": "PowerPoint 匯出需要在此 Mac 上進行一次性的檢查器設定。",
-    "next_step": "設定一次，返回此簡報，然後再次檢查。",
-    "open_setup": "設定檢查器",
-    "recheck_failed": "無法再次檢查此簡報。請開啟設定，確認檢查器已就緒，然後再試一次。"
+    "missing": "在這台 Mac 上匯出 Office 檔案需要 LibreOffice。",
+    "next_step": "設定一次 LibreOffice，返回此簡報，然後再次檢查。",
+    "open_setup": "設定 Office 匯出",
+    "recheck_failed": "無法再次檢查此簡報。請開啟 Office 匯出設定，確認 LibreOffice 已就緒，然後再試一次。"
   },
   "presentation_template": {
     "choose": "使用 PowerPoint 設計",

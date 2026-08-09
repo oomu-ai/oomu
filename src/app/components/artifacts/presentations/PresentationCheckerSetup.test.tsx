@@ -44,7 +44,7 @@ describe("presentation checker setup", () => {
 
     expect(await screen.findByText("One-time setup needed")).toBeVisible();
     const download = screen.getByRole("button", {
-      name: "Open official 26.2.5 (build 26.2.5.2) download",
+      name: "Open LibreOffice 26.2.5 (build 26.2.5.2) download",
     });
     fireEvent.click(download);
 
@@ -70,9 +70,9 @@ describe("presentation checker setup", () => {
     });
     render(<PresentationCheckerSetup />, { wrapper: I18nProvider });
 
-    expect(await screen.findByText("Checker update needed")).toBeVisible();
+    expect(await screen.findByText("LibreOffice update needed")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Check again" }));
-    expect(await screen.findByText("You're all set — OOMU can check and export PowerPoint decks on this Mac.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: /Open official/ })).toBeNull();
+    expect(await screen.findByText("You're all set — OOMU can check and export PowerPoint presentations and Excel workbooks on this Mac.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Open LibreOffice/ })).toBeNull();
   });
 });

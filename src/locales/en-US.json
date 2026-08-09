@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "Set up OOMU on this Mac",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "The on-device model OOMU is optimized for.",
     "local_download_size": "Runs on this Mac · 4.34 GB download",
     "downloading": "Downloading",
@@ -40,7 +40,7 @@
     "choose_existing": "Choose an existing model folder…",
     "set_up_later": "Set up later",
     "about_build": "About this model",
-    "about_build_help": "This is the exact instruction-tuned, quantization-aware Q4_0 GGUF build OOMU has verified for on-device use.",
+    "about_build_help": "This is the on-device model build OOMU has tested for this version.",
     "errors": {
       "destination": "OOMU can’t use that location. Choose another folder and try again.",
       "storage": "This Mac needs more free space to finish the download. Free some space, then resume.",
@@ -222,12 +222,12 @@
     "local_action": "Use this Mac for the next step"
   },
   "presentation_renderer": {
-    "missing": "PowerPoint export needs a one-time checker setup on this Mac.",
-    "next_step": "Set it up once, return to this presentation, then check it again.",
-    "open_setup": "Set up checker",
+    "missing": "Office file export needs LibreOffice on this Mac.",
+    "next_step": "Set up LibreOffice once, return to this presentation, then check it again.",
+    "open_setup": "Set up Office export",
     "check_again": "Check presentation again",
     "checking": "Checking presentation...",
-    "recheck_failed": "This presentation could not be checked again. Open setup and confirm the checker is ready, then try again."
+    "recheck_failed": "This presentation could not be checked again. Open Office export setup and confirm LibreOffice is ready, then try again."
   },
   "presentation_template": {
     "choose": "Use a PowerPoint design",
@@ -1612,7 +1612,7 @@
     }
   },
   "ledger": {
-    "title": "Sovereign Ledger",
+    "title": "Ledger",
     "subtitle": "How much of your work stayed on your device and what that kept private.",
     "period_label": "Ledger period",
     "period_today": "Today",
@@ -1628,7 +1628,7 @@
     "reset": "Reset",
     "resetting": "Resetting…",
     "reset_dialog_title": "Reset ledger statistics?",
-    "reset_dialog_body": "This will delete all usage stats from the Sovereign Ledger. This cannot be undone.",
+    "reset_dialog_body": "This will delete all usage stats from the Ledger. This cannot be undone.",
     "reset_confirm_action": "Reset statistics",
     "error": "Couldn't load your ledger.",
     "loading": "Gathering your ledger…",
@@ -1746,10 +1746,10 @@
     "voice_input_unavailable": "On-device voice input isn’t available for this language.",
     "voice_input_error": "Voice input couldn’t start. Try again.",
     "shield_gate": {
-      "title": "Shield Gate Approval Required",
-      "description": "OOMU has intercepted an action that requires your explicit review and validation under the sovereign security protocol.",
-      "approve": "Approve Action",
-      "deny": "Deny Action"
+      "title": "Allow this action?",
+      "description": "Review what OOMU is about to do. Nothing happens until you allow it.",
+      "approve": "Allow",
+      "deny": "Don’t allow"
     },
     "routing_tag": "Routed to: {model}",
     "chats": "Chats",
@@ -1787,7 +1787,7 @@
     "processed_via": "Processed via",
     "processed_via_full": "Processed by {model}",
     "route": {
-      "sovereign": "Sovereign",
+      "sovereign": "On device",
       "cloud": "Cloud",
       "last_reply": "Last reply",
       "auto": "Auto-route",
@@ -2748,8 +2748,8 @@
         "default_status": "Using the built-in default.",
         "saved_status": "Saved automatically.",
         "saving_status": "Saving selection...",
-        "load_error": "Unable to load the default prewarmed model.",
-        "save_error": "Unable to save the default prewarmed model.",
+        "load_error": "Unable to load your startup model.",
+        "save_error": "Unable to save your startup model.",
         "models_load_error": "Unable to load local models.",
         "fix_models_folder": "Fix the models folder above to see your models.",
         "unavailable_option": "{modelId} (not found in this directory)"
@@ -2762,30 +2762,30 @@
         "available_count": "{count} verified language files available."
       },
       "presentation_checker": {
-        "title": "PowerPoint export",
-        "description": "Only needed if you ask OOMU to make PowerPoint decks. It's a one-time setup so OOMU can open every slide from the real PowerPoint file on your Mac and confirm your deck looks right before you export it.",
+        "title": "Office file export",
+        "description": "One-time setup so OOMU can check PowerPoint presentations and Excel workbooks before you save them. OOMU uses LibreOffice, a free app, to open each file and confirm it looks right.",
         "status": {
           "loading": "Checking this Mac...",
-          "ready": "Ready to export PowerPoint",
+          "ready": "Ready to export PowerPoint and Excel",
           "not_installed": "One-time setup needed",
-          "not_qualified": "Checker update needed",
+          "not_qualified": "LibreOffice update needed",
           "app_component_unavailable": "OOMU update needed",
           "unsupported_platform": "Unavailable on this device"
         },
         "detail": {
-          "loading": "OOMU is checking the presentation tools on this Mac.",
-          "ready": "You're all set — OOMU can check and export PowerPoint decks on this Mac.",
-          "not_installed": "Install the official presentation checker {version} in Applications, then check again.",
-          "not_qualified": "The installed checker is not the exact build approved by this OOMU version. Install {version}, then check again.",
-          "app_component_unavailable": "The built-in page checker is missing from this OOMU build. Update or reinstall OOMU; export stays unavailable.",
-          "unsupported_platform": "This presentation checker is currently available only in OOMU for Mac."
+          "loading": "OOMU is checking Office file export on this Mac.",
+          "ready": "You're all set — OOMU can check and export PowerPoint presentations and Excel workbooks on this Mac.",
+          "not_installed": "Install LibreOffice {version} in Applications, then check again.",
+          "not_qualified": "This version of OOMU needs LibreOffice {version}. Install it, then check again.",
+          "app_component_unavailable": "A required Office export component is missing. Update or reinstall OOMU; export stays unavailable.",
+          "unsupported_platform": "Office file checking is currently available only in OOMU for Mac."
         },
-        "open_download": "Open official {version} download",
+        "open_download": "Open LibreOffice {version} download",
         "check_again": "Check again",
         "checking": "Checking...",
         "errors": {
-          "probe_failed": "OOMU could not check presentation readiness. Try again.",
-          "download_failed": "OOMU could not open the official download page. Try again."
+          "probe_failed": "OOMU could not check Office export readiness. Try again.",
+          "download_failed": "OOMU could not open the LibreOffice download page. Try again."
         }
       }
     },
@@ -2882,9 +2882,13 @@
       "identity_retrying": "Checking...",
       "identity_section": "Device identity",
       "fingerprint": "Fingerprint",
+      "fingerprint_description": "A short identifier for OOMU’s signing key on this Mac.",
       "hardware_binding": "Hardware binding",
+      "hardware_binding_description": "A technical code OOMU includes with this Mac’s signing identity.",
       "storage_backend": "Where your data lives",
+      "storage_backend_description": "Where OOMU protects the private key used to sign your work.",
       "public_key": "Public signing key",
+      "public_key_description": "Share this key to let someone verify OOMU-signed work. It does not reveal your private key.",
       "show_key": "Show full key",
       "hide_key": "Hide full key",
       "show_public_key": "Show public key",
@@ -2998,10 +3002,10 @@
     }
   },
   "import": {
-    "title": "Import Assistant",
-    "description": "Bring in an existing assistant profile and choose how much history to carry forward.",
+    "title": "Import Agent",
+    "description": "Bring in an existing agent profile and choose how much history to carry forward.",
     "step_folder": "1. Choose Source Folder",
-    "step_folder_desc": "Choose the folder that holds the assistant you want to bring into OOMU.",
+    "step_folder_desc": "Choose the folder that holds the agent you want to bring into OOMU.",
     "step_folder_placeholder": "Choose a folder or paste its path",
     "review_button": "Review Import",
     "reviewing_button": "Reviewing...",
@@ -3010,27 +3014,27 @@
     "selected_count": "{selected} of {total} selected",
     "select_all": "Select All",
     "clear_all": "Clear All",
-    "files_desc": "Turn off anything you do not want to carry into this assistant.",
-    "no_files_found": "No assistant details were found in this folder.",
+    "files_desc": "Turn off anything you do not want to carry into this agent.",
+    "no_files_found": "No agent details were found in this folder.",
     "journals_title": "Chronological Journals",
     "journals_clean": "Starting with a clean history",
     "journals_selected": "{selected} of {total} entries selected",
     "journals_range": "Log Import Range",
     "journals_no_past": "No past entries will be imported.",
-    "step_setup": "3. Finish Assistant Setup",
-    "step_setup_desc": "Name the assistant and choose how OOMU should run it.",
-    "name_label": "Assistant Name",
-    "name_placeholder": "Name this assistant",
+    "step_setup": "3. Finish agent setup",
+    "step_setup_desc": "Name the agent and choose how OOMU should run it.",
+    "name_label": "Agent name",
+    "name_placeholder": "Name this agent",
     "desc_label": "Description",
-    "desc_placeholder": "Describe what this assistant helps with...",
+    "desc_placeholder": "Describe what this agent helps with...",
     "style_label": "Style",
     "provider_label": "Provider",
     "model_label": "Model",
-    "import_button": "Import Sovereign Agent",
+    "import_button": "Import Agent",
     "complete_button": "Complete Import",
     "importing_button": "Importing...",
     "import_failed": "Import failed: {error}",
-    "imported_description": "Assistant profile imported from {name}.",
+    "imported_description": "Agent profile imported from {name}.",
     "journal_from_date": "Journal from {date}",
     "journal_number": "Journal {index}",
     "log_range": {

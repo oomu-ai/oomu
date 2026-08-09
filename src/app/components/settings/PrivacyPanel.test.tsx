@@ -68,6 +68,12 @@ describe("PrivacyPanel device identity recovery", () => {
       expect(invokeMock).toHaveBeenCalledWith("retry_sovereign_identity_health"),
     );
     expect(await screen.findByText("1234567890abcdef...")).toBeVisible();
+    expect(
+      screen.getByText("A short identifier for OOMU’s signing key on this Mac."),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Where OOMU protects the private key used to sign your work."),
+    ).toBeVisible();
   });
 });
 

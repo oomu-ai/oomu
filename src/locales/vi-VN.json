@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "Thiết lập OOMU trên máy Mac này",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "Mô hình chạy trên thiết bị mà OOMU được tối ưu hóa cho.",
     "local_download_size": "Chạy trên máy Mac này · Tải xuống 4,34 GB",
     "downloading": "Đang tải xuống",
@@ -40,7 +40,7 @@
     "choose_existing": "Chọn thư mục mô hình hiện có…",
     "set_up_later": "Thiết lập sau",
     "about_build": "Giới thiệu về mô hình này",
-    "about_build_help": "Đây là đúng bản dựng GGUF Q4_0 đã tinh chỉnh theo chỉ dẫn và nhận biết lượng tử hóa mà OOMU đã xác minh để dùng trên thiết bị.",
+    "about_build_help": "Đây là bản dựng mô hình trên thiết bị mà OOMU đã kiểm tra cho phiên bản này.",
     "errors": {
       "destination": "OOMU không thể dùng vị trí đó. Hãy chọn thư mục khác rồi thử lại.",
       "storage": "Máy Mac này cần thêm dung lượng trống để hoàn tất tải xuống. Hãy giải phóng dung lượng rồi tiếp tục.",
@@ -1013,10 +1013,10 @@
       "unavailable": "OOMU không thể đính kèm “{name}”. Hãy chọn lại tệp."
     },
     "shield_gate": {
-      "title": "Cần phê duyệt an toàn",
-      "description": "OOMU đã chặn một thao tác cần bạn xem xét và xác nhận rõ ràng theo quy trình bảo mật riêng.",
-      "approve": "Cho phép thao tác",
-      "deny": "Từ chối thao tác"
+      "title": "Cho phép thao tác này?",
+      "description": "Hãy xem OOMU sắp làm gì. Không có gì xảy ra cho đến khi bạn cho phép.",
+      "approve": "Cho phép",
+      "deny": "Không cho phép"
     },
     "routing_tag": "Đã giao cho: {model}",
     "chats": "Trò chuyện",
@@ -1746,7 +1746,7 @@
       "needs_attention": "Định tuyến tự động cần chú ý",
       "preparing": "Đang chuẩn bị định tuyến tự động…",
       "ready": "Định tuyến tự động đã sẵn sàng",
-      "sovereign": "Chủ quyền"
+      "sovereign": "Trên thiết bị"
     },
     "memory": {
       "almost_full": "Gần đầy",
@@ -2000,8 +2000,8 @@
         "default_status": "Đang dùng mặc định tích hợp sẵn.",
         "saved_status": "Đã tự động lưu.",
         "saving_status": "Đang lưu lựa chọn...",
-        "load_error": "Không thể tải mô hình làm nóng sẵn mặc định.",
-        "save_error": "Không thể lưu mô hình làm nóng sẵn mặc định.",
+        "load_error": "Không thể tải mô hình khởi động của bạn.",
+        "save_error": "Không thể lưu mô hình khởi động của bạn.",
         "models_load_error": "Không thể tải các mô hình cục bộ.",
         "fix_models_folder": "Hãy sửa thư mục mô hình ở trên để xem các mô hình của bạn.",
         "unavailable_option": "{modelId} (không tìm thấy trong thư mục này)"
@@ -2014,30 +2014,30 @@
         "available_count": "Có {count} tệp ngôn ngữ đã xác minh."
       },
       "presentation_checker": {
-        "title": "Xuất PowerPoint",
-        "description": "Chỉ cần thiết nếu bạn yêu cầu OOMU tạo bản trình chiếu PowerPoint. Đây là thiết lập một lần để OOMU có thể mở từng trang chiếu từ tệp PowerPoint thực trên máy Mac của bạn và xác nhận bản trình chiếu hiển thị đúng trước khi xuất.",
+        "title": "Xuất tệp Office",
+        "description": "Thiết lập một lần để OOMU kiểm tra bản trình chiếu PowerPoint và sổ làm việc Excel trước khi bạn lưu. OOMU dùng LibreOffice, một ứng dụng miễn phí, để mở từng tệp và xác nhận tệp hiển thị đúng.",
         "status": {
           "loading": "Đang kiểm tra máy Mac này...",
-          "ready": "Sẵn sàng xuất sang PowerPoint",
+          "ready": "Sẵn sàng xuất PowerPoint và Excel",
           "not_installed": "Cần thiết lập một lần",
-          "not_qualified": "Cần cập nhật trình kiểm tra",
+          "not_qualified": "Cần cập nhật LibreOffice",
           "app_component_unavailable": "Cần cập nhật OOMU",
           "unsupported_platform": "Không khả dụng trên thiết bị này"
         },
         "detail": {
-          "loading": "OOMU đang kiểm tra các công cụ trình chiếu trên máy Mac này.",
-          "ready": "Tất cả đã sẵn sàng — OOMU có thể kiểm tra và xuất bản trình chiếu PowerPoint trên máy Mac này.",
-          "not_installed": "Cài đặt trình kiểm tra trình chiếu chính thức {version} trong Ứng dụng, rồi kiểm tra lại.",
-          "not_qualified": "Trình kiểm tra đã cài không phải đúng bản dựng được phiên bản OOMU này phê duyệt. Cài {version}, rồi kiểm tra lại.",
-          "app_component_unavailable": "Bản dựng OOMU này thiếu trình kiểm tra trang tích hợp sẵn. Cập nhật hoặc cài lại OOMU; tính năng xuất vẫn không khả dụng.",
-          "unsupported_platform": "Trình kiểm tra trình chiếu này hiện chỉ khả dụng trong OOMU cho Mac."
+          "loading": "OOMU đang kiểm tra khả năng xuất tệp Office trên máy Mac này.",
+          "ready": "Mọi thứ đã sẵn sàng — OOMU có thể kiểm tra và xuất bản trình chiếu PowerPoint cùng sổ làm việc Excel trên máy Mac này.",
+          "not_installed": "Cài đặt LibreOffice {version} trong Ứng dụng, sau đó kiểm tra lại.",
+          "not_qualified": "Phiên bản OOMU này cần LibreOffice {version}. Hãy cài đặt rồi kiểm tra lại.",
+          "app_component_unavailable": "Thiếu một thành phần cần thiết để xuất Office. Hãy cập nhật hoặc cài đặt lại OOMU; tính năng xuất vẫn chưa khả dụng.",
+          "unsupported_platform": "Kiểm tra tệp Office hiện chỉ khả dụng trong OOMU cho Mac."
         },
-        "open_download": "Mở trang tải xuống chính thức {version}",
+        "open_download": "Mở trang tải LibreOffice {version}",
         "check_again": "Kiểm tra lại",
         "checking": "Đang kiểm tra...",
         "errors": {
-          "probe_failed": "OOMU không thể kiểm tra mức sẵn sàng cho trình chiếu. Hãy thử lại.",
-          "download_failed": "OOMU không thể mở trang tải xuống chính thức. Hãy thử lại."
+          "probe_failed": "OOMU không thể kiểm tra khả năng xuất Office. Hãy thử lại.",
+          "download_failed": "OOMU không thể mở trang tải LibreOffice. Hãy thử lại."
         }
       }
     },
@@ -2117,9 +2117,13 @@
       "policy_link": "Xem chính sách quyền riêng tư",
       "identity_section": "Hồ sơ danh tính tự chủ",
       "fingerprint": "Dấu nhận dạng",
+      "fingerprint_description": "Mã nhận dạng ngắn cho khóa ký của OOMU trên máy Mac này.",
       "hardware_binding": "Liên kết thiết bị",
+      "hardware_binding_description": "Mã kỹ thuật mà OOMU đưa vào danh tính ký của máy Mac này.",
       "storage_backend": "Nơi lưu trữ",
+      "storage_backend_description": "Nơi OOMU bảo vệ khóa riêng dùng để ký công việc của bạn.",
       "public_key": "Khóa ký công khai",
+      "public_key_description": "Chia sẻ khóa này để người khác xác minh công việc do OOMU ký. Khóa riêng của bạn không bị tiết lộ.",
       "show_key": "Hiển thị toàn bộ khóa",
       "hide_key": "Ẩn toàn bộ khóa",
       "overview_title": "Quyền riêng tư và bảo mật",
@@ -2250,10 +2254,10 @@
     }
   },
   "import": {
-    "title": "Nhập trợ lý",
-    "description": "Nhập hồ sơ trợ lý hiện có và chọn lượng lịch sử muốn mang theo.",
+    "title": "Nhập tác nhân",
+    "description": "Nhập hồ sơ tác nhân hiện có và chọn lượng lịch sử cần giữ lại.",
     "step_folder": "1. Chọn thư mục nguồn",
-    "step_folder_desc": "Chọn thư mục chứa trợ lý bạn muốn đưa vào OOMU.",
+    "step_folder_desc": "Chọn thư mục chứa tác nhân bạn muốn đưa vào OOMU.",
     "step_folder_placeholder": "Chọn thư mục hoặc dán đường dẫn",
     "review_button": "Xem lại nội dung nhập",
     "reviewing_button": "Đang xem lại...",
@@ -2262,27 +2266,27 @@
     "selected_count": "Đã chọn {selected} trong tổng số {total}",
     "select_all": "Chọn tất cả",
     "clear_all": "Bỏ chọn tất cả",
-    "files_desc": "Bỏ chọn những mục bạn không muốn đưa vào trợ lý này.",
-    "no_files_found": "Không tìm thấy thông tin trợ lý trong thư mục này.",
+    "files_desc": "Tắt mọi mục bạn không muốn đưa vào tác nhân này.",
+    "no_files_found": "Không tìm thấy thông tin tác nhân trong thư mục này.",
     "journals_title": "Nhật ký theo thời gian",
     "journals_clean": "Bắt đầu với lịch sử trống",
     "journals_selected": "Đã chọn {selected} mục trong tổng số {total}",
     "journals_range": "Phạm vi nhập nhật ký",
     "journals_no_past": "Không nhập các mục trước đây.",
-    "step_setup": "3. Hoàn tất thiết lập trợ lý",
-    "step_setup_desc": "Đặt tên cho trợ lý và chọn cách OOMU chạy trợ lý đó.",
-    "name_label": "Tên trợ lý",
-    "name_placeholder": "Đặt tên cho trợ lý này",
+    "step_setup": "3. Hoàn tất thiết lập tác nhân",
+    "step_setup_desc": "Đặt tên cho tác nhân và chọn cách OOMU chạy tác nhân đó.",
+    "name_label": "Tên tác nhân",
+    "name_placeholder": "Đặt tên cho tác nhân này",
     "desc_label": "Mô tả",
-    "desc_placeholder": "Mô tả trợ lý này có thể giúp gì cho bạn...",
+    "desc_placeholder": "Mô tả tác nhân này có thể giúp gì...",
     "style_label": "Phong cách",
     "provider_label": "Nhà cung cấp",
     "model_label": "Mô hình",
-    "import_button": "Nhập trợ lý tự chủ",
+    "import_button": "Nhập tác nhân",
     "complete_button": "Hoàn tất nhập",
     "importing_button": "Đang nhập...",
     "import_failed": "Nhập thất bại: {error}",
-    "imported_description": "Đã nhập hồ sơ trợ lý từ {name}.",
+    "imported_description": "Đã nhập hồ sơ tác nhân từ {name}.",
     "journal_from_date": "Nhật ký từ {date}",
     "journal_number": "Nhật ký {index}",
     "log_range": {
@@ -3756,7 +3760,7 @@
     }
   },
   "ledger": {
-    "title": "Sổ cái chủ quyền",
+    "title": "Sổ cái",
     "subtitle": "Bao nhiêu công việc của bạn ở lại trên thiết bị và điều đó đã giữ riêng tư những gì.",
     "period_label": "Khoảng thời gian của sổ cái",
     "period_today": "Hôm nay",
@@ -3772,7 +3776,7 @@
     "reset": "Đặt lại",
     "resetting": "Đang đặt lại…",
     "reset_dialog_title": "Đặt lại số liệu thống kê của sổ cái?",
-    "reset_dialog_body": "Thao tác này sẽ xóa toàn bộ số liệu sử dụng khỏi Sổ cái chủ quyền. Không thể hoàn tác.",
+    "reset_dialog_body": "Thao tác này sẽ xóa toàn bộ số liệu sử dụng khỏi Sổ cái. Không thể hoàn tác.",
     "reset_confirm_action": "Đặt lại số liệu thống kê",
     "error": "Không thể tải sổ cái của bạn.",
     "loading": "Đang tổng hợp sổ cái của bạn…",
@@ -3970,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "Kiểm tra bản trình chiếu lại",
     "checking": "Đang kiểm tra bản trình chiếu...",
-    "missing": "Xuất PowerPoint cần thiết lập trình kiểm tra một lần trên máy Mac này.",
-    "next_step": "Thiết lập một lần, quay lại bản trình chiếu này, rồi kiểm tra lại.",
-    "open_setup": "Thiết lập trình kiểm tra",
-    "recheck_failed": "Không thể kiểm tra lại bản trình chiếu này. Hãy mở thiết lập, xác nhận trình kiểm tra đã sẵn sàng, rồi thử lại."
+    "missing": "Xuất tệp Office cần LibreOffice trên máy Mac này.",
+    "next_step": "Thiết lập LibreOffice một lần, quay lại bản trình chiếu này, rồi kiểm tra lại.",
+    "open_setup": "Thiết lập xuất Office",
+    "recheck_failed": "Không thể kiểm tra lại bản trình chiếu này. Hãy mở phần thiết lập xuất Office, xác nhận LibreOffice đã sẵn sàng, rồi thử lại."
   },
   "presentation_template": {
     "choose": "Dùng một thiết kế PowerPoint",

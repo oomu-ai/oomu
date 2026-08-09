@@ -16,7 +16,7 @@
   },
   "recommended_model": {
     "eyebrow": "このMacにOOMUをセットアップ",
-    "full_name": "Gemma 4 E2B IT QAT Q4_0 GGUF",
+    "full_name": "Gemma 4 E2B",
     "optimized_for": "OOMUが最適化されているオンデバイスモデルです。",
     "local_download_size": "このMacで実行 · 4.34 GBのダウンロード",
     "downloading": "ダウンロード中",
@@ -40,7 +40,7 @@
     "choose_existing": "既存のモデルフォルダを選択…",
     "set_up_later": "後でセットアップ",
     "about_build": "このモデルについて",
-    "about_build_help": "これは、OOMUがオンデバイス利用向けに検証した、命令調整済み・量子化対応の正確なQ4_0 GGUFビルドです。",
+    "about_build_help": "これは、このバージョンの OOMU でテストされたオンデバイスモデルです。",
     "errors": {
       "destination": "OOMUはその場所を使用できません。別のフォルダを選んで、もう一度お試しください。",
       "storage": "ダウンロードを完了するには空き容量が必要です。容量を確保してから再開してください。",
@@ -1013,10 +1013,10 @@
       "unavailable": "OOMU は「{name}」を添付できませんでした。ファイルをもう一度選んでください。"
     },
     "shield_gate": {
-      "title": "安全確認が必要です",
-      "description": "OOMU は、安全手順に従い、あなたの確認が必要な操作を止めました。内容を確認してください。",
-      "approve": "操作を許可",
-      "deny": "操作を拒否"
+      "title": "この操作を許可しますか？",
+      "description": "OOMU がこれから行う内容を確認してください。許可するまで何も実行されません。",
+      "approve": "許可",
+      "deny": "許可しない"
     },
     "routing_tag": "使用モデル：{model}",
     "chats": "チャット",
@@ -1746,7 +1746,7 @@
       "needs_attention": "自動ルーティングに対応が必要です",
       "preparing": "自動ルーティングを準備中…",
       "ready": "自動ルーティングの準備ができました",
-      "sovereign": "ソブリン"
+      "sovereign": "このデバイス上"
     },
     "memory": {
       "almost_full": "ほぼ満杯",
@@ -2000,8 +2000,8 @@
         "default_status": "組み込みの既定値を使用しています。",
         "saved_status": "自動的に保存しました。",
         "saving_status": "選択を保存中...",
-        "load_error": "既定のプリウォームモデルを読み込めませんでした。",
-        "save_error": "既定のプリウォームモデルを保存できませんでした。",
+        "load_error": "起動時のモデルを読み込めませんでした。",
+        "save_error": "起動時のモデルを保存できませんでした。",
         "models_load_error": "ローカルモデルを読み込めませんでした。",
         "fix_models_folder": "モデルを表示するには、上のモデルフォルダーを修正してください。",
         "unavailable_option": "{modelId}（このディレクトリに見つかりません）"
@@ -2014,30 +2014,30 @@
         "available_count": "{count} 個の確認済み言語ファイルが利用可能です。"
       },
       "presentation_checker": {
-        "title": "PowerPoint エクスポート",
-        "description": "OOMU に PowerPoint の資料を作成してもらう場合にのみ必要です。これは一度きりの設定で、OOMU が Mac 上の実際の PowerPoint ファイルから各スライドを開き、エクスポート前に資料が正しく表示されるか確認できるようにするためのものです。",
+        "title": "Office ファイルの書き出し",
+        "description": "PowerPoint プレゼンテーションと Excel ブックを保存前に確認するための一度きりの設定です。OOMU は無料アプリの LibreOffice で各ファイルを開き、正しく表示されることを確認します。",
         "status": {
           "loading": "この Mac を確認中...",
-          "ready": "PowerPoint にエクスポートする準備ができました",
+          "ready": "PowerPoint と Excel の書き出し準備ができました",
           "not_installed": "一度きりの設定が必要です",
-          "not_qualified": "チェッカーの更新が必要です",
+          "not_qualified": "LibreOffice の更新が必要です",
           "app_component_unavailable": "OOMU の更新が必要です",
           "unsupported_platform": "このデバイスでは利用できません"
         },
         "detail": {
-          "loading": "OOMU がこの Mac のプレゼンテーションツールを確認しています。",
-          "ready": "準備完了です。OOMU はこの Mac で PowerPoint の資料を確認・エクスポートできます。",
-          "not_installed": "公式のプレゼンテーションチェッカー {version} を「アプリケーション」にインストールしてから、もう一度確認してください。",
-          "not_qualified": "インストールされているチェッカーは、この OOMU バージョンで承認された正確なビルドではありません。{version} をインストールしてから、もう一度確認してください。",
-          "app_component_unavailable": "この OOMU ビルドには組み込みのページチェッカーがありません。OOMU を更新または再インストールしてください。エクスポートは引き続き利用できません。",
-          "unsupported_platform": "このプレゼンテーションチェッカーは現在 Mac 版 OOMU でのみ利用できます。"
+          "loading": "この Mac の Office ファイル書き出し環境を確認しています。",
+          "ready": "準備完了です。OOMU はこの Mac で PowerPoint プレゼンテーションと Excel ブックを確認して書き出せます。",
+          "not_installed": "LibreOffice {version} を「アプリケーション」にインストールしてから、もう一度確認してください。",
+          "not_qualified": "このバージョンの OOMU には LibreOffice {version} が必要です。インストールしてから、もう一度確認してください。",
+          "app_component_unavailable": "Office ファイルの書き出しに必要なコンポーネントがありません。OOMU を更新または再インストールしてください。それまでは書き出せません。",
+          "unsupported_platform": "Office ファイルの確認は現在、Mac 版 OOMU でのみ利用できます。"
         },
-        "open_download": "公式の {version} ダウンロードを開く",
+        "open_download": "LibreOffice {version} のダウンロードを開く",
         "check_again": "もう一度確認",
         "checking": "確認中...",
         "errors": {
-          "probe_failed": "OOMU はプレゼンテーションの準備状況を確認できませんでした。もう一度お試しください。",
-          "download_failed": "OOMU は公式のダウンロードページを開けませんでした。もう一度お試しください。"
+          "probe_failed": "Office ファイルを書き出せる状態か確認できませんでした。もう一度お試しください。",
+          "download_failed": "LibreOffice のダウンロードページを開けませんでした。もう一度お試しください。"
         }
       }
     },
@@ -2117,9 +2117,13 @@
       "policy_link": "プライバシーポリシーを見る",
       "identity_section": "本人情報",
       "fingerprint": "指紋",
+      "fingerprint_description": "この Mac 上の OOMU 署名キーを示す短い識別子です。",
       "hardware_binding": "端末の紐付け",
+      "hardware_binding_description": "OOMU がこの Mac の署名 ID に含める技術的なコードです。",
       "storage_backend": "保存先",
+      "storage_backend_description": "作業への署名に使う秘密キーを OOMU が保護する場所です。",
       "public_key": "公開署名キー",
+      "public_key_description": "このキーを共有すると、OOMU が署名した作業を相手が確認できます。秘密キーが明かされることはありません。",
       "show_key": "キー全体を表示",
       "hide_key": "キー全体を隠す",
       "overview_title": "プライバシーとセキュリティ",
@@ -2250,10 +2254,10 @@
     }
   },
   "import": {
-    "title": "アシスタントを取り込む",
-    "description": "既存のアシスタント情報を取り込み、どの履歴を引き継ぐかを選びます。",
+    "title": "エージェントを取り込む",
+    "description": "既存のエージェントプロフィールを取り込み、引き継ぐ履歴を選びます。",
     "step_folder": "1. 元のフォルダーを選択",
-    "step_folder_desc": "OOMU に取り込みたいアシスタントが入っているフォルダーを選びます。",
+    "step_folder_desc": "OOMU に取り込むエージェントが入っているフォルダを選んでください。",
     "step_folder_placeholder": "フォルダーを選ぶか、パスを貼り付けてください",
     "review_button": "取り込み内容を確認",
     "reviewing_button": "確認中...",
@@ -2262,27 +2266,27 @@
     "selected_count": "{total} 件中 {selected} 件を選択中",
     "select_all": "すべて選択",
     "clear_all": "すべて解除",
-    "files_desc": "このアシスタントに引き継ぎたくない内容はオフにしてください。",
-    "no_files_found": "このフォルダーにはアシスタント情報が見つかりませんでした。",
+    "files_desc": "このエージェントに引き継がない項目をオフにします。",
+    "no_files_found": "このフォルダにエージェントの情報は見つかりませんでした。",
     "journals_title": "時系列の記録",
     "journals_clean": "履歴なしで開始",
     "journals_selected": "{total} 件中 {selected} 件を選択中",
     "journals_range": "記録の取り込み範囲",
     "journals_no_past": "過去の記録は取り込まれません。",
-    "step_setup": "3. アシスタント設定を完了",
-    "step_setup_desc": "アシスタントに名前を付け、OOMU での動かし方を選びます。",
-    "name_label": "アシスタント名",
-    "name_placeholder": "このアシスタントに名前を付ける",
+    "step_setup": "3. エージェントの設定を完了",
+    "step_setup_desc": "エージェントに名前を付け、OOMU での実行方法を選びます。",
+    "name_label": "エージェント名",
+    "name_placeholder": "このエージェントに名前を付ける",
     "desc_label": "説明",
-    "desc_placeholder": "このアシスタントが何を手伝うかを説明...",
+    "desc_placeholder": "このエージェントができることを説明...",
     "style_label": "スタイル",
     "provider_label": "提供元",
     "model_label": "モデル",
-    "import_button": "アシスタントを取り込む",
+    "import_button": "エージェントを取り込む",
     "complete_button": "インポートを完了",
     "importing_button": "インポート中...",
     "import_failed": "インポートに失敗しました: {error}",
-    "imported_description": "{name}からアシスタントのプロフィールをインポートしました。",
+    "imported_description": "{name} からエージェントプロフィールを取り込みました。",
     "journal_from_date": "{date}の記録",
     "journal_number": "記録 {index}",
     "log_range": {
@@ -3756,7 +3760,7 @@
     }
   },
   "ledger": {
-    "title": "主権台帳",
+    "title": "台帳",
     "subtitle": "お使いのデバイス上でどれだけの作業が行われ、何が非公開に保たれたかを示します。",
     "period_label": "台帳の期間",
     "period_today": "今日",
@@ -3772,7 +3776,7 @@
     "reset": "リセット",
     "resetting": "リセット中…",
     "reset_dialog_title": "台帳の統計をリセットしますか？",
-    "reset_dialog_body": "主権台帳のすべての利用統計が削除されます。この操作は取り消せません。",
+    "reset_dialog_body": "台帳の利用統計がすべて削除されます。この操作は取り消せません。",
     "reset_confirm_action": "統計をリセット",
     "error": "台帳を読み込めませんでした。",
     "loading": "台帳を集計しています…",
@@ -3970,10 +3974,10 @@
   "presentation_renderer": {
     "check_again": "プレゼンテーションを再確認",
     "checking": "プレゼンテーションを確認中...",
-    "missing": "PowerPointのエクスポートには、このMacでチェッカーの初回セットアップが必要です。",
-    "next_step": "一度セットアップし、このプレゼンテーションに戻ってから、もう一度確認してください。",
-    "open_setup": "チェッカーをセットアップ",
-    "recheck_failed": "このプレゼンテーションを再確認できませんでした。セットアップを開き、チェッカーの準備ができていることを確認してから、もう一度お試しください。"
+    "missing": "Office ファイルの書き出しには、この Mac に LibreOffice が必要です。",
+    "next_step": "LibreOffice を一度設定し、このプレゼンテーションに戻ってから、もう一度確認してください。",
+    "open_setup": "Office 書き出しを設定",
+    "recheck_failed": "このプレゼンテーションを再確認できませんでした。Office 書き出しの設定を開き、LibreOffice の準備ができていることを確認してから、もう一度お試しください。"
   },
   "presentation_template": {
     "choose": "PowerPointデザインを使用",

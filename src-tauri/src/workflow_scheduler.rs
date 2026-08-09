@@ -56,6 +56,11 @@ const POLL_INTERVAL: Duration = Duration::from_secs(60);
 const CLAIM_LEASE_MS: i64 = 30 * 60 * 1000;
 const MAX_SCHEDULES_PER_POLL: usize = 1;
 const DELIVERY_RETRY_BACKOFF_MS: i64 = 30_000;
+
+pub(crate) fn wake_current() {
+    WorkflowSchedulerRuntime::wake_current();
+}
+
 macro_rules! scheduler_try {
     ($result:expr) => {
         match $result {

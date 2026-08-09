@@ -135,7 +135,7 @@ mod tests {
 
         observed.recv_timeout(Duration::from_secs(1)).unwrap();
         assert!(observed.recv_timeout(Duration::from_millis(40)).is_err());
-        let _ = runtime.control.send(super::SchedulerControl::Wake);
+        WorkflowSchedulerRuntime::wake_current();
         observed.recv_timeout(Duration::from_secs(1)).unwrap();
         runtime.shutdown().unwrap();
     }

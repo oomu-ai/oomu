@@ -190,6 +190,33 @@ async fn recurring_mail_check_preserves_enforced_midnight_boundary_for_review() 
 }
 
 #[tokio::test]
+async fn reviewed_mail_schedule_preserves_natural_test_run_wording() {
+    let decision = classify_schedule(
+        "Set up an hourly task to check my email and report back on any unread emails. If there are no unread emails, let me know too. Once you create it and schedule it, I want you to test run it once.",
+    )
+    .await;
+    assert_eq!(decision.decision_source, "routine_scheduler_filter");
+    assert!(decision
+        .matched_signals
+        .contains(&"routine target private app:v1:mail".to_string()));
+    assert!(decision
+        .matched_signals
+        .contains(&"explicit run once requested".to_string()));
+    assert!(decision
+        .reason
+        .contains("remains unexecuted until confirmation"));
+}
+
+#[tokio::test]
+async fn recurring_cadence_alone_does_not_request_an_extra_test_run() {
+    let decision = classify_schedule("Run the unread-mail check once per hour.").await;
+    assert_eq!(decision.decision_source, "routine_scheduler_filter");
+    assert!(!decision
+        .matched_signals
+        .contains(&"explicit run once requested".to_string()));
+}
+
+#[tokio::test]
 async fn cadence_adjective_on_an_ordinary_noun_does_not_create_a_routine() {
     for prompt in [
         "Check my hourly rate and tell me whether it changed.",

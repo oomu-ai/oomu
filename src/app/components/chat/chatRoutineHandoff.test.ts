@@ -20,7 +20,7 @@ describe("oneTimeRoutineRequest", () => {
 describe("recurring Routine request decoding", () => {
   it("separates an hourly schedule seed from the exact action and pending run-now request", () => {
     const recurringPrompt =
-      "Check my unread email every hour until midnight. Once you set it up, run it once to ensure it’s working properly.";
+      "Set up an hourly task to check my email and report back on any unread emails. If there are no unread emails, let me know too. Once you create it and schedule it, I want you to test run it once.";
 
     expect(routineRequestFromDecision({
       decision_source: "routine_scheduler_filter",
@@ -30,7 +30,6 @@ describe("recurring Routine request decoding", () => {
         "routine schedule seed: every 1 hour",
         "routine target private app:v1:mail",
         "explicit run once requested",
-        "end at midnight requested",
       ],
     }, recurringPrompt)).toEqual({
       requestText: recurringPrompt,
@@ -41,7 +40,7 @@ describe("recurring Routine request decoding", () => {
       timingDefaulted: false,
       cadenceBoundaryConflict: false,
       runOnceRequested: true,
-      endBoundary: "midnight",
+      endBoundary: null,
       targetAction: { kind: "read_unread_mail" },
     });
   });

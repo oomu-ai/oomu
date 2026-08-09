@@ -36,7 +36,9 @@ pub async fn create_routine(
     persistence: tauri::State<'_, PersistenceEngine>,
 ) -> Result<RoutineRecord, String> {
     let engine = persistence.inner().clone();
-    blocking(move || repository::create(&engine, request)).await
+    let routine = blocking(move || repository::create(&engine, request)).await?;
+    crate::workflow_scheduler::wake_current();
+    Ok(routine)
 }
 
 #[tauri::command]
@@ -110,8 +112,12 @@ pub async fn run_routine_now(
     persistence: tauri::State<'_, PersistenceEngine>,
 ) -> Result<RoutineRecord, String> {
     let engine = persistence.inner().clone();
-    blocking(move || queue_routine_run_now_at(&engine, &request.routine_id, unix_time_ms_i64()))
-        .await
+    let routine = blocking(move || {
+        queue_routine_run_now_at(&engine, &request.routine_id, unix_time_ms_i64())
+    })
+    .await?;
+    crate::workflow_scheduler::wake_current();
+    Ok(routine)
 }
 
 fn queue_routine_run_now_at(

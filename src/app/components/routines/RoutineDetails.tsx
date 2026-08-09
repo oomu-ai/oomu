@@ -84,6 +84,17 @@ export function RoutineDetails({
           {routinePausedReasonLabel(t, routine.pausedReason)}
         </p>
       ) : null}
+      {routine.lastStatus === "Failed" && routine.lastError ? (
+        <p
+          className="mt-5 rounded bg-[var(--warning-background)] p-4 text-sm"
+          role="alert"
+        >
+          {t("workflow_scheduler.notification.run_failed_body", {
+            name: routine.label,
+            error: routine.lastError,
+          })}
+        </p>
+      ) : null}
       <RoutineIdentityDetails routine={routine} />
       <RoutineDeliveryStatus
         busy={busyAction === "delivery"}

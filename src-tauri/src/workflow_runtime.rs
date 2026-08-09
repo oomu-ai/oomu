@@ -747,10 +747,17 @@ pub fn run_scheduled_workflow(
     workspace_root: &Path,
 ) -> Result<RunWorkflowResponse, WorkflowRuntimeError> {
     require_durable_workflow_actuation(persistence, "scheduled workflow actuation")?;
-    let scheduled_context = resolve_scheduled_project_context(schedule, persistence)?;
     let compiled = persistence
         .load_compiled_workflow(&schedule.workflow_id, schedule.workflow_version)
         .map_err(WorkflowRuntimeError::database)?;
+    let capabilities =
+        crate::workflow_ir::review::workflow_review_capabilities(&compiled.workflow_ir);
+    let scheduled_context = resolve_scheduled_project_context(
+        schedule,
+        persistence,
+        capabilities.project_file_read || capabilities.project_file_write,
+        workspace_root,
+    )?;
     let request = scheduled_run_request(schedule, &compiled, &scheduled_context)?;
     let model = resolved_gemma_runtime_model(&app, gemma)?;
     let external_tools = McpRuntimeTools {

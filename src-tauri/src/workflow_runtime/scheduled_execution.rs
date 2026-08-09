@@ -12,6 +12,8 @@ pub(super) struct ScheduledExecutionContext {
 pub(super) fn resolve_scheduled_project_context(
     schedule: &WorkflowScheduleRecord,
     persistence: &PersistenceEngine,
+    project_folder_required: bool,
+    workspace_root: &Path,
 ) -> Result<ScheduledExecutionContext, WorkflowRuntimeError> {
     let project_id = schedule
         .project_id
@@ -46,9 +48,17 @@ pub(super) fn resolve_scheduled_project_context(
                 .to_string(),
         ));
     }
-    let project_root =
+    let project_root = if project_folder_required {
         crate::projects::path_scope::single_active_project_root(persistence, project_id)
-            .map_err(WorkflowRuntimeError::input)?;
+            .map_err(WorkflowRuntimeError::input)?
+    } else {
+        let scope = workspace_root.join(format!(
+            "routine-scope-{}",
+            crate::foundation::digest::sha256_hex(schedule.id.as_bytes())
+        ));
+        std::fs::create_dir_all(&scope).map_err(WorkflowRuntimeError::io)?;
+        std::fs::canonicalize(&scope).map_err(WorkflowRuntimeError::io)?
+    };
     Ok(ScheduledExecutionContext {
         schedule_id: schedule.id.clone(),
         project_id: project_id.to_string(),
@@ -124,7 +134,6 @@ pub(crate) fn retry_scheduled_workflow(
     workspace_root: &Path,
 ) -> Result<RunWorkflowResponse, WorkflowRuntimeError> {
     require_durable_workflow_actuation(persistence, "scheduled workflow recovery")?;
-    let context = resolve_scheduled_project_context(schedule, persistence)?;
     let mut instance = persistence
         .load_execution_instance(instance_id)
         .map_err(WorkflowRuntimeError::database)?;
@@ -133,6 +142,17 @@ pub(crate) fn retry_scheduled_workflow(
             "The scheduled Workflow is not waiting for a transient retry.".to_string(),
         ));
     }
+    let compiled = persistence
+        .load_compiled_workflow(&instance.workflow_id, Some(instance.workflow_version))
+        .map_err(WorkflowRuntimeError::database)?;
+    let capabilities =
+        crate::workflow_ir::review::workflow_review_capabilities(&compiled.workflow_ir);
+    let context = resolve_scheduled_project_context(
+        schedule,
+        persistence,
+        capabilities.project_file_read || capabilities.project_file_write,
+        workspace_root,
+    )?;
     let connection = persistence
         .open_connection()
         .map_err(WorkflowRuntimeError::database)?;
@@ -150,9 +170,6 @@ pub(crate) fn retry_scheduled_workflow(
     }
     let request: RunWorkflowRequest = serde_json::from_value(instance.input_payload.clone())
         .map_err(WorkflowRuntimeError::serialization)?;
-    let compiled = persistence
-        .load_compiled_workflow(&instance.workflow_id, Some(instance.workflow_version))
-        .map_err(WorkflowRuntimeError::database)?;
     let model = resolved_gemma_runtime_model(&app, gemma)?;
     let external_tools = McpRuntimeTools {
         registry: mcp_registry,

@@ -11,6 +11,77 @@ fn assert_internal_routine_control_was_removed(request: &RunWorkflowRequest) {
         .is_none());
 }
 
+#[test]
+fn scheduled_workflow_without_file_nodes_uses_an_app_owned_scope() {
+    let root = std::env::temp_dir().join(format!(
+        "oomu-scheduled-folderless-scope-{}",
+        crate::p0_contracts::TaskId::new()
+    ));
+    let engine = PersistenceEngine::initialize_at(root.join("state.sqlite")).unwrap();
+    let project_id = "project_00000000-0000-4000-8000-000000000323";
+    let now = unix_time_ms();
+    engine
+        .open_connection()
+        .unwrap()
+        .execute(
+            "INSERT INTO projects(project_id,name,description,created_at_ms,updated_at_ms) VALUES (?1,'Mail Routine','',?2,?2)",
+            rusqlite::params![project_id, now],
+        )
+        .unwrap();
+    let mut compiled = compiled_workflow(false);
+    let saved = SavedWorkflowRecord {
+        id: compiled.workflow_ir.workflow_id.clone(),
+        name: compiled.workflow_ir.name.clone(),
+        steps: "{}".to_string(),
+        created_at: now,
+        updated_at: now,
+    };
+    engine
+        .reserve_workflow_blueprint(&saved, &json!({}), &mut compiled.workflow_ir)
+        .unwrap();
+    engine
+        .publish_compiled_workflow(
+            &saved,
+            &compiled.workflow_ir,
+            &compiled.instructions.into_values().collect::<Vec<_>>(),
+            true,
+        )
+        .unwrap();
+    let schedule = engine
+        .upsert_workflow_schedule(crate::db::WorkflowScheduleUpsert {
+            id: "routine_folderless_mail".to_string(),
+            workflow_id: saved.id,
+            workflow_version: Some(1),
+            label: "Unread Mail Check".to_string(),
+            schedule_expression: "every 1 hour".to_string(),
+            run_request: json!({}),
+            is_active: true,
+            next_run_at_ms: Some(now),
+        })
+        .unwrap();
+    engine
+        .open_connection()
+        .unwrap()
+        .execute(
+            "UPDATE workflow_schedules SET project_id=?2,schedule_kind='recurring',routine_timezone='UTC' WHERE id=?1",
+            rusqlite::params![schedule.id, project_id],
+        )
+        .unwrap();
+    let schedule = engine.load_workflow_schedule(&schedule.id).unwrap();
+    let workspace_root = root.join("workflow-runs");
+
+    let context =
+        resolve_scheduled_project_context(&schedule, &engine, false, &workspace_root).unwrap();
+
+    assert_eq!(context.project_id, project_id);
+    assert!(context
+        .project_root
+        .starts_with(std::fs::canonicalize(&workspace_root).unwrap()));
+    assert!(context.project_root.is_dir());
+    assert!(resolve_scheduled_project_context(&schedule, &engine, true, &workspace_root).is_err());
+    std::fs::remove_dir_all(root).unwrap();
+}
+
 fn scheduled_project_fixture_root() -> (std::path::PathBuf, std::path::PathBuf) {
     let root =
         std::env::temp_dir().join(format!("oomu-scheduled-project-binding-{}", unix_time_ms()));
@@ -90,7 +161,7 @@ fn scheduled_execution_freezes_project_root_and_binds_project_before_nodes() {
         )
         .unwrap();
     let schedule = engine.load_workflow_schedule(&schedule.id).unwrap();
-    let context = resolve_scheduled_project_context(&schedule, &engine).unwrap();
+    let context = resolve_scheduled_project_context(&schedule, &engine, true, &root).unwrap();
     assert_eq!(context.project_id, project_id);
     assert_eq!(context.project_root, project_root);
     assert_eq!(context.scheduled_for_ms, Some(scheduled_for_ms));
@@ -166,7 +237,7 @@ fn scheduled_execution_freezes_project_root_and_binds_project_before_nodes() {
             rusqlite::params![project_id, second_root.to_string_lossy(), "b".repeat(64), now],
         )
         .unwrap();
-    let rebound = resolve_scheduled_project_context(&schedule, &engine).unwrap();
+    let rebound = resolve_scheduled_project_context(&schedule, &engine, true, &root).unwrap();
     assert_eq!(rebound.project_root, second_root);
 
     std::fs::remove_dir_all(root).unwrap();

@@ -244,8 +244,8 @@ fn run_once_request_regex() -> Option<&'static Regex> {
             Regex::new(
                 r"(?ix)\b(?:
                     (?:run|do|check|read)\s+(?:it\s+)?(?:once\s+)?(?:right\s+)?now
-                    |once\s+you\s+(?:set\s+it\s+up|create\s+it|schedule\s+it)\s*,?\s*(?:please\s+)?run\s+it\s+once
-                    |after\s+(?:you\s+)?(?:set(?:ting)?\s+it\s+up|creat(?:e|ing)\s+it|schedul(?:e|ing)\s+it)\s*,?\s*(?:please\s+)?run\s+it\s+once
+                    |(?:test[\s-]*run|run|execute|try|check|read)\s+(?:it|the\s+(?:task|schedule|workflow))\s+(?:just\s+)?once
+                    |(?:run|execute)\s+once\s+(?:now|right\s+now|to\s+(?:test|check|verify))
                 )\b",
             )
         })

@@ -1,5 +1,7 @@
 import { invoke } from "@/lib/invoke";
 
+export const ROUTINE_RUN_STATUS_FAILED = "Failed";
+
 export type RoutineProposal = {
   scheduleExpression: string;
   scheduleKind: "one_shot" | "recurring";

@@ -18,7 +18,11 @@ import {
   shouldShowRoutinePausedReason,
   type RoutineTranslate,
 } from "./routineLabels";
-import type { RoutineHistoryItem, RoutineRecord } from "./routineClient";
+import {
+  ROUTINE_RUN_STATUS_FAILED,
+  type RoutineHistoryItem,
+  type RoutineRecord,
+} from "./routineClient";
 
 type RoutineDetailsProps = {
   busyAction: string;
@@ -84,7 +88,7 @@ export function RoutineDetails({
           {routinePausedReasonLabel(t, routine.pausedReason)}
         </p>
       ) : null}
-      {routine.lastStatus === "Failed" && routine.lastError ? (
+      {routine.lastStatus === ROUTINE_RUN_STATUS_FAILED && routine.lastError ? (
         <p
           className="mt-5 rounded bg-[var(--warning-background)] p-4 text-sm"
           role="alert"

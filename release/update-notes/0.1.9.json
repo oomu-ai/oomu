@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.9",
+  "notes": {
+    "de-DE": "Geplante E-Mail-Prüfungen behalten jetzt ihren bestätigten Ablauf bei und werden nach der Bestätigung zuverlässig ausgeführt. Einmalige Testläufe starten sofort, wiederkehrende Zeitpläne bleiben erhalten und Fehler werden mit klaren Hinweisen angezeigt.",
+    "en-US": "Scheduled email checks now keep their reviewed workflow and run correctly after confirmation. One-time test runs start promptly, recurring schedules remain intact, and any failure stays visible with clear guidance.",
+    "es-ES": "Las comprobaciones de correo programadas ahora conservan el flujo de trabajo revisado y se ejecutan correctamente tras la confirmación. Las pruebas únicas comienzan de inmediato, las programaciones recurrentes se mantienen y cualquier fallo permanece visible con indicaciones claras.",
+    "fr-FR": "Les vérifications d’e-mails programmées conservent désormais le flux de travail validé et s’exécutent correctement après confirmation. Les tests uniques démarrent rapidement, les programmations récurrentes restent intactes et tout échec demeure visible avec des indications claires.",
+    "id-ID": "Pemeriksaan email terjadwal kini mempertahankan alur kerja yang telah ditinjau dan berjalan dengan benar setelah dikonfirmasi. Uji coba satu kali dimulai segera, jadwal berulang tetap utuh, dan setiap kegagalan tetap terlihat dengan panduan yang jelas.",
+    "ja-JP": "スケジュールされたメール確認で、レビュー済みのワークフローが保持され、確認後に正しく実行されるようになりました。1 回限りのテストはすぐに開始され、繰り返し予定は維持され、失敗した場合もわかりやすい案内とともに表示されます。",
+    "pt-BR": "As verificações de e-mail agendadas agora mantêm o fluxo de trabalho revisado e são executadas corretamente após a confirmação. Os testes únicos começam prontamente, os agendamentos recorrentes permanecem intactos e qualquer falha continua visível com orientações claras.",
+    "ru-RU": "Запланированные проверки почты теперь сохраняют подтверждённый рабочий процесс и правильно выполняются после подтверждения. Однократные тестовые запуски начинаются сразу, повторяющееся расписание сохраняется, а ошибки остаются видимыми и сопровождаются понятными подсказками.",
+    "uk-UA": "Заплановані перевірки пошти тепер зберігають підтверджений робочий процес і правильно виконуються після підтвердження. Одноразові тестові запуски починаються відразу, повторюваний розклад зберігається, а помилки залишаються видимими та супроводжуються зрозумілими підказками.",
+    "vi-VN": "Các lượt kiểm tra email theo lịch giờ đây giữ nguyên quy trình đã được xem lại và chạy chính xác sau khi xác nhận. Lượt chạy thử một lần bắt đầu ngay, lịch lặp lại vẫn được giữ nguyên và mọi lỗi đều hiển thị cùng hướng dẫn rõ ràng.",
+    "zh-CN": "定时邮件检查现在会保留已经确认的工作流程，并在确认后正确运行。一次性测试会立即开始，重复日程保持不变，任何失败都会持续显示并提供清晰指引。",
+    "zh-TW": "排程郵件檢查現在會保留已確認的工作流程，並在確認後正確執行。單次測試會立即開始，重複排程維持不變，任何失敗都會持續顯示並提供清楚指引。"
+  }
+}

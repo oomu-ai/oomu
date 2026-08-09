@@ -41,10 +41,10 @@ mod system_action;
 mod task_tools;
 pub(crate) use approval_events::dispatch_approval_request;
 use model_resolution::resolved_gemma_runtime_model;
-pub(crate) use scheduled_execution::retry_scheduled_workflow;
-use scheduled_execution::{
-    resolve_scheduled_project_context, scheduled_run_request, ScheduledExecutionContext,
-};
+use scheduled_execution::ScheduledExecutionContext;
+#[cfg(test)]
+use scheduled_execution::{resolve_scheduled_project_context, scheduled_run_request};
+pub(crate) use scheduled_execution::{retry_scheduled_workflow, run_scheduled_workflow};
 use system_action::{execute_system_action_node, SystemActionFailureContext};
 #[cfg(test)]
 use system_action::{high_risk_action, run_system_action};
@@ -735,46 +735,6 @@ pub async fn reveal_workflow_output_file(path: String) -> Result<(), WorkflowRun
     tauri::async_runtime::spawn_blocking(move || reveal_path_in_file_manager(&path))
         .await
         .map_err(|error| WorkflowRuntimeError::runtime(error.to_string()))?
-}
-
-pub fn run_scheduled_workflow(
-    schedule: &WorkflowScheduleRecord,
-    persistence: &PersistenceEngine,
-    gemma: GemmaService,
-    _knowledge: KnowledgeStore,
-    mcp_registry: McpClientRegistry,
-    app: tauri::AppHandle,
-    workspace_root: &Path,
-) -> Result<RunWorkflowResponse, WorkflowRuntimeError> {
-    require_durable_workflow_actuation(persistence, "scheduled workflow actuation")?;
-    let compiled = persistence
-        .load_compiled_workflow(&schedule.workflow_id, schedule.workflow_version)
-        .map_err(WorkflowRuntimeError::database)?;
-    let capabilities =
-        crate::workflow_ir::review::workflow_review_capabilities(&compiled.workflow_ir);
-    let scheduled_context = resolve_scheduled_project_context(
-        schedule,
-        persistence,
-        capabilities.project_file_read || capabilities.project_file_write,
-        workspace_root,
-    )?;
-    let request = scheduled_run_request(schedule, &compiled, &scheduled_context)?;
-    let model = resolved_gemma_runtime_model(&app, gemma)?;
-    let external_tools = McpRuntimeTools {
-        registry: mcp_registry,
-        persistence: persistence.clone(),
-        knowledge_tools: Some(KnowledgeRuntimeTools),
-        app: Some(app.clone()),
-    };
-    run_persisted_workflow(
-        request,
-        persistence,
-        &model,
-        &external_tools,
-        workspace_root,
-        None,
-        Some(&scheduled_context),
-    )
 }
 
 pub(crate) fn resolve_scheduled_permission_without_reconciliation(

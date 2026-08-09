@@ -41,6 +41,41 @@ type RoutineDetailsProps = {
   t: RoutineTranslate;
 };
 
+function RoutineFailureNotice({
+  routine,
+  t,
+}: Pick<RoutineDetailsProps, "routine" | "t">) {
+  if (routine.lastStatus !== ROUTINE_RUN_STATUS_FAILED || !routine.lastError)
+    return null;
+  return (
+    <p
+      className="mt-5 rounded bg-[var(--warning-background)] p-4 text-sm"
+      role="alert"
+    >
+      {t("workflow_scheduler.notification.run_failed_body", {
+        name: routine.label,
+        error: routine.lastError,
+      })}
+    </p>
+  );
+}
+
+function RoutinePausedNotice({
+  routine,
+  t,
+}: Pick<RoutineDetailsProps, "routine" | "t">) {
+  if (
+    !routine.pausedReason ||
+    !shouldShowRoutinePausedReason(routine.deliveryState)
+  )
+    return null;
+  return (
+    <p className="mt-5 rounded bg-[var(--warning-background)] p-4 text-sm">
+      {routinePausedReasonLabel(t, routine.pausedReason)}
+    </p>
+  );
+}
+
 export function RoutineDetails({
   busyAction,
   deleteTriggerRef,
@@ -82,23 +117,8 @@ export function RoutineDetails({
                 : t("routines.paused")}
         </span>
       </div>
-      {routine.pausedReason &&
-      shouldShowRoutinePausedReason(routine.deliveryState) ? (
-        <p className="mt-5 rounded bg-[var(--warning-background)] p-4 text-sm">
-          {routinePausedReasonLabel(t, routine.pausedReason)}
-        </p>
-      ) : null}
-      {routine.lastStatus === ROUTINE_RUN_STATUS_FAILED && routine.lastError ? (
-        <p
-          className="mt-5 rounded bg-[var(--warning-background)] p-4 text-sm"
-          role="alert"
-        >
-          {t("workflow_scheduler.notification.run_failed_body", {
-            name: routine.label,
-            error: routine.lastError,
-          })}
-        </p>
-      ) : null}
+      <RoutinePausedNotice routine={routine} t={t} />
+      <RoutineFailureNotice routine={routine} t={t} />
       <RoutineIdentityDetails routine={routine} />
       <RoutineDeliveryStatus
         busy={busyAction === "delivery"}
@@ -117,9 +137,7 @@ export function RoutineDetails({
           onClick={onRunNow}
           type="button"
         >
-          {busyAction === "run"
-            ? t("routines.running")
-            : t("routines.run_now")}
+          {busyAction === "run" ? t("routines.running") : t("routines.run_now")}
         </button>
         <button
           className="rounded border px-3 py-2 text-sm disabled:opacity-50"

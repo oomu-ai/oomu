@@ -124,6 +124,46 @@ pub(super) fn scheduled_run_request(
     Ok(request)
 }
 
+pub(crate) fn run_scheduled_workflow(
+    schedule: &WorkflowScheduleRecord,
+    persistence: &PersistenceEngine,
+    gemma: GemmaService,
+    _knowledge: KnowledgeStore,
+    mcp_registry: McpClientRegistry,
+    app: tauri::AppHandle,
+    workspace_root: &Path,
+) -> Result<RunWorkflowResponse, WorkflowRuntimeError> {
+    require_durable_workflow_actuation(persistence, "scheduled workflow actuation")?;
+    let compiled = persistence
+        .load_compiled_workflow(&schedule.workflow_id, schedule.workflow_version)
+        .map_err(WorkflowRuntimeError::database)?;
+    let capabilities =
+        crate::workflow_ir::review::workflow_review_capabilities(&compiled.workflow_ir);
+    let context = resolve_scheduled_project_context(
+        schedule,
+        persistence,
+        capabilities.project_file_read || capabilities.project_file_write,
+        workspace_root,
+    )?;
+    let request = scheduled_run_request(schedule, &compiled, &context)?;
+    let model = resolved_gemma_runtime_model(&app, gemma)?;
+    let external_tools = McpRuntimeTools {
+        registry: mcp_registry,
+        persistence: persistence.clone(),
+        knowledge_tools: Some(KnowledgeRuntimeTools),
+        app: Some(app.clone()),
+    };
+    run_persisted_workflow(
+        request,
+        persistence,
+        &model,
+        &external_tools,
+        workspace_root,
+        None,
+        Some(&context),
+    )
+}
+
 pub(crate) fn retry_scheduled_workflow(
     schedule: &WorkflowScheduleRecord,
     instance_id: &str,

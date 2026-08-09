@@ -709,7 +709,7 @@
     },
     "src-tauri/src/workflow_runtime.rs": {
       "owner": "workflows/runtime",
-      "bytes": 166919,
+      "bytes": 165786,
       "functionLines": 388,
       "complexity": 54
     },
@@ -1038,7 +1038,7 @@
     },
     "src/app/components/routines/RoutineDetails.tsx": {
       "owner": "renderer/components",
-      "functionLines": 174
+      "functionLines": 168
     },
     "src/app/components/routines/RoutinesScreen.test.tsx": {
       "owner": "renderer/components",

@@ -17,6 +17,6 @@ src-tauri/src/shield_gate.rs	4302	security/shield
 src-tauri/src/system_diagnostics.rs	2826	diagnostics/native
 src-tauri/src/taskflow.rs	3247	orchestration/taskflow
 src-tauri/src/workflow_compiler.rs	3165	workflows/compiler
-src-tauri/src/workflow_runtime.rs	4756	workflows/runtime
+src-tauri/src/workflow_runtime.rs	4723	workflows/runtime
 src/app/components/ChatScreen.tsx	6311	chat/presentation-orchestration
 src/app/components/__tests__/ChatScreen.test.tsx	5348	chat/real-component-tests

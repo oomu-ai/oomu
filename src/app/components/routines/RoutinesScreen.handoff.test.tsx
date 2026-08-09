@@ -12,17 +12,20 @@ const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
   setRoutineDraft: vi.fn(),
   shell: { routineDraft: null as RoutineDraft | null },
-  t: (key: string) => ({
-    "routines.confirm": "Schedule it",
-    "routines.handoff_project_description":
-      "Private Project scope for schedules created from Chat.",
-    "routines.handoff_project_name": "Scheduled tasks",
-    "routines.handoff_workflow_description":
-      "Runs the exact task requested in Chat.",
-    "routines.handoff_workflow_name": "Scheduled task",
-    "routines.project": "Project",
-    "routines.workflow": "Workflow",
-  } as Record<string, string>)[key] ?? key,
+  t: (key: string) =>
+    (
+      ({
+        "routines.confirm": "Schedule it",
+        "routines.handoff_project_description":
+          "Private Project scope for schedules created from Chat.",
+        "routines.handoff_project_name": "Scheduled tasks",
+        "routines.handoff_workflow_description":
+          "Runs the exact task requested in Chat.",
+        "routines.handoff_workflow_name": "Scheduled task",
+        "routines.project": "Project",
+        "routines.workflow": "Workflow",
+      }) as Record<string, string>
+    )[key] ?? key,
 }));
 
 vi.mock("@/lib/invoke", () => ({
@@ -45,13 +48,24 @@ vi.mock("@/context/I18nContext", () => ({
 
 function backgroundStatus() {
   return {
-    userEnabled: false, verifiedActive: false, state: "off",
-    registrationState: "unregistered", registrationBackend: "supervised_process",
-    processState: "absent", processId: null, buildNumber: 1,
-    buildIdentity: "dev", profileClass: "development",
-    profileGenerationSha256: "profile", heartbeatAtMs: null,
-    heartbeatAgeMs: null, menuVisible: false, errorCode: null,
-    detail: "Off", checkedAtMs: 1, recentReceipts: [],
+    userEnabled: false,
+    verifiedActive: false,
+    state: "off",
+    registrationState: "unregistered",
+    registrationBackend: "supervised_process",
+    processState: "absent",
+    processId: null,
+    buildNumber: 1,
+    buildIdentity: "dev",
+    profileClass: "development",
+    profileGenerationSha256: "profile",
+    heartbeatAtMs: null,
+    heartbeatAgeMs: null,
+    menuVisible: false,
+    errorCode: null,
+    detail: "Off",
+    checkedAtMs: 1,
+    recentReceipts: [],
   };
 }
 
@@ -120,41 +134,103 @@ function prepareGenericComposition() {
   return { composition, resolveComposition, workflowIr };
 }
 
+function prepareMailHandoff() {
+  const request: RoutineHandoffRequest = {
+    requestText:
+      "Set up an hourly task to check my email and report back on any unread emails. If there are no unread emails, let me know too. Once you create it and schedule it, I want you to test run it once.",
+    scheduleText: "every 1 hour",
+    scheduleKind: "recurring",
+    cadence: { interval: 1, unit: "hour" },
+    scheduleSupported: true,
+    timingDefaulted: false,
+    cadenceBoundaryConflict: false,
+    runOnceRequested: true,
+    endBoundary: null,
+    targetAction: { kind: "read_unread_mail" },
+  };
+  const id = "draft-mail-review";
+  mocks.shell.routineDraft = {
+    id,
+    ...request,
+    workflowAttachment: plannedRoutineWorkflowAttachment(
+      request,
+      id,
+      "project-1",
+    ),
+  };
+  mocks.invoke.mockImplementation(async (command: string) => {
+    if (
+      command === "list_routines" ||
+      command === "get_workflows" ||
+      command === "get_channel_statuses"
+    )
+      return [];
+    if (command === "list_projects")
+      return [{ projectId: "project-1", name: "Launch" }];
+    if (command === "get_background_service_status") return backgroundStatus();
+    if (command === "propose_routine") {
+      return {
+        scheduleExpression: "every 1 hour",
+        scheduleKind: "recurring",
+        timezone: "America/New_York",
+        normalizedSummary: "Every hour",
+        nextRunsMs: [Date.now() + 3_600_000],
+      };
+    }
+    throw new Error(`Unexpected command before confirmation: ${command}`);
+  });
+}
+
+function prepareConfirmedMailHandoff() {
+  mocks.invoke.mockImplementation(async (command: string) => {
+    if (
+      command === "list_routines" ||
+      command === "get_workflows" ||
+      command === "get_channel_statuses"
+    )
+      return [];
+    if (command === "list_projects")
+      return [{ projectId: "project-1", name: "Launch" }];
+    if (command === "get_background_service_status") return backgroundStatus();
+    if (command === "propose_routine") {
+      return {
+        scheduleExpression: "every 1 hour",
+        scheduleKind: "recurring",
+        timezone: "America/New_York",
+        normalizedSummary: "Every hour",
+        nextRunsMs: [Date.now() + 3_600_000],
+      };
+    }
+    if (command === "save_workflow") {
+      return {
+        workflowId: "workflow-chat-schedule-draft-mail-review",
+        workflowVersion: 1,
+        compilationStatus: "Compiled",
+        compiledNodeCount: 1,
+        projectId: "project-1",
+        reviewCapabilities: {
+          status: "ready",
+          calendarCreate: false,
+          calendarRead: false,
+          emailDraft: false,
+          emailRead: true,
+          emailSend: false,
+          officialWeb: false,
+          projectFileRead: false,
+          projectFileWrite: false,
+        },
+      };
+    }
+    if (command === "create_routine") return { routineId: "routine-mail-test" };
+    throw new Error(`Unexpected command: ${command}`);
+  });
+}
+
 describe("RoutinesScreen Chat handoff", () => {
   beforeEach(() => {
     mocks.invoke.mockReset();
     mocks.setRoutineDraft.mockReset();
-    const request: RoutineHandoffRequest = {
-      requestText: "Set up an hourly task to check my email and report back on any unread emails. If there are no unread emails, let me know too. Once you create it and schedule it, I want you to test run it once.",
-      scheduleText: "every 1 hour",
-      scheduleKind: "recurring",
-      cadence: { interval: 1, unit: "hour" },
-      scheduleSupported: true,
-      timingDefaulted: false,
-      cadenceBoundaryConflict: false,
-      runOnceRequested: true,
-      endBoundary: null,
-      targetAction: { kind: "read_unread_mail" },
-    };
-    const id = "draft-mail-review";
-    mocks.shell.routineDraft = {
-      id,
-      ...request,
-      workflowAttachment: plannedRoutineWorkflowAttachment(request, id, "project-1"),
-    };
-    mocks.invoke.mockImplementation(async (command: string) => {
-      if (command === "list_routines" || command === "get_workflows" || command === "get_channel_statuses") return [];
-      if (command === "list_projects") return [{ projectId: "project-1", name: "Launch" }];
-      if (command === "get_background_service_status") return backgroundStatus();
-      if (command === "propose_routine") {
-        return {
-          scheduleExpression: "every 1 hour", scheduleKind: "recurring",
-          timezone: "America/New_York", normalizedSummary: "Every hour",
-          nextRunsMs: [Date.now() + 3_600_000],
-        };
-      }
-      throw new Error(`Unexpected command before confirmation: ${command}`);
-    });
+    prepareMailHandoff();
   });
 
   afterEach(() => {
@@ -169,12 +245,12 @@ describe("RoutinesScreen Chat handoff", () => {
     const workflow = screen.getByRole("combobox", { name: /^Workflow/ });
     await waitFor(() => {
       expect(project).toHaveValue("project-1");
-      expect(workflow).toHaveValue(
-        "workflow-chat-schedule-draft-mail-review",
-      );
+      expect(workflow).toHaveValue("workflow-chat-schedule-draft-mail-review");
     });
     expect(screen.getAllByText("Unread Mail Check")).toHaveLength(2);
-    await waitFor(() => expect(screen.getByRole("button", { name: "Schedule it" })).toBeEnabled());
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Schedule it" })).toBeEnabled(),
+    );
 
     const commands = mocks.invoke.mock.calls.map(([command]) => command);
     expect(commands).not.toContain("create_project");
@@ -185,57 +261,34 @@ describe("RoutinesScreen Chat handoff", () => {
   });
 
   it("queues exactly one immediate workflow run when the reviewed schedule is confirmed", async () => {
-    mocks.invoke.mockImplementation(async (command: string) => {
-      if (command === "list_routines" || command === "get_workflows" || command === "get_channel_statuses") return [];
-      if (command === "list_projects") return [{ projectId: "project-1", name: "Launch" }];
-      if (command === "get_background_service_status") return backgroundStatus();
-      if (command === "propose_routine") {
-        return {
-          scheduleExpression: "every 1 hour", scheduleKind: "recurring",
-          timezone: "America/New_York", normalizedSummary: "Every hour",
-          nextRunsMs: [Date.now() + 3_600_000],
-        };
-      }
-      if (command === "save_workflow") {
-        return {
-          workflowId: "workflow-chat-schedule-draft-mail-review",
-          workflowVersion: 1,
-          compilationStatus: "Compiled",
-          compiledNodeCount: 1,
-          projectId: "project-1",
-          reviewCapabilities: {
-            status: "ready", calendarCreate: false, calendarRead: false,
-            emailDraft: false, emailRead: true, emailSend: false,
-            officialWeb: false, projectFileRead: false, projectFileWrite: false,
-          },
-        };
-      }
-      if (command === "create_routine") {
-        return { routineId: "routine-mail-test" };
-      }
-      throw new Error(`Unexpected command: ${command}`);
-    });
+    prepareConfirmedMailHandoff();
 
     render(<RoutinesScreen showIntroduction={false} />);
     const confirm = await screen.findByRole("button", { name: "Schedule it" });
     await waitFor(() => expect(confirm).toBeEnabled());
     await act(async () => confirm.click());
 
-    await waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith(
-      "create_routine",
-      expect.objectContaining({
-        request: expect.objectContaining({
-          runOnceAfterCreate: true,
-          scheduleExpression: "every 1 hour",
-          workflowId: "workflow-chat-schedule-draft-mail-review",
+    await waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith(
+        "create_routine",
+        expect.objectContaining({
+          request: expect.objectContaining({
+            runOnceAfterCreate: true,
+            scheduleExpression: "every 1 hour",
+            workflowId: "workflow-chat-schedule-draft-mail-review",
+          }),
         }),
-      }),
-    ));
+      ),
+    );
     expect(
-      mocks.invoke.mock.calls.filter(([command]) => command === "create_routine"),
+      mocks.invoke.mock.calls.filter(
+        ([command]) => command === "create_routine",
+      ),
     ).toHaveLength(1);
     expect(
-      mocks.invoke.mock.calls.some(([command]) => command === "mcp_execute_tool"),
+      mocks.invoke.mock.calls.some(
+        ([command]) => command === "mcp_execute_tool",
+      ),
     ).toBe(false);
   });
 
@@ -251,17 +304,13 @@ describe("RoutinesScreen Chat handoff", () => {
         undefined,
       ),
     );
-    expect(
-      screen.getByText("routines.handoff_prepare_title"),
-    ).toBeVisible();
+    expect(screen.getByText("routines.handoff_prepare_title")).toBeVisible();
     expect(
       screen.queryByRole("button", {
         name: "routines.handoff_prepare_retry",
       }),
     ).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Schedule it" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Schedule it" })).toBeDisabled();
 
     await act(async () => {
       resolveComposition({
@@ -276,9 +325,7 @@ describe("RoutinesScreen Chat handoff", () => {
     });
 
     await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Schedule it" }),
-      ).toBeEnabled(),
+      expect(screen.getByRole("button", { name: "Schedule it" })).toBeEnabled(),
     );
     const commands = mocks.invoke.mock.calls.map(([command]) => command);
     expect(commands).not.toContain("save_workflow");

@@ -1,8 +1,8 @@
 # Download OOMU
 
-## OOMU 0.1.7 — Public Beta
+## OOMU 0.1.8 — Public Beta
 
-[Download OOMU 0.1.7 for Apple Silicon](https://github.com/oomu-ai/oomu/releases/download/v0.1.7/OOMU-0.1.7.dmg)
+[Download OOMU 0.1.8 for Apple Silicon](https://github.com/oomu-ai/oomu/releases/download/v0.1.8/OOMU-0.1.8.dmg)
 
 The application is signed by Eldris, Inc. and notarized by Apple. Open the disk image, then drag OOMU into the Applications folder.
 

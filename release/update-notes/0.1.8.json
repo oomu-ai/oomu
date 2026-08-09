@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.8",
+  "notes": {
+    "de-DE": "OOMU ruht jetzt, wenn keine Arbeit ansteht, und beendet damit die anhaltende CPU-Auslastung im Leerlauf. Lokale GGUF-Modelle lassen sich zuverlässiger erkennen, wechseln und beim Start laden. Bei mehreren Modellen in einem Ordner erklärt OOMU klar, wie die Dateien zu organisieren sind.",
+    "en-US": "OOMU now rests when no work is pending, ending sustained CPU use while idle. Local GGUF models are more reliable to identify, switch, and load at startup. If several models share one folder, OOMU clearly explains how to organize them.",
+    "es-ES": "OOMU ahora descansa cuando no hay trabajo pendiente, lo que elimina el uso continuo de la CPU durante la inactividad. Los modelos GGUF locales se identifican, cambian y cargan al inicio con mayor fiabilidad. Si varios modelos comparten una carpeta, OOMU explica claramente cómo organizarlos.",
+    "fr-FR": "OOMU se met désormais au repos lorsqu’aucun travail n’est en attente, ce qui met fin à l’utilisation continue du processeur au repos. Les modèles GGUF locaux sont identifiés, changés et chargés au démarrage avec plus de fiabilité. Si plusieurs modèles partagent un dossier, OOMU explique clairement comment les organiser.",
+    "id-ID": "OOMU kini beristirahat saat tidak ada pekerjaan tertunda, sehingga penggunaan CPU terus-menerus saat diam berakhir. Model GGUF lokal kini lebih andal untuk dikenali, diganti, dan dimuat saat mulai. Jika beberapa model berada dalam satu folder, OOMU menjelaskan dengan jelas cara menatanya.",
+    "ja-JP": "OOMU は処理がないときに休止し、待機中の継続的な CPU 使用を解消します。ローカル GGUF モデルの識別、切り替え、起動時の読み込みもより確実になりました。複数のモデルが同じフォルダにある場合は、整理方法をわかりやすく案内します。",
+    "pt-BR": "O OOMU agora descansa quando não há trabalho pendente, eliminando o uso contínuo da CPU durante a inatividade. Os modelos GGUF locais são identificados, alternados e carregados na inicialização com mais confiabilidade. Se vários modelos estiverem na mesma pasta, o OOMU explica claramente como organizá-los.",
+    "ru-RU": "Теперь OOMU переходит в режим покоя, когда нет ожидающих задач, устраняя постоянную нагрузку на процессор в простое. Локальные модели GGUF надёжнее распознаются, переключаются и загружаются при запуске. Если несколько моделей находятся в одной папке, OOMU понятно объясняет, как их организовать.",
+    "uk-UA": "Тепер OOMU переходить у стан спокою, коли немає завдань, усуваючи постійне навантаження на процесор у простої. Локальні моделі GGUF надійніше розпізнаються, перемикаються та завантажуються під час запуску. Якщо кілька моделей розміщено в одній папці, OOMU зрозуміло пояснює, як їх упорядкувати.",
+    "vi-VN": "OOMU giờ nghỉ khi không có công việc đang chờ, chấm dứt việc dùng CPU liên tục lúc nhàn rỗi. Các mô hình GGUF cục bộ được nhận diện, chuyển đổi và tải khi khởi động đáng tin cậy hơn. Nếu nhiều mô hình nằm chung một thư mục, OOMU sẽ giải thích rõ cách sắp xếp chúng.",
+    "zh-CN": "OOMU 现在会在没有待处理工作时进入休息状态，消除空闲时持续占用 CPU 的问题。本地 GGUF 模型的识别、切换和启动加载也更加可靠。如果多个模型位于同一文件夹，OOMU 会清楚说明如何整理。",
+    "zh-TW": "OOMU 現在會在沒有待處理工作時進入休息狀態，消除閒置時持續占用 CPU 的問題。本機 GGUF 模型的識別、切換和啟動載入也更加可靠。如果多個模型位於同一資料夾，OOMU 會清楚說明如何整理。"
+  }
+}

@@ -471,12 +471,6 @@ async fn recover_and_probe_classifier(
     }
 }
 
-pub(crate) fn verify_classifier_readiness_sync(
-    gemma: &GemmaService,
-) -> Result<u64, crate::gemma::GemmaError> {
-    gemma.verify_classifier_readiness_sync()
-}
-
 pub(crate) fn verify_classifier_readiness_for_recovery_sync(
     gemma: &GemmaService,
     recovery_epoch: u64,
@@ -1213,7 +1207,8 @@ mod tests {
         service
             .load_model_from_dir(directory)
             .expect("load installed E4B classifier model");
-        verify_classifier_readiness_sync(&service)
+        service
+            .verify_classifier_readiness_sync()
             .expect("E4B classifier passes the readiness probe");
 
         let corpus = [

@@ -283,11 +283,11 @@ pub async fn set_default_prewarmed_model(
         })?
         .inner()
         .clone();
-    let health = service.classifier_health();
-    let runtime_matches = health.is_ready() && health.matches_startup_assignment(&assignment);
-    let previous_verified_assignment = service
+    let runtime_matches = service
         .startup_model_assignment()
-        .filter(|previous| health.is_ready() && health.matches_startup_assignment(previous));
+        .as_ref()
+        .is_some_and(|current| current == &assignment);
+    let previous_assignment = service.startup_model_assignment();
     let mut settings = read_settings(&app)?;
     let previous_model_id = settings.default_prewarmed_model_id.clone();
     settings.default_prewarmed_model_id = Some(model_id.clone());
@@ -301,32 +301,32 @@ pub async fn set_default_prewarmed_model(
     if !runtime_matches {
         if let Err(failure) = reconfigure_prewarmed_model(&service, assignment).await {
             let rollback = rollback_default_prewarmed_model(&app, previous_model_id);
-            let restoration = match (rollback.as_ref(), previous_verified_assignment) {
+            let restoration = match (rollback.as_ref(), previous_assignment) {
                 (Ok(()), Some(previous)) => reconfigure_prewarmed_model(&service, previous).await,
                 _ => Err(failure.clone()),
             };
-            let final_failure = restoration.err().unwrap_or_else(|| failure.clone());
-            let _ = service.mark_classifier_failure_for_recovery(
-                final_failure.0,
-                final_failure.1,
-                "default_prewarmed_model_change",
-                &final_failure.2,
-            );
+            let restoration_succeeded = restoration.is_ok();
+            if !restoration_succeeded {
+                let final_failure = restoration.err().unwrap_or_else(|| failure.clone());
+                service.mark_classifier_failure(
+                    final_failure.0,
+                    "default_prewarmed_model_change",
+                    &final_failure.1,
+                );
+            }
             eprintln!(
                 "DEFAULT_PREWARMED_MODEL_RECONFIGURATION_FAILED code={} message={} rollback={}",
-                crate::redaction::redacted_log_text(failure.1),
-                crate::redaction::redacted_log_text(&failure.2),
+                crate::redaction::redacted_log_text(failure.0),
+                crate::redaction::redacted_log_text(&failure.1),
                 rollback.is_ok(),
             );
-            return Err(
-                if rollback.is_ok() && service.classifier_health().is_ready() {
-                    "OOMU couldn't prepare this on-device model. Your previous model is still ready."
+            return Err(if rollback.is_ok() && restoration_succeeded {
+                "OOMU couldn't prepare this on-device model. Your previous model is still ready."
                     .to_string()
-                } else {
-                    "OOMU couldn't prepare this on-device model. Auto-route is paused until you try again."
+            } else {
+                "OOMU couldn't prepare this on-device model. Auto-route is paused until you try again."
                     .to_string()
-                },
-            );
+            });
         }
     }
 
@@ -336,25 +336,21 @@ pub async fn set_default_prewarmed_model(
     })
 }
 
-type PrewarmedModelFailure = (u64, &'static str, String);
+type PrewarmedModelFailure = (&'static str, String);
 
 async fn reconfigure_prewarmed_model(
     service: &gemma::GemmaService,
     assignment: gemma::StartupModelAssignment,
 ) -> Result<(), PrewarmedModelFailure> {
-    let recovery_epoch = service.mark_classifier_recovering();
     let service_for_worker = service.clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
-        service_for_worker
-            .reconfigure_startup_model_assignment_for_recovery(assignment, recovery_epoch)?;
-        service_for_worker.verify_classifier_readiness_for_recovery_sync(recovery_epoch)
+        service_for_worker.reconfigure_startup_model_assignment(assignment)
     })
     .await;
     match result {
-        Ok(Ok(_)) => Ok(()),
-        Ok(Err(error)) => Err((recovery_epoch, error.code, error.message)),
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(error)) => Err((error.code, error.message)),
         Err(_) => Err((
-            recovery_epoch,
             "classifier_reconfiguration_worker_failed",
             "The on-device model worker ended before preparation finished.".to_string(),
         )),

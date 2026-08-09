@@ -434,7 +434,7 @@
     },
     "src-tauri/src/gemma.rs": {
       "owner": "inference/local-model-lifecycle",
-      "bytes": 117898,
+      "bytes": 117545,
       "maxLineBytes": 1293
     },
     "src-tauri/src/gemma/action_plan_prompt.rs": {
@@ -447,10 +447,10 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 256253,
+      "bytes": 255410,
       "maxLineBytes": 2053,
-      "functionLines": 1700,
-      "complexity": 202
+      "functionLines": 1698,
+      "complexity": 201
     },
     "src-tauri/src/inference/provider_stream.rs": {
       "owner": "native/inference",

@@ -5,7 +5,7 @@ pub(crate) fn prepare(
     app: &tauri::AppHandle,
     service: &crate::gemma::GemmaService,
     model_root: &Path,
-) -> Result<(crate::gemma::StartupModelAssignment, u64), crate::gemma::GemmaError> {
+) -> Result<crate::gemma::StartupModelAssignment, crate::gemma::GemmaError> {
     let preference =
         crate::settings::resolved_startup_model_preference(app).map_err(|message| {
             crate::gemma::GemmaError {
@@ -33,9 +33,8 @@ pub(crate) fn prepare(
         })
     ));
     service.load_startup_model_assignment(assignment.clone())?;
-    let generation = crate::inference::dynamic_routing::verify_classifier_readiness_sync(service)?;
     reconcile_saved_model_authorities(app, model_root, &assignment)?;
-    Ok((assignment, generation))
+    Ok(assignment)
 }
 
 fn reconcile_saved_model_authorities(

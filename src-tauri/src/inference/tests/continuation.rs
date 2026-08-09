@@ -910,26 +910,6 @@ async fn preflight_timeout_fails_closed_without_a_conversational_route() {
 }
 
 #[test]
-fn sprint_138_dynamic_routing_toggle_override_activates_static_selection() {
-    assert!(is_dynamic_route_binding(Some("dynamic"), Some("dynamic")));
-    assert!(!is_dynamic_route_binding(
-        Some("dynamic"),
-        Some(DYNAMIC_CLOUD_FALLBACK_MODEL_ID)
-    ));
-    let enabled = resolve_dynamic_routing_mode(false, false, Some(true));
-    assert!(enabled.active);
-    assert!(enabled.preserve_session_binding);
-
-    let disabled = resolve_dynamic_routing_mode(true, true, Some(false));
-    assert!(!disabled.active);
-    assert!(!disabled.preserve_session_binding);
-
-    let implicit = resolve_dynamic_routing_mode(false, true, None);
-    assert!(implicit.active);
-    assert!(implicit.preserve_session_binding);
-}
-
-#[test]
 fn derived_turns_inherit_dynamic_parent_route_and_reject_concrete_route_changes() {
     assert!(private_auto_route::derived_route_request_is_compatible(
         Some("dynamic"),

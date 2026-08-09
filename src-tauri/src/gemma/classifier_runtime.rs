@@ -15,6 +15,7 @@ impl GemmaService {
         error
     }
 
+    #[cfg(test)]
     pub(crate) fn verify_classifier_readiness_sync(&self) -> Result<u64, GemmaError> {
         self.run_classifier_readiness_probe()?;
         Ok(self.mark_classifier_ready(classifier_protocol::CLASSIFIER_VERSION))
@@ -93,6 +94,20 @@ impl GemmaService {
         {
             return Err(classifier_recovery_superseded());
         }
+        state.startup_assignment = Some(assignment.clone());
+        state.classifier_health.requested_model_id = Some(assignment.requested_model_id);
+        state.classifier_health.classifier_model_id = Some(assignment.resolved_model_id);
+        state.classifier_health.selection_source = Some(assignment.selection_source);
+        Ok(())
+    }
+
+    pub(crate) fn reconfigure_startup_model_assignment(
+        &self,
+        assignment: StartupModelAssignment,
+    ) -> Result<(), GemmaError> {
+        let lane = self.prepare_classifier_lane(&assignment)?;
+        self.commit_classifier_lane(&assignment, lane, None)?;
+        let mut state = self.lock_state();
         state.startup_assignment = Some(assignment.clone());
         state.classifier_health.requested_model_id = Some(assignment.requested_model_id);
         state.classifier_health.classifier_model_id = Some(assignment.resolved_model_id);

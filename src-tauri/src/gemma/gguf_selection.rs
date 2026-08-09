@@ -144,7 +144,9 @@ mod tests {
 
         let error = select_primary_gguf(&directory.path).expect_err("ambiguity must fail closed");
         assert_eq!(error.code, "local_model_primary_gguf_ambiguous");
-        assert!(error.message.starts_with("Put each model in its own folder."));
+        assert!(error
+            .message
+            .starts_with("Put each model in its own folder."));
         assert!(error.message.contains("one folder for each model"));
         assert!(error.message.contains("first.gguf"));
         assert!(error.message.contains("second.gguf"));

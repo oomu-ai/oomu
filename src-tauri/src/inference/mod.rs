@@ -29,6 +29,7 @@ mod provider_policy;
 mod provider_stream;
 mod public_grounding_provenance;
 mod queued_execution;
+mod route_binding;
 mod sprint_300_qualification;
 mod stream_text;
 mod turn_preparation;
@@ -51,6 +52,10 @@ use provider_stream::{
     provider_stream_duration_exceeded_error, provider_stream_ended_before_terminal_error,
     ProviderStreamTimeoutPolicy, SseEventDecoder, MAX_PROVIDER_RESPONSE_TEXT_BYTES,
     MAX_PROVIDER_SSE_PENDING_EVENT_BYTES,
+};
+use route_binding::{
+    auto_route_directory, final_local_directory, initial_local_directory, is_dynamic_route_binding,
+    is_dynamic_route_id, resolve_dynamic_routing_mode_for_request, validate_turn_choice,
 };
 use stream_text::{merge_stream_text_chunk, sanitize_stream_text};
 use turn_preparation::{
@@ -88,9 +93,7 @@ pub fn cancel_chat_stream(stream_id: String) -> bool {
 }
 
 #[cfg(test)]
-use crate::{
-    foundation::clock::unix_time_ms_i64 as unix_time_ms, settings::DYNAMIC_CLOUD_FALLBACK_MODEL_ID,
-};
+use crate::foundation::clock::unix_time_ms_i64 as unix_time_ms;
 use crate::{
     foundation::clock::unix_time_ns_u128 as unix_time_ns,
     security::firewall::WorkspaceBoundaryPayloadSegment,
@@ -1244,8 +1247,6 @@ async fn run_chat_turn(
         requested_mod_id.as_deref(),
     )
     .await?;
-    let local_model_directory =
-        settings::resolved_local_model_directory(&app).map_err(InferenceError::worker)?;
     let requested_provider_id = clean_runtime_text(provider_id);
     let requested_model_id = clean_runtime_text(model_id);
     if let Some(parent) = parent_turn_context.as_ref() {
@@ -1261,31 +1262,28 @@ async fn run_chat_turn(
     let session_has_dynamic_binding = session_route_snapshot
         .as_ref()
         .is_some_and(session_snapshot_is_dynamic);
-    let request_has_dynamic_binding = is_dynamic_route_binding(
-        requested_provider_id.as_deref(),
-        requested_model_id.as_deref(),
-    );
     let effective_dynamic_routing_override = dynamic_routing_override.or_else(|| {
         session_route_snapshot
             .as_ref()
             .and_then(|snapshot| snapshot.dynamic_routing_override)
     });
-    let dynamic_routing_mode = resolve_dynamic_routing_mode(
+    let dynamic_routing_mode = resolve_dynamic_routing_mode_for_request(
         session_has_dynamic_binding,
-        request_has_dynamic_binding,
+        requested_provider_id.as_deref(),
+        requested_model_id.as_deref(),
+        auto_route_choice.is_some(),
         effective_dynamic_routing_override,
     );
     let dynamic_routing_active = dynamic_routing_mode.active;
     let preserve_dynamic_session_binding = dynamic_routing_mode.preserve_session_binding;
+    let local_model_directory = initial_local_directory(&app, dynamic_routing_active)?;
     let original_user_objective = display_message.as_deref().unwrap_or(message.as_str());
     let private_apple_read = private_auto_route::detect(original_user_objective, &attachments);
-    if auto_route_choice.is_some() && (!dynamic_routing_active || parent_turn_context.is_some()) {
-        return Err(InferenceError::routing_attention(
-            "auto_route_turn_choice_out_of_scope",
-            "auto_route_turn_choice",
-            "A per-turn Auto-route choice can only resume its original root Auto-route turn. Nothing was sent.",
-        ));
-    }
+    validate_turn_choice(
+        auto_route_choice.is_some(),
+        dynamic_routing_active,
+        parent_turn_context.is_some(),
+    )?;
 
     let auto_route_turn_policy::FrozenTurnPolicyOutcome {
         policy: frozen_auto_route_policy,
@@ -1470,8 +1468,9 @@ async fn run_chat_turn(
                 "The saved Auto-route baseline is not a local model. Nothing was sent to a provider; choose a local model to repair the session.",
             ));
         }
+        let dynamic_local_model_directory = auto_route_directory(&local_model_directory);
         let configured_local_model =
-            resolve_strict_local_model(&local_model_directory, &baseline_model_id).map_err(
+            resolve_strict_local_model(dynamic_local_model_directory, &baseline_model_id).map_err(
                 |error| {
                     InferenceError::routing_attention(
                         error.code,
@@ -1553,7 +1552,7 @@ async fn run_chat_turn(
         if local_prewarm::should_schedule(decision.tier, &configured_local_model.id) {
             local_prewarm::schedule(
                 configured_local_model.id.clone(),
-                local_model_directory.clone(),
+                dynamic_local_model_directory.clone(),
             );
         }
         Some(decision)
@@ -1601,6 +1600,8 @@ async fn run_chat_turn(
         .to_string();
     let selected_route_is_local =
         is_local_model_provider(&selected_provider_route.catalog_provider_id);
+    let local_model_directory =
+        final_local_directory(&app, local_model_directory, selected_route_is_local)?;
     let selected_model_id = if selected_route_is_local {
         let resolved = resolve_strict_local_model(&local_model_directory, &requested_model_id)
             .map_err(|error| InferenceError::local_infer(error.code, error.message))?;
@@ -3940,37 +3941,6 @@ fn session_snapshot_from_record(
 
 fn session_snapshot_is_dynamic(snapshot: &SessionRouteSnapshot) -> bool {
     is_dynamic_route_binding(Some(&snapshot.provider_id), Some(&snapshot.model_id))
-}
-
-fn is_dynamic_route_binding(provider_id: Option<&str>, model_id: Option<&str>) -> bool {
-    provider_id.is_some_and(is_dynamic_route_id) && model_id.is_some_and(is_dynamic_route_id)
-}
-
-fn is_dynamic_route_id(value: &str) -> bool {
-    value.trim().eq_ignore_ascii_case(DYNAMIC_ROUTE_ID)
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct DynamicRoutingMode {
-    active: bool,
-    preserve_session_binding: bool,
-}
-
-fn resolve_dynamic_routing_mode(
-    session_has_dynamic_binding: bool,
-    request_has_dynamic_binding: bool,
-    dynamic_routing_override: Option<bool>,
-) -> DynamicRoutingMode {
-    let implicit_dynamic_binding = session_has_dynamic_binding || request_has_dynamic_binding;
-    let active = match dynamic_routing_override {
-        Some(enabled) => enabled,
-        None => implicit_dynamic_binding,
-    };
-
-    DynamicRoutingMode {
-        active,
-        preserve_session_binding: active,
-    }
 }
 
 pub(crate) fn compile_safeguarded_context_budget(

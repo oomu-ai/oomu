@@ -55,14 +55,9 @@ pub(crate) fn complete(
     }));
 
     match setup_result {
-        Ok(true) => {
+        Ok(_) => {
             if let Err(error) = splash.reveal_main_when_ready(&app) {
                 eprintln!("OOMU_STARTUP_MAIN_REVEAL_DISPATCH_FAILED error={error}");
-            }
-        }
-        Ok(false) => {
-            if let Err(error) = splash.reveal_main_for_recovery(&app) {
-                eprintln!("OOMU_STARTUP_SETUP_REVEAL_DISPATCH_FAILED error={error}");
             }
         }
         Err(payload) => {
@@ -177,23 +172,17 @@ fn prepare_startup_model(
         }
     };
     let prewarm_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
-        || -> Result<(gemma::StartupModelAssignment, u64), gemma::GemmaError> {
+        || -> Result<gemma::StartupModelAssignment, gemma::GemmaError> {
             auto_route_startup::prepare(app, startup_service, &model_root)
         },
     ));
     match prewarm_result {
-        Ok(Ok((assignment, readiness_generation))) => {
-            degraded_mode.clear_after_verified_recovery(
-                "autoRouteClassifier",
-                BackingStoreClass::NotApplicable,
-                "The local Auto-route classifier passed its grammar-constrained inference probe.",
-            );
+        Ok(Ok(assignment)) => {
             eprintln!(
-                "AUTO_ROUTE_CLASSIFIER_READY requested_model_id={} model_id={} selection_source={} readiness_generation={}",
+                "STARTUP_MODEL_RESIDENT requested_model_id={} model_id={} selection_source={}",
                 redaction::redacted_log_text(&assignment.requested_model_id),
                 redaction::redacted_log_text(&assignment.resolved_model_id),
                 assignment.selection_source.as_str(),
-                readiness_generation,
             );
             refresh_project_knowledge(app);
             true
@@ -231,10 +220,10 @@ fn mark_startup_model_failed(
         reason,
         BackingStoreClass::NotApplicable,
         true,
-        "Auto-route is unavailable; no provider will be chosen until the classifier recovers.",
+        "Auto-route remains unavailable until its local classifier passes a real inference probe.",
     );
     eprintln!(
-        "AUTO_ROUTE_CLASSIFIER_STARTUP_FAILED code={} message={}",
+        "STARTUP_MODEL_PREPARATION_FAILED code={} message={}",
         redaction::redacted_log_text(error.code),
         redaction::redacted_log_text(&error.message)
     );

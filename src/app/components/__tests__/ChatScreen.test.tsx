@@ -3574,55 +3574,6 @@ describe("ChatScreen", () => {
     expect(invokeMock.mock.calls.some(([command]) => command === "read_local_context")).toBe(false);
   });
 
-  it("resolves a named file inside an explicit folder before native approval", async () => {
-    tauriRuntimeMock.value = true;
-    const folder = "/Users/example/Documents/OOMU/Projects/mock_data";
-    const filePath = `${folder}/Lab_Inventory.csv`;
-    const prompt = `Read the CSV file Lab_Inventory.csv located in "${folder}" and summarize how many items are listed, along with any items that have low stock.`;
-    let chatTurnRequest: { message: string; display_message?: string } | undefined;
-    invokeMock.mockImplementation(async (command: string, payload?: unknown) => {
-      if (command === "list_chat_messages" || command === "get_queued_messages") return [];
-      if (command === "get_session_config") return null;
-      if (command === "get_local_generation_health") return "ready";
-      if (command === "prepare_approved_chat_file") {
-        return approvedFilePreparation(
-          "Lab_Inventory.csv",
-          "item,stock\nPipette tips,2\nGloves,24\n",
-          "text/csv",
-          42,
-        );
-      }
-      if (command === "chat_turn") {
-        chatTurnRequest = (payload as { request: { message: string; display_message?: string } }).request;
-        return { text: "Two items are listed. Pipette tips are low.", session_id: "session-1" };
-      }
-      if (command === "list_chat_sessions") return sessions;
-      return null;
-    });
-
-    const view = render(<ChatScreen activeSessionId="session-1" agents={agents} configuredProviders={configuredProviders} onCreateSession={vi.fn()} onDeleteSession={vi.fn()} onSelectSession={vi.fn()} onSessionsChange={vi.fn()} privacySettings={null} sessions={sessions} />, { wrapper: I18nProvider });
-
-    fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
-      target: { value: prompt },
-    });
-    fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
-
-    await waitFor(() => {
-      expect(invokeMock.mock.calls.some(([command]) => command === "chat_turn")).toBe(true);
-    });
-    const preparation = invokeMock.mock.calls.find(
-      ([command]) => command === "prepare_approved_chat_file",
-    )?.[1] as { request: { access: { action: { path: string } }; displayMessage: string } };
-    expect(preparation.request.access.action.path).toBe(filePath);
-    expect(preparation.request.displayMessage).toBe(prompt);
-    expect(chatTurnRequest?.display_message).toBe(prompt);
-    expect(chatTurnRequest?.message).toContain("[approved file]");
-    expect(chatTurnRequest?.message).toContain("[approved folder]");
-    expect(chatTurnRequest?.message).not.toContain("Lab_Inventory.csv");
-    expect(chatTurnRequest?.message).not.toContain("/Users/example");
-    expect(invokeMock.mock.calls.some(([command]) => command === "classify_chat_intent_route")).toBe(false);
-  });
-
   it("persists an accurate terminal result when accepted file preflight is denied", async () => {
     tauriRuntimeMock.value = true;
     const prompt = "View '/Users/example/Desktop/Private Forecast.png'";

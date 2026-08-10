@@ -318,31 +318,8 @@ pub fn prepare_cloud_egress<
     let challenge = persistence
         .find_private_egress_challenge(&binding)
         .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?;
-    let mut consume_exact_challenge = false;
-    let turn_approval_reused = match challenge.as_ref() {
-        Some(challenge) => {
-            if now > challenge.payload.expires_at_ms {
-                return Err(confirmation_error("private_egress_confirmation_expired"));
-            }
-            match challenge.decision.as_str() {
-                "approved" => {
-                    consume_exact_challenge = true;
-                    false
-                }
-                "consumed" => true,
-                "denied" => {
-                    return Err(error(
-                        "private_egress_user_denied",
-                        "Your private information stayed on this Mac.",
-                    ));
-                }
-                _ => return Err(confirmation_error("private_egress_confirmation_required")),
-            }
-        }
-        None => persistence
-            .has_consumed_private_egress_turn_approval(&binding, now)
-            .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?,
-    };
+    let (consume_exact_challenge, turn_approval_reused) =
+        resolve_challenge_approval(persistence, &binding, challenge.as_ref(), now)?;
     if challenge.is_none() && !turn_approval_reused {
         let challenge = PrivateEgressChallengePayload {
             challenge_id: format!("egress_confirm_{}", random_token()),
@@ -412,6 +389,34 @@ pub fn prepare_cloud_egress<
         consumed: Arc::new(AtomicBool::new(false)),
         authenticated_public_searches,
     }))
+}
+
+fn resolve_challenge_approval<S: PrivateEgressStore>(
+    persistence: &S,
+    binding: &PrivateEgressChallengeBinding,
+    challenge: Option<&StoredPrivateEgressChallenge>,
+    now: i64,
+) -> Result<(bool, bool), PrivateEgressError> {
+    match challenge {
+        Some(challenge) => {
+            if now > challenge.payload.expires_at_ms {
+                return Err(confirmation_error("private_egress_confirmation_expired"));
+            }
+            match challenge.decision.as_str() {
+                "approved" => Ok((true, false)),
+                "consumed" => Ok((false, true)),
+                "denied" => Err(error(
+                    "private_egress_user_denied",
+                    "Your private information stayed on this Mac.",
+                )),
+                _ => Err(confirmation_error("private_egress_confirmation_required")),
+            }
+        }
+        None => persistence
+            .has_consumed_private_egress_turn_approval(binding, now)
+            .map(|reused| (false, reused))
+            .map_err(|_| confirmation_error("private_egress_confirmation_unavailable")),
+    }
 }
 
 fn confirmation_error(code: &'static str) -> PrivateEgressError {

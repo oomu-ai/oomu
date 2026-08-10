@@ -15,31 +15,16 @@ pub async fn mcp_execute_tool(
     let turn_context = turn_context.map(ChatTurnPersistenceContext::from);
     let persistence = persistence.inner().clone();
     let guard = || validate_mcp_chat_turn(&persistence, turn_context.as_ref());
-    if let Some(project_id) = conversational_project_file_read_project_id(
+    if let Some(result) = execute_project_file_read_if_supported(
         &persistence,
         turn_context.as_ref(),
         &server_name,
         &tool_name,
-    )? {
-        validate_tool_arguments(&arguments).map_err(|error| error.message)?;
-        let path = conversational_project_file_read_path(&arguments)?;
-        guard().map_err(|error| error.message)?;
-        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
-        let execution_persistence = persistence.clone();
-        return native_apple_receipts::execute(
-            receipt,
-            turn_context.as_ref(),
-            &persistence,
-            false,
-            async move {
-                conversational_project_file_read(
-                    &execution_persistence,
-                    &project_id,
-                    &path,
-                )
-            },
-        )
-        .await;
+        &arguments,
+    )
+    .await
+    {
+        return result;
     }
     if let Some(result) = native_public_search_execution::execute_if_supported(
         &server_name,
@@ -72,86 +57,18 @@ pub async fn mcp_execute_tool(
     {
         return result;
     }
-    if is_system_calendar_tool(&server_name, &tool_name) {
-        validate_tool_arguments(&arguments).map_err(|error| error.message)?;
-        guard().map_err(|error| error.message)?;
-        let (calendar_name, hours_ahead, start_date, end_date) =
-            bounded_system_calendar_arguments(&arguments)?;
-        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
-        return native_apple_receipts::execute(
-            receipt,
-            turn_context.as_ref(),
-            &persistence,
-            true,
-            read_system_calendar_with_deadline(
-                calendar_name,
-                hours_ahead,
-                start_date,
-                end_date,
-                registry.inner(),
-                &app,
-            ),
-        )
-        .await;
-    }
-    if is_system_contacts_tool(&server_name, &tool_name) {
-        validate_tool_arguments(&arguments).map_err(|error| error.message)?;
-        guard().map_err(|error| error.message)?;
-        let request = crate::tools::system_contacts::contact_request_from_arguments(&arguments)?;
-        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
-        return native_apple_receipts::execute(
-            receipt,
-            turn_context.as_ref(),
-            &persistence,
-            true,
-            read_system_contacts_with_fallback(request, registry.inner(), &app),
-        )
-        .await;
-    }
-    if is_system_photos_tool(&server_name, &tool_name) {
-        validate_tool_arguments(&arguments).map_err(|error| error.message)?;
-        guard().map_err(|error| error.message)?;
-        let max_photos = crate::system_photos::photo_limit_from_arguments(&arguments)?;
-        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
-        return native_apple_receipts::execute(
-            receipt,
-            turn_context.as_ref(),
-            &persistence,
-            true,
-            async move { Ok(crate::system_photos::read_system_photos_bounded(max_photos).await) },
-        )
-        .await;
-    }
-    if is_system_music_tool(&server_name, &tool_name) {
-        validate_tool_arguments(&arguments).map_err(|error| error.message)?;
-        guard().map_err(|error| error.message)?;
-        let max_songs = crate::system_music::song_limit_from_arguments(&arguments)?;
-        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
-        return native_apple_receipts::execute(
-            receipt,
-            turn_context.as_ref(),
-            &persistence,
-            true,
-            async move { Ok(crate::system_music::read_system_music_bounded(max_songs).await) },
-        )
-        .await;
-    }
-    if system_mail::is_system_mail_read_tool(&server_name, &tool_name) {
-        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
-        return native_apple_receipts::execute(
-            receipt,
-            turn_context.as_ref(),
-            &persistence,
-            true,
-            system_mail::execute_turn_bound_mail_read(
-                arguments,
-                turn_context.as_ref(),
-                registry.inner(),
-                &persistence,
-                &app,
-            ),
-        )
-        .await;
+    if let Some(result) = execute_direct_apple_read_if_supported(
+        &server_name,
+        &tool_name,
+        &arguments,
+        turn_context.as_ref(),
+        &persistence,
+        registry.inner(),
+        &app,
+    )
+    .await
+    {
+        return result;
     }
     let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
     let action_approved = approval.is_some();
@@ -174,6 +91,151 @@ pub async fn mcp_execute_tool(
         },
     )
     .await
+}
+
+async fn execute_project_file_read_if_supported(
+    persistence: &PersistenceEngine,
+    turn_context: Option<&ChatTurnPersistenceContext>,
+    server_name: &str,
+    tool_name: &str,
+    arguments: &Value,
+) -> Option<Result<McpToolCallResult, String>> {
+    let project_id = match conversational_project_file_read_project_id(
+        persistence,
+        turn_context,
+        server_name,
+        tool_name,
+    ) {
+        Ok(Some(project_id)) => project_id,
+        Ok(None) => return None,
+        Err(error) => return Some(Err(error)),
+    };
+    let result = async {
+        validate_tool_arguments(arguments).map_err(|error| error.message)?;
+        let path = conversational_project_file_read_path(arguments)?;
+        validate_mcp_chat_turn(persistence, turn_context).map_err(|error| error.message)?;
+        let receipt = native_apple_receipts::spec_for(server_name, tool_name, arguments);
+        let execution_persistence = persistence.clone();
+        native_apple_receipts::execute(receipt, turn_context, persistence, false, async move {
+            conversational_project_file_read(&execution_persistence, &project_id, &path)
+        })
+        .await
+    }
+    .await;
+    Some(result)
+}
+
+async fn execute_direct_apple_read_if_supported(
+    server_name: &str,
+    tool_name: &str,
+    arguments: &Value,
+    turn_context: Option<&ChatTurnPersistenceContext>,
+    persistence: &PersistenceEngine,
+    registry: &McpClientRegistry,
+    app: &tauri::AppHandle,
+) -> Option<Result<McpToolCallResult, String>> {
+    if is_system_calendar_tool(server_name, tool_name) {
+        let result = async {
+            validate_guarded_tool_arguments(arguments, persistence, turn_context)?;
+            let (calendar_name, hours_ahead, start_date, end_date) =
+                bounded_system_calendar_arguments(arguments)?;
+            native_apple_receipts::execute(
+                native_apple_receipts::spec_for(server_name, tool_name, arguments),
+                turn_context,
+                persistence,
+                true,
+                read_system_calendar_with_deadline(
+                    calendar_name,
+                    hours_ahead,
+                    start_date,
+                    end_date,
+                    registry,
+                    app,
+                ),
+            )
+            .await
+        }
+        .await;
+        return Some(result);
+    }
+    if is_system_contacts_tool(server_name, tool_name) {
+        let result = async {
+            validate_guarded_tool_arguments(arguments, persistence, turn_context)?;
+            let request = crate::tools::system_contacts::contact_request_from_arguments(arguments)?;
+            native_apple_receipts::execute(
+                native_apple_receipts::spec_for(server_name, tool_name, arguments),
+                turn_context,
+                persistence,
+                true,
+                read_system_contacts_with_fallback(request, registry, app),
+            )
+            .await
+        }
+        .await;
+        return Some(result);
+    }
+    if is_system_photos_tool(server_name, tool_name) {
+        let result = async {
+            validate_guarded_tool_arguments(arguments, persistence, turn_context)?;
+            let max_photos = crate::system_photos::photo_limit_from_arguments(arguments)?;
+            native_apple_receipts::execute(
+                native_apple_receipts::spec_for(server_name, tool_name, arguments),
+                turn_context,
+                persistence,
+                true,
+                async move {
+                    Ok(crate::system_photos::read_system_photos_bounded(max_photos).await)
+                },
+            )
+            .await
+        }
+        .await;
+        return Some(result);
+    }
+    if is_system_music_tool(server_name, tool_name) {
+        let result = async {
+            validate_guarded_tool_arguments(arguments, persistence, turn_context)?;
+            let max_songs = crate::system_music::song_limit_from_arguments(arguments)?;
+            native_apple_receipts::execute(
+                native_apple_receipts::spec_for(server_name, tool_name, arguments),
+                turn_context,
+                persistence,
+                true,
+                async move { Ok(crate::system_music::read_system_music_bounded(max_songs).await) },
+            )
+            .await
+        }
+        .await;
+        return Some(result);
+    }
+    if system_mail::is_system_mail_read_tool(server_name, tool_name) {
+        return Some(
+            native_apple_receipts::execute(
+                native_apple_receipts::spec_for(server_name, tool_name, arguments),
+                turn_context,
+                persistence,
+                true,
+                system_mail::execute_turn_bound_mail_read(
+                    arguments.clone(),
+                    turn_context,
+                    registry,
+                    persistence,
+                    app,
+                ),
+            )
+            .await,
+        );
+    }
+    None
+}
+
+fn validate_guarded_tool_arguments(
+    arguments: &Value,
+    persistence: &PersistenceEngine,
+    turn_context: Option<&ChatTurnPersistenceContext>,
+) -> Result<(), String> {
+    validate_tool_arguments(arguments).map_err(|error| error.message)?;
+    validate_mcp_chat_turn(persistence, turn_context).map_err(|error| error.message)
 }
 
 fn is_project_file_read_tool(server_name: &str, tool_name: &str) -> bool {

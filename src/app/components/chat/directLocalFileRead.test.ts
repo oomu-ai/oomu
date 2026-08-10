@@ -67,20 +67,6 @@ describe("direct local file reads", () => {
     );
   });
 
-  it("resolves one named file inside one explicit folder before inference", () => {
-    const folder = "/Users/example/Documents/OOMU/Projects/mock_data";
-    const filePath = `${folder}/Lab_Inventory.csv`;
-    const prompt = `Read the CSV file Lab_Inventory.csv located in "${folder}" and summarize how many items are listed, along with any items that have low stock.`;
-
-    expect(candidateLocalPathsFromText(prompt)).toEqual([folder]);
-    expect(detect(prompt)).toBe(filePath);
-    const safePrompt = approvedLocalFilePrompt(prompt, filePath);
-    expect(safePrompt).toContain("[approved file]");
-    expect(safePrompt).toContain("[approved folder]");
-    expect(safePrompt).not.toContain("Lab_Inventory.csv");
-    expect(safePrompt).not.toContain("/Users/example");
-  });
-
   it("passes a directory correction to native approval-gated target classification", () => {
     const directory = "/Users/example/Library/Mobile Documents/com~apple~CloudDocs/OOMU Test Data/mock_data";
     const prompt = `The correct file path to the JSON files is actually here: ${directory}`;
@@ -162,5 +148,21 @@ describe("direct local file reads", () => {
         payload: "different-payload",
       },
     }])).toBe(false);
+  });
+});
+
+describe("named file inside an explicit folder", () => {
+  it("resolves the exact file before inference", () => {
+    const folder = "/Users/example/Documents/OOMU/Projects/mock_data";
+    const filePath = `${folder}/Lab_Inventory.csv`;
+    const prompt = `Read the CSV file Lab_Inventory.csv located in "${folder}" and summarize how many items are listed, along with any items that have low stock.`;
+
+    expect(candidateLocalPathsFromText(prompt)).toEqual([folder]);
+    expect(detect(prompt)).toBe(filePath);
+    const safePrompt = approvedLocalFilePrompt(prompt, filePath);
+    expect(safePrompt).toContain("[approved file]");
+    expect(safePrompt).toContain("[approved folder]");
+    expect(safePrompt).not.toContain("Lab_Inventory.csv");
+    expect(safePrompt).not.toContain("/Users/example");
   });
 });

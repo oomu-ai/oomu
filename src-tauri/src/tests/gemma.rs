@@ -267,7 +267,9 @@ fn exact_ready_model_resolution_rejects_unready_selection() {
         .expect_err("an asset-missing model cannot pass the recovery probe");
 
     assert_eq!(error.code, "configured_local_model_unavailable");
-    assert!(error.message.contains("will not substitute a different model family"));
+    assert!(error
+        .message
+        .contains("will not substitute a different model family"));
     let _ = fs::remove_dir_all(root);
 }
 

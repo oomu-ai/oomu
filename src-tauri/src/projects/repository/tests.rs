@@ -165,6 +165,13 @@ fn picked_project_root_is_single_replaceable_and_distinct_from_knowledge() {
             .unwrap(),
         fs::canonicalize(root.join("root-b")).unwrap()
     );
+    let evidence_roots =
+        crate::projects::path_scope::active_project_evidence_roots(&engine, &project.project_id)
+            .unwrap();
+    assert_eq!(
+        evidence_roots,
+        vec![fs::canonicalize(root.join("root-b")).unwrap()]
+    );
     let _ = fs::remove_dir_all(root);
 }
 
@@ -197,6 +204,11 @@ fn startup_refresh_keeps_empty_knowledge_folders_ready() {
         },
     )
     .unwrap();
+    assert_eq!(
+        crate::projects::path_scope::active_project_evidence_roots(&engine, &project.project_id)
+            .unwrap(),
+        vec![fs::canonicalize(root.join("empty-source")).unwrap()]
+    );
 
     let summary = refresh_active_knowledge_sources_at_startup(
         &engine,

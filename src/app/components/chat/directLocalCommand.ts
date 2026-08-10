@@ -1,9 +1,12 @@
-import { directLocalFileReadPath, unescapeShellPath } from "./directLocalFileRead";
+import type { ChatTurnContext } from "@/lib/chatTurnContext";
+import type { ChatAttachment } from "./attachments";
+import { approvedLocalFileAttachments, approvedLocalFilesPrompt, directLocalFileReadPaths, unescapeShellPath } from "./directLocalFileRead";
 import { candidateLocalPathsFromText } from "./localPathIntent";
 import { shouldDeferFileShortcutForRoutine } from "./chatRoutineHandoff";
 
 type DirectLocalCommand =
   | { kind: "read"; path: string }
+  | { kind: "read_many"; paths: string[] }
   | { kind: "list"; path: string }
   | { kind: "write"; path: string; content: string }
   | { kind: "delete"; path: string }
@@ -73,14 +76,33 @@ export function detectDirectLocalCommand(text: string): DirectLocalCommand | nul
     const path = directLocalCommandPath(normalized, "list");
     return { kind: "list", path: path ?? "" };
   }
-  const readPath = directLocalFileReadPath(
+  const readPaths = directLocalFileReadPaths(
     normalized,
     candidateLocalPathsFromText(normalized),
   );
-  if (readPath) return { kind: "read", path: readPath };
+  if (readPaths?.length === 1) return { kind: "read", path: readPaths[0] };
+  if (readPaths && readPaths.length > 1) return { kind: "read_many", paths: readPaths };
 
   const shellCommand = detectDirectShellCommand(normalized);
   return shellCommand ? { kind: "shell", command: shellCommand } : null;
+}
+
+export function directLocalReadPathsForCommand(command: DirectLocalCommand | null) {
+  if (command?.kind === "read") return [command.path];
+  return command?.kind === "read_many" ? command.paths : [];
+}
+
+export async function prepareDirectLocalReadTurn(
+  command: DirectLocalCommand,
+  message: string,
+  turn: ChatTurnContext,
+  existing: ChatAttachment[],
+) {
+  const paths = directLocalReadPathsForCommand(command);
+  return {
+    attachments: await approvedLocalFileAttachments(paths, message, turn, existing),
+    modelMessage: approvedLocalFilesPrompt(message, paths),
+  };
 }
 
 function detectExplicitTerminalListCommand(text: string): DirectLocalCommand | null {

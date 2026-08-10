@@ -115,8 +115,8 @@ import { localToolFailureCode, conversationalMcpToolIsMutation, mcpToolResultTex
 export { localToolFailureCode, mcpToolResultText } from "./chat/mcpToolResults";
 import { localContextToAttachment, messageWithAttachmentReceipt, releaseAttachmentPayloads, shouldAnalyzeVisualChatAttachment, visualAnalysisRequestForAttachment, visualAnalysisTextForAttachment, type ChatAttachment, type VisualArtifactAnalysis } from "./chat/attachments";
 import { attachPrivateDataProvenance } from "./chat/privateEgress/provenance";
-import { approvedLocalFileAttachment, approvedLocalFileContextReady, approvedLocalFilePrompt, nativeDirectFileAccess, verifiedDirectFileReadRouteDecision } from "./chat/directLocalFileRead";
-import { detectDirectLocalCommand, isHostLocalPath } from "./chat/directLocalCommand";
+import { approvedLocalFileAttachment, approvedLocalFilesContextReady, approvedLocalFilePrompt, nativeDirectFileAccess, verifiedDirectFileReadRouteDecision } from "./chat/directLocalFileRead";
+import { detectDirectLocalCommand, isHostLocalPath, prepareDirectLocalReadTurn } from "./chat/directLocalCommand";
 export { detectDirectLocalCommand } from "./chat/directLocalCommand";
 import { ACCEPTED_CHAT_SUBMISSION, REJECTED_CHAT_SUBMISSION, abandonDurableChatTurn, acceptDurableChatTurn, finalizeDurableChatTurn, type ChatSubmissionOutcome } from "./chat/submissionAcceptance";
 import { waitForTerminalChatTurnResult } from "./chat/turnReconciliation";
@@ -1128,8 +1128,8 @@ async function resolveDirectTurnRequests({ message, recoveryTurn, attachedWorksp
     ambiguousLocalAppTriageFailure = true;
   };
   const directLocalIntent = recoveryTurn ? null : detectDirectLocalCommand(message);
-  const directLocalReadRequest = directLocalIntent?.kind === "read" ? directLocalIntent : null;
-  const directLocalCommand = directLocalIntent?.kind === "read" ? null : directLocalIntent;
+  const directLocalReadRequest = directLocalIntent?.kind === "read" || directLocalIntent?.kind === "read_many" ? directLocalIntent : null;
+  const directLocalCommand = directLocalIntent?.kind === "read" || directLocalIntent?.kind === "read_many" ? null : directLocalIntent;
   const directMailReadCandidate = !recoveryTurn && !directLocalCommand && !directLocalReadRequest && !attachedWorkspaceResources.has("mail") ? detectDirectLocalMailReadRequest(message) : null;
   const directMailReadRequest = await retainApprovedLocalAppRequest(directMailReadCandidate, message, "mail", markAmbiguousLocalAppTriageFailure);
   const directCalendarReadCandidate = !recoveryTurn && !directLocalCommand && !directLocalReadRequest && !directMailReadRequest && !attachedWorkspaceResources.has("calendar") ? detectDirectLocalCalendarReadRequest(message) : null;
@@ -3710,7 +3710,7 @@ export function ChatScreen({
     let hydrationLockToken: number | null = null;
     let turnMessage = "";
     let turnModelMessage = nextMessage;
-    let approvedDirectLocalReadAttachment: ChatAttachment | null = null;
+    let readAttachments: ChatAttachment[] = [];
     let turnAcknowledged = false;
     let acknowledgedUserMessageId: number | null = null;
     let acceptedDurableUserMessageId: number | null = null;
@@ -4043,9 +4043,8 @@ export function ChatScreen({
       }
       try {
         updateTurnStatus(preparedTurnContext, t("chat.status.waiting_approval"));
-        approvedDirectLocalReadAttachment = await approvedLocalFileAttachment(directLocalReadRequest.path, nextMessage, preparedTurnContext, attachmentsForTurn.length);
-        attachmentsForTurn = [...attachmentsForTurn, approvedDirectLocalReadAttachment];
-        turnModelMessage = approvedLocalFilePrompt(nextMessage, directLocalReadRequest.path);
+        ({ attachments: readAttachments, modelMessage: turnModelMessage } = await prepareDirectLocalReadTurn(directLocalReadRequest, nextMessage, preparedTurnContext, attachmentsForTurn));
+        attachmentsForTurn = [...attachmentsForTurn, ...readAttachments];
         updateTurnStatus(preparedTurnContext, t("chat.status.attachment_ready"));
       } catch (error) {
         const failureText = localCommandFailureText(error, t);
@@ -4563,7 +4562,7 @@ export function ChatScreen({
 
       let toolRegistryOfflineForTurn = false;
       if (!explicitSlashCommand) {
-        if (directLocalReadRequest && !approvedLocalFileContextReady(approvedDirectLocalReadAttachment, attachmentsForTurn)) {
+        if (directLocalReadRequest && !approvedLocalFilesContextReady(readAttachments, attachmentsForTurn)) {
           throw { code: "approved_file_unavailable" };
         }
         let routeDecision: ChatIntentRouteDecision = await preferProjectDocumentRoute(projectDocumentRouteDecision(turnModelMessage, immutableTurnContext.projectId, t("chat.status.thinking")), async () =>

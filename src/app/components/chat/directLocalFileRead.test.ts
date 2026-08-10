@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { candidateLocalPathsFromText } from "./localPathIntent";
 import {
   approvedLocalFileContextReady,
+  approvedLocalFilesContextReady,
+  approvedLocalFilesPrompt,
   approvedLocalFilePrompt,
   directLocalFileReadPath,
+  directLocalFileReadPaths,
 } from "./directLocalFileRead";
 
 const path = "/Users/example/Desktop/Quarterly Review.pdf";
@@ -97,11 +100,21 @@ describe("direct local file reads", () => {
     `Can you see why this error mentions ${path}?`,
     `Open ${path} and save a copy.`,
     `Ask Alex to review ${path} before answering.`,
-    `Compare the architecture described by '${path}' with our current approach and recommend a rollout.`,
     "Can you view this file? https://example.test/report.png",
     "Can you view this file? file://remote-host/Users/example/Desktop/report.pdf",
   ])("rejects indirect, mixed, or non-local references: %s", (message) => {
     expect(detect(message)).toBeNull();
+  });
+
+});
+
+describe("direct local file read safety", () => {
+  it("opens explicitly named evidence before a read-only comparison", () => {
+    expect(detect(`Compare the architecture described by '${path}' with our current approach and recommend a rollout.`)).toBe(path);
+  });
+
+  it("honors an explicit instruction not to open a path", () => {
+    expect(detect(`Compare '${path}' with our current approach, but do not open the path.`)).toBeNull();
   });
 
   it("treats command words inside a filename as inert", () => {
@@ -149,6 +162,26 @@ describe("direct local file reads", () => {
       },
     }])).toBe(false);
   });
+
+  it("requires one matching receipt attachment for every approved file", () => {
+    const approved = {
+      name: "Quarterly Review.pdf",
+      mime_type: "text/plain",
+      byte_count: 24,
+      approved_file_receipt: {
+        payload: "signed-payload",
+        signature: {
+          public_key: "public-key",
+          signature: "signature",
+          payload_hash: "payload-hash",
+          signed_at_ms: 1,
+        },
+      },
+    };
+
+    expect(approvedLocalFilesContextReady([approved, approved], [{ ...approved }])).toBe(false);
+    expect(approvedLocalFilesContextReady([approved, approved], [{ ...approved }, { ...approved }])).toBe(true);
+  });
 });
 
 describe("named file inside an explicit folder", () => {
@@ -164,5 +197,37 @@ describe("named file inside an explicit folder", () => {
     expect(safePrompt).toContain("[approved folder]");
     expect(safePrompt).not.toContain("Lab_Inventory.csv");
     expect(safePrompt).not.toContain("/Users/example");
+  });
+
+  it("resolves every explicitly named file for a read-only strategic comparison", () => {
+    const folder = "/Users/example/Documents/OOMU/Projects/mock_data";
+    const prompt = `Perform a comprehensive strategic evaluation of the supplier proposals in supplier_proposals.json and cross-reference them with the requirements in q3_strategic_vendor_proposals.txt located in "${folder}". Compare technical compliance, unit pricing, and delivery risks, and provide a multi-scenario vendor trade-off matrix.`;
+    const paths = directLocalFileReadPaths(prompt, candidateLocalPathsFromText(prompt));
+
+    expect(paths).toEqual([
+      `${folder}/supplier_proposals.json`,
+      `${folder}/q3_strategic_vendor_proposals.txt`,
+    ]);
+    const safePrompt = approvedLocalFilesPrompt(prompt, paths ?? []);
+    expect(safePrompt).not.toContain("/Users/example");
+    expect(safePrompt).not.toContain("supplier_proposals.json");
+    expect(safePrompt).not.toContain("q3_strategic_vendor_proposals.txt");
+    expect(safePrompt.match(/\[approved file\]/g)).toHaveLength(2);
+  });
+
+  it("rejects a named-file batch above the attachment limit", () => {
+    const folder = "/Users/example/Documents/OOMU/Projects/mock_data";
+    const prompt = `Compare one.json, two.json, three.json, four.json, five.json, and six.json located in "${folder}".`;
+
+    expect(directLocalFileReadPaths(prompt, candidateLocalPathsFromText(prompt))).toBeNull();
+  });
+
+  it("rejects more explicit paths than can be attached without truncating the request", () => {
+    const prompt = ["one", "two", "three", "four", "five", "six"]
+      .map((name) => `/Users/example/Documents/${name}.json`)
+      .join(" and ");
+
+    expect(candidateLocalPathsFromText(prompt)).toHaveLength(5);
+    expect(directLocalFileReadPaths(prompt, candidateLocalPathsFromText(prompt))).toBeNull();
   });
 });

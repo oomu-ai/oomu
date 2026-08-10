@@ -36,7 +36,7 @@ pub(super) fn knowledge_source_byte_limit(path: &Path) -> u64 {
         .map(str::to_ascii_lowercase)
         .as_deref()
     {
-        Some("pdf" | "xlsx") => super::MAX_BINARY_SOURCE_BYTES,
+        Some("docx" | "pdf" | "xlsx") => super::MAX_BINARY_SOURCE_BYTES,
         _ => super::MAX_FILE_BYTES,
     }
 }
@@ -83,6 +83,7 @@ pub(crate) fn extract_file_text(path: &Path, bytes: &[u8]) -> Result<String, Str
         .unwrap_or_default()
         .to_ascii_lowercase();
     let text = match extension.as_str() {
+        "docx" => extract_docx_text(bytes)?,
         "pdf" => crate::pdf_containment::extract_pdf_bytes_contained(bytes)
             .map(|result| result.text)
             .map_err(|_| "A Project PDF could not be read safely.".to_string())?,
@@ -91,6 +92,41 @@ pub(crate) fn extract_file_text(path: &Path, bytes: &[u8]) -> Result<String, Str
             .map_err(|_| "A Project source is not readable text.".to_string())?,
     };
     Ok(bounded_text(text))
+}
+
+fn extract_docx_text(bytes: &[u8]) -> Result<String, String> {
+    let entries = crate::foundation::office_zip::read_zip(bytes)
+        .map_err(|_| "A Project Word document could not be read safely.".to_string())?;
+    let document = entries
+        .get("word/document.xml")
+        .ok_or_else(|| "A Project Word document is missing its document body.".to_string())?;
+    let xml = std::str::from_utf8(document)
+        .map_err(|_| "A Project Word document body is not readable XML.".to_string())?;
+    let token_pattern = Regex::new(
+        r#"(?s)<w:t(?:\s[^>]*)?>(.*?)</w:t>|<w:tab(?:\s[^>]*)?/?>|<w:br(?:\s[^>]*)?/?>|</w:p\s*>|</w:tr\s*>"#,
+    )
+    .map_err(|error| error.to_string())?;
+    let mut text = String::new();
+    for captures in token_pattern.captures_iter(xml) {
+        let token = captures
+            .get(0)
+            .map(|value| value.as_str())
+            .unwrap_or_default();
+        if let Some(value) = captures.get(1) {
+            text.push_str(&xml_unescape(value.as_str()));
+        } else if token.starts_with("<w:tab") {
+            text.push('\t');
+        } else if token.starts_with("<w:br") {
+            text.push('\n');
+        } else if !text.ends_with('\n') {
+            text.push('\n');
+        }
+    }
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("A Project Word document has no readable text.".to_string());
+    }
+    Ok(text)
 }
 
 fn extract_xlsx_text(bytes: &[u8]) -> Result<String, String> {
@@ -301,5 +337,16 @@ mod tests {
         assert!(text.contains("B1=Ready"));
         assert!(text.contains("C1=42"));
         assert!(text.contains("D1=Calibrated"));
+    }
+
+    #[test]
+    fn extracts_bounded_word_document_text() {
+        let entries = BTreeMap::from([
+            ("[Content_Types].xml".to_string(), b"<Types/>".to_vec()),
+            ("word/document.xml".to_string(), br#"<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Hello &amp; welcome</w:t></w:r><w:r><w:tab/></w:r><w:r><w:t>team</w:t></w:r></w:p><w:p><w:r><w:t>Second paragraph</w:t></w:r></w:p></w:body></w:document>"#.to_vec()),
+        ]);
+        let bytes = crate::foundation::office_zip::write_store_zip(&entries).unwrap();
+        let text = extract_docx_text(&bytes).unwrap();
+        assert_eq!(text, "Hello & welcome\tteam\nSecond paragraph");
     }
 }

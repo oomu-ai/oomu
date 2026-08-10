@@ -557,12 +557,7 @@ fn validate_requested_input_paths(
     prompt: &str,
     tools: &[&McpToolNode],
 ) -> Result<(), WorkflowCompilerError> {
-    let requested = unique_paths(
-        objective_code_spans(prompt)
-            .into_iter()
-            .filter(|span| is_local_input_path(&span.value))
-            .map(|span| span.value),
-    );
+    let requested = requested_local_input_paths(prompt);
     let mut bound_nodes = HashSet::new();
     for path in requested {
         let Some(tool) = tools.iter().copied().find(|tool| {
@@ -669,11 +664,58 @@ fn objective_code_spans(prompt: &str) -> Vec<ObjectiveCodeSpan> {
 }
 
 pub(super) fn requested_local_input_paths(prompt: &str) -> Vec<String> {
-    unique_paths(
+    let mut requested = unique_paths(
         objective_code_spans(prompt)
             .into_iter()
             .filter(|span| is_local_input_path(&span.value))
             .map(|span| span.value),
+    );
+    let folders = quoted_local_folders(prompt);
+    if let [folder] = folders.as_slice() {
+        let root = folder.trim_end_matches('/');
+        requested.extend(
+            standalone_local_input_file_names(prompt)
+                .into_iter()
+                .map(|file_name| format!("{root}/{file_name}")),
+        );
+    }
+    unique_paths(requested)
+}
+
+fn quoted_local_folders(prompt: &str) -> Vec<String> {
+    let mut folders = Vec::new();
+    for delimiter in ['"', '\''] {
+        let mut open = None;
+        for (index, character) in prompt.char_indices() {
+            if character != delimiter {
+                continue;
+            }
+            if let Some(start) = open.take() {
+                let value = normalize_prompt_path(&prompt[start..index]);
+                if (value.starts_with('/') || value.starts_with("~/"))
+                    && !value.contains("://")
+                    && !is_local_input_path(&value)
+                    && !is_artifact_output_path(&value)
+                {
+                    folders.push(value);
+                }
+            } else {
+                open = Some(index + character.len_utf8());
+            }
+        }
+    }
+    unique_paths(folders)
+}
+
+fn standalone_local_input_file_names(prompt: &str) -> Vec<String> {
+    unique_paths(
+        prompt
+            .split(|character: char| {
+                !(character.is_alphanumeric() || matches!(character, '_' | '-' | '.'))
+            })
+            .map(|value| value.trim_matches('.'))
+            .filter(|value| !value.is_empty() && is_local_input_path(value))
+            .map(str::to_string),
     )
 }
 
@@ -899,12 +941,7 @@ fn validate_artifact_evidence_order(
     ir: &WorkflowIr,
     tools: &[&McpToolNode],
 ) -> Result<(), WorkflowCompilerError> {
-    let requested_paths = unique_paths(
-        objective_code_spans(prompt)
-            .into_iter()
-            .filter(|span| is_local_input_path(&span.value))
-            .map(|span| span.value),
-    );
+    let requested_paths = requested_local_input_paths(prompt);
     let project_reads = requested_paths
         .iter()
         .filter_map(|path| {

@@ -178,7 +178,7 @@ it("uses the Project attached to the selected chat when the screen has no Projec
   await waitFor(() => expect(invokeMock.mock.calls.some(([command]) => command === "get_auto_route_session_readiness")).toBe(true));
   fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
     target: {
-      value: "Using only the files in this Project, prepare a quarterly update. Produce an editable Word document and a PDF.",
+      value: "Using only the files in this Project, prepare a two-page quarterly program update. Answer each funder question, summarize outcomes, create a results table, and identify unsupported claims. Produce a PDF. Do not invent statistics or contact anyone.",
     },
   });
   fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
@@ -195,6 +195,7 @@ it("uses the Project attached to the selected chat when the screen has no Projec
       mcp_tool_capabilities: [],
     }),
   );
+  await waitFor(() => expect(invokeMock.mock.calls.some(([command]) => command === "create_project_chat_document")).toBe(true));
 });
 
 it("does not present a persisted accepted marker as live work without an active owner", async () => {

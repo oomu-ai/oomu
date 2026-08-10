@@ -80,6 +80,10 @@ fn build_supported_workflow(
     let outputs = registered_task_capabilities::requested_artifact_output_paths(prompt);
     let locale = requested_artifact_locale(prompt);
 
+    if is_scheduled_project_inspection(&normalized, prompt, &inputs, &outputs) {
+        return scheduled_project_inspection_ir(prompt, workflow_id, name, &inputs).map(Some);
+    }
+
     if is_paired_evidence_request(&normalized, &inputs, &outputs) {
         let Some((supplier_path, milestone_path)) = input_role_pair(prompt, &inputs) else {
             return Ok(None);
@@ -143,6 +147,44 @@ fn build_supported_workflow(
     }
 
     Ok(None)
+}
+
+fn is_scheduled_project_inspection(
+    normalized_prompt: &str,
+    prompt: &str,
+    inputs: &[String],
+    outputs: &[String],
+) -> bool {
+    !inputs.is_empty()
+        && outputs.is_empty()
+        && inputs_share_quoted_folder(prompt, inputs)
+        && (normalized_prompt.contains("scheduled workflow")
+            || normalized_prompt.contains("recurring"))
+        && (normalized_prompt.contains("daily")
+            || normalized_prompt.contains("every morning")
+            || normalized_prompt.contains("every day"))
+        && ["inspect", "read", "review", "check"]
+            .iter()
+            .any(|term| normalized_prompt.contains(term))
+        && ["digest", "summary", "report"]
+            .iter()
+            .any(|term| normalized_prompt.contains(term))
+        && !registered_task_capabilities::action_is_negated(normalized_prompt, "read")
+}
+
+fn inputs_share_quoted_folder(prompt: &str, inputs: &[String]) -> bool {
+    let Some(folder) = inputs
+        .first()
+        .and_then(|path| path.rsplit_once('/').map(|(folder, _)| folder))
+    else {
+        return false;
+    };
+    inputs.iter().all(|path| {
+        path.strip_prefix(folder)
+            .is_some_and(|suffix| suffix.starts_with('/') && suffix.len() > 1)
+    }) && [format!("\"{folder}\""), format!("'{folder}'")]
+        .iter()
+        .any(|quoted| prompt.contains(quoted))
 }
 
 fn is_paired_evidence_request(prompt: &str, inputs: &[String], outputs: &[String]) -> bool {
@@ -622,6 +664,79 @@ fn workflow_identity(
     (workflow_id, name)
 }
 
+fn scheduled_project_inspection_ir(
+    prompt: &str,
+    workflow_id: Option<&str>,
+    name: Option<&str>,
+    inputs: &[String],
+) -> Result<WorkflowIr, WorkflowCompilerError> {
+    let fallback_name = inputs
+        .first()
+        .map(|path| artifact_title(path))
+        .unwrap_or_else(|| "Project".to_string());
+    let (workflow_id, name) = workflow_identity(
+        prompt,
+        workflow_id,
+        name,
+        "scheduled-project-inspection",
+        &fallback_name,
+    );
+    let agent_objective = format!(
+        "Use only the mapped verified Project file contents to carry out this exact user objective: {prompt} Return the requested operational digest, state when no matching exception exists, and never invent records or claim access beyond these inputs."
+    );
+    let mut nodes = vec![json!({
+        "kind":"input","id":"input","label":name,
+        "outputKey":"workflow.input","inputSchema":{"type":"object"}
+    })];
+    let mut edges = Vec::new();
+    let mut previous_node = "input".to_string();
+    let mut input_mappings = serde_json::Map::new();
+
+    for (index, path) in inputs.iter().enumerate() {
+        let ordinal = index + 1;
+        let node_id = format!("read-project-file-{ordinal}");
+        nodes.push(json!({
+            "kind":"mcp_tool","id":node_id,"label":artifact_title(path),
+            "serverName":TASK_SERVER,"toolName":"read_project_file","arguments":{"path":path}
+        }));
+        edges.push(json!({
+            "id":format!("edge-{ordinal}"),"sourceNodeId":previous_node,
+            "sourcePort":"out","targetNodeId":node_id
+        }));
+        input_mappings.insert(
+            format!("projectFile{ordinal}"),
+            json!(format!("{{{{nodes.{node_id}.output.data.content}}}}")),
+        );
+        previous_node = node_id;
+    }
+
+    nodes.push(json!({
+        "kind":"agent","id":"prepare-digest","label":name,
+        "objective":agent_objective,
+        "inputMappings":input_mappings,"outputKey":"nodes.prepare-digest.output",
+        "systemTimeoutMs":SPECIALIST_AGENT_TIMEOUT_MS
+    }));
+    edges.push(json!({
+        "id":"edge-prepare-digest","sourceNodeId":previous_node,
+        "sourcePort":"out","targetNodeId":"prepare-digest"
+    }));
+    nodes.push(json!({
+        "kind":"output","id":"output","label":name,
+        "inputMapping":"{{nodes.prepare-digest.output}}","outputSchema":{"type":"string"}
+    }));
+    edges.push(json!({
+        "id":"edge-output","sourceNodeId":"prepare-digest",
+        "sourcePort":"out","targetNodeId":"output"
+    }));
+
+    serde_json::from_value(json!({
+        "schemaVersion":"1.0.0","workflowId":workflow_id,"workflowVersion":1,
+        "name":name,"description":prompt,"compiler":{"model":WORKFLOW_COMPILER_MODEL},
+        "metadata":specialist_metadata(prompt),"nodes":nodes,"edges":edges
+    }))
+    .map_err(WorkflowCompilerError::serialization)
+}
+
 fn paired_evidence_ir(
     prompt: &str,
     workflow_id: Option<&str>,
@@ -752,6 +867,81 @@ mod tests {
     const OPERATIONS: &str = "At each run, read `/Project/input/quarterly_quotes.json` as the supplier rate input and `/Project/input/roadmap_state.json` as the project milestone input. Retrieve current information from at least two official public web sources, including one energy source and one transport source. Create `/Project/output/executive_pulse_<YYYY-MM-DD_HH-mm>.md` and a matching PDF. Reconcile supplier rate variances and unfinished milestone risks, validate both files, and deliver the exact filenames. Use locale `fr-CA`.";
     const EXCEPTION: &str = "Read `/Project/input/vendor_rates.json` as the supplier quote input. Retrieve one official freight source. Create `reports/rate_watch_<YYYY-MM-DD_HH-mm>.md`. If any supplier's active quote exceeds its historical settled rate, create one 45-minute event titled `Rate Review` in the `Operations` calendar on the next conflict-free weekday at 3:30 PM or later, and send one email to `ops@example.com` with subject `Rate alert`. These actions require explicit user approval.";
     const CANONICAL_EXCEPTION: &str = "Read `/Users/example/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/OOMU Test Data/mock_data/supplier_proposals.json`. Retrieve one current primary or official public source relevant to US freight or fuel conditions. Create `ship_test_06/supplier_exception_<YYYY-MM-DD_HH-mm>.md` containing the local variances, live source URL/access time, risk assessment, and next actions. If any supplier's active quote exceeds its historical settled rate, create one 30-minute event titled `Supplier Exception Follow-up` in the `OOMU Test` calendar on the next conflict-free weekday at 2:00 PM or later, and send one email to `recipient@example.com` with subject `OOMU Test — Supplier Exception` and the report attached or linked. These Calendar and send actions require explicit user approval. If approval is pending, preserve the run and resume from that exact step after approval. Never create duplicate events, messages, reports, or deliveries when retrying or recovering. Finally, deliver the run result and exact report filename to the configured private channel.";
+    const LAB_AUDIT: &str = "Create a recurring daily scheduled workflow named \"Lab Inventory & Maintenance Audit\" that runs every morning at 8:00 AM. It should inspect Maintenance_Tickets.csv and Lab_Inventory.csv in \"/Users/jeffreyallan/Documents/OOMU/Projects/mock_data\", flag open critical tickets or depleted inventory, and generate a daily operational digest.";
+
+    #[test]
+    fn scheduled_project_inspection_is_composed_without_model_generation() {
+        registered_task_capabilities::register_test_tools();
+        let mut request = test_request(LAB_AUDIT, "wf-lab-audit");
+        request.name = Some("Lab Inventory & Maintenance Audit".to_string());
+        request.capability_catalog.actions =
+            registered_task_capabilities::catalog_actions().expect("registered actions");
+
+        let ir = compose_supported_workflow(&request)
+            .expect("safe specialist composition")
+            .expect("scheduled Project inspection");
+        ir.validate().expect("valid workflow");
+        super::super::validate_workflow_ir_topology(&ir).expect("safe workflow topology");
+        registered_task_capabilities::validate_objective_bindings(LAB_AUDIT, &ir)
+            .expect("both exact Project inputs are bound");
+
+        let reads = ir
+            .nodes
+            .iter()
+            .filter_map(|node| match node {
+                WorkflowNode::McpTool(tool) if tool.tool_name == "read_project_file" => Some(tool),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(reads.len(), 2);
+        assert_eq!(
+            reads
+                .iter()
+                .filter_map(|tool| tool
+                    .arguments
+                    .get("path")
+                    .and_then(serde_json::Value::as_str))
+                .collect::<Vec<_>>(),
+            vec![
+                "/Users/jeffreyallan/Documents/OOMU/Projects/mock_data/Maintenance_Tickets.csv",
+                "/Users/jeffreyallan/Documents/OOMU/Projects/mock_data/Lab_Inventory.csv",
+            ]
+        );
+        let digest = ir
+            .nodes
+            .iter()
+            .find_map(|node| match node {
+                WorkflowNode::Agent(agent) if agent.id == "prepare-digest" => Some(agent),
+                _ => None,
+            })
+            .expect("digest agent");
+        assert!(digest.objective.contains("open critical tickets"));
+        assert!(digest.objective.contains("depleted inventory"));
+        assert_eq!(digest.input_mappings.len(), 2);
+        assert!(digest
+            .input_mappings
+            .values()
+            .all(|mapping| mapping.ends_with(".output.data.content}}")));
+
+        let response = super::super::specialist_compose_response(ir, &request, 0)
+            .expect("grounded specialist response");
+        assert_eq!(response.status, "composed");
+        assert_eq!(response.composed_by, "registered_task_specialist");
+        assert_eq!(response.attempts, 1);
+    }
+
+    #[test]
+    fn unscheduled_project_inspection_keeps_the_generic_composer_fallback() {
+        let prompt = LAB_AUDIT.replace(
+            "Create a recurring daily scheduled workflow",
+            "Create a workflow",
+        );
+        assert!(
+            compose_supported_workflow(&test_request(&prompt, "wf-generic"))
+                .expect("safe recognition")
+                .is_none()
+        );
+    }
 
     #[test]
     fn operations_brief_is_built_without_model_generation() {

@@ -62,7 +62,11 @@ export function projectDocumentNativeRequestRoute<T>(
 }
 
 export function projectDocumentOutputIntent(message: string) {
-  return /\b(?:word|docx)\b/i.test(message) && /\bpdf\b/i.test(message);
+  return message.split(/[.!?\n]+/).some((clause) =>
+    /\bpdf\b/i.test(clause)
+      && (/\b(?:create|deliver|export|generate|make|prepare|produce|write)\b/i.test(clause)
+        || /\b(?:need|want)\s+(?:an?\s+)?pdf\b/i.test(clause)),
+  );
 }
 
 export function projectDocumentOutputRequested(message: string, projectId: string | null | undefined) {
@@ -105,6 +109,7 @@ export function projectChatDocumentRequest(message: string, routeDecision: ChatI
   const contentBrief = message
     .replace(/\busing\s+only\s+the\s+files\s+in\s+this\s+project\s*,?\s*/i, "")
     .replace(/\bproduce\b[^.]*\b(?:word|docx)\b[^.]*\bpdf\b[^.]*\.?/gi, "")
+    .replace(/\b(?:create|deliver|export|generate|make|produce|write)\b[^.!?\n]{0,240}\bpdf\b[^.!?\n]*[.!]?/gi, "")
     .trim();
   return {
     modelMessage: ["Compose the complete document body from the approved Project knowledge supplied with this turn.", "Use only that evidence. Mark every unsupported claim clearly and do not invent facts.", "Return polished Markdown only, beginning with one descriptive level-one heading. Do not discuss tools or claim that files were created.", "Content brief:", contentBrief || message.trim()].join("\n\n"),

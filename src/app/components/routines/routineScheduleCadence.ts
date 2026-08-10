@@ -52,6 +52,10 @@ export type ScheduleSeedDefaults = {
 
 export function defaultsFromScheduleSeed(seed: string): ScheduleSeedDefaults | null {
   const normalized = seed.trim().toLowerCase();
+  const dailyAt = /^daily at ((?:[01]\d|2[0-3]):[0-5]\d)$/.exec(normalized);
+  if (dailyAt) {
+    return { frequency: "daily", cadence: null, time: dailyAt[1], weekDays: [] };
+  }
   const cadence = cadenceFromScheduleSeed(normalized);
   if (cadence) {
     return { frequency: "interval", cadence, time: "09:00", weekDays: [] };

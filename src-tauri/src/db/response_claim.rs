@@ -197,6 +197,62 @@ fn rebind_claimed_user_message_route(
     }
 }
 
+fn existing_response_claim_matches(
+    transaction: &rusqlite::Transaction<'_>,
+    workspace_id: &str,
+    context: &ChatTurnPersistenceContext,
+) -> rusqlite::Result<bool> {
+    transaction.query_row(
+        "
+        SELECT EXISTS (
+            SELECT 1
+            FROM chat_turns turns
+            JOIN chat_sessions sessions
+              ON sessions.id = turns.session_id
+             AND sessions.workspace_id = turns.workspace_id
+            WHERE turns.turn_id = ?1
+              AND turns.generation_token = ?2
+              AND turns.workspace_id = ?3
+              AND turns.session_id = ?4
+              AND turns.agent_id = ?5
+              AND turns.root_turn_id = ?6
+              AND turns.turn_kind = ?7
+              AND COALESCE(turns.parent_turn_id, '') = COALESCE(?8, '')
+              AND turns.provider_id = ?9
+              AND turns.model_id = ?10
+              AND turns.response_claimed_at_ms IS NOT NULL
+              AND (
+                    turns.status = 'running'
+                 OR (
+                        turns.status IN ('completed', 'failed', 'cancelled', 'escalated')
+                    AND EXISTS (
+                        SELECT 1
+                        FROM chat_messages messages
+                        WHERE messages.workspace_id = turns.workspace_id
+                          AND messages.session_id = turns.session_id
+                          AND json_extract(messages.metadata_json, '$.terminalResultForTurnId') = turns.turn_id
+                    )
+                 )
+              )
+              AND sessions.agent_id = turns.agent_id
+        )
+        ",
+        params![
+            context.turn_id,
+            context.generation_token,
+            workspace_id,
+            context.session_id,
+            context.agent_id,
+            context.root_turn_id,
+            context.turn_kind,
+            context.parent_turn_id,
+            context.provider_id,
+            context.model_id,
+        ],
+        |row| row.get(0),
+    )
+}
+
 impl PersistenceEngine {
     pub(crate) fn release_chat_turn_response_claim(
         &self,
@@ -379,6 +435,25 @@ impl PersistenceEngine {
                           )
                     )
                  )
+                 OR (
+                        lower(provider_id) <> 'dynamic'
+                    AND lower(model_id) <> 'dynamic'
+                    AND lower(?5) <> 'dynamic'
+                    AND lower(?6) <> 'dynamic'
+                    AND EXISTS (
+                        SELECT 1
+                        FROM chat_sessions retry_sessions
+                        WHERE retry_sessions.id = chat_turns.session_id
+                          AND retry_sessions.workspace_id = chat_turns.workspace_id
+                          AND (
+                                (
+                                    lower(retry_sessions.provider_id) = 'dynamic'
+                                    AND lower(retry_sessions.model_id) = 'dynamic'
+                                )
+                                OR COALESCE(retry_sessions.dynamic_routing_override, 0) = 1
+                          )
+                    )
+                 )
               )
               AND EXISTS (
                     SELECT 1
@@ -407,65 +482,15 @@ impl PersistenceEngine {
             transaction.commit()?;
             return Ok(());
         }
-        if changed != 1 {
-            let already_claimed: bool = transaction.query_row(
-                "
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM chat_turns turns
-                    JOIN chat_sessions sessions
-                      ON sessions.id = turns.session_id
-                     AND sessions.workspace_id = turns.workspace_id
-                    WHERE turns.turn_id = ?1
-                      AND turns.generation_token = ?2
-                      AND turns.workspace_id = ?3
-                      AND turns.session_id = ?4
-                      AND turns.agent_id = ?5
-                      AND turns.root_turn_id = ?6
-                      AND turns.turn_kind = ?7
-                      AND COALESCE(turns.parent_turn_id, '') = COALESCE(?8, '')
-                      AND turns.provider_id = ?9
-                      AND turns.model_id = ?10
-                      AND turns.response_claimed_at_ms IS NOT NULL
-                      AND (
-                            turns.status = 'running'
-                         OR (
-                                turns.status IN ('completed', 'failed', 'cancelled', 'escalated')
-                            AND EXISTS (
-                                SELECT 1
-                                FROM chat_messages messages
-                                WHERE messages.workspace_id = turns.workspace_id
-                                  AND messages.session_id = turns.session_id
-                                  AND json_extract(messages.metadata_json, '$.terminalResultForTurnId') = turns.turn_id
-                            )
-                         )
-                      )
-                      AND sessions.agent_id = turns.agent_id
-                )
-                ",
-                params![
-                    context.turn_id,
-                    context.generation_token,
-                    workspace_id,
-                    context.session_id,
-                    context.agent_id,
-                    context.root_turn_id,
-                    context.turn_kind,
-                    context.parent_turn_id,
-                    context.provider_id,
-                    context.model_id,
-                ],
-                |row| row.get(0),
-            )?;
-            return Err(rusqlite::Error::InvalidParameterName(
-                if already_claimed {
-                    CHAT_TURN_RESPONSE_CLAIM_CONFLICT
-                } else {
-                    CHAT_TURN_RESPONSE_CLAIM_MISMATCH
-                }
-                .to_string(),
-            ));
-        }
-        unreachable!("the response claim either commits or returns an error")
+        let already_claimed =
+            existing_response_claim_matches(&transaction, &workspace_id, context)?;
+        Err(rusqlite::Error::InvalidParameterName(
+            if already_claimed {
+                CHAT_TURN_RESPONSE_CLAIM_CONFLICT
+            } else {
+                CHAT_TURN_RESPONSE_CLAIM_MISMATCH
+            }
+            .to_string(),
+        ))
     }
 }

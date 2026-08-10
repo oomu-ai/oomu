@@ -752,8 +752,8 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 309538,
-      "functionLines": 4489,
+      "bytes": 309522,
+      "functionLines": 4488,
       "complexity": 133
     },
     "src/app/components/HomeChrome.tsx": {
@@ -932,10 +932,6 @@
       "owner": "renderer/components",
       "functionLines": 143,
       "complexity": 78
-    },
-    "src/app/components/chat/directLocalFileRead.test.ts": {
-      "owner": "renderer/components",
-      "functionLines": 134
     },
     "src/app/components/chat/executionIntentPolicy.ts": {
       "owner": "renderer/components",

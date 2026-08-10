@@ -158,6 +158,7 @@ describe("ScheduleBuilder recurrence handoff", () => {
     ["every afternoon", "daily", "13:00", "daily at 13:00"],
     ["every evening", "daily", "18:00", "daily at 18:00"],
     ["every night", "daily", "21:00", "daily at 21:00"],
+    ["daily at 08:00", "daily", "08:00", "daily at 08:00"],
   ] as const)(
     "opens %s with a visible deterministic timing default",
     (schedule, frequency, time, expectedSchedule) => {

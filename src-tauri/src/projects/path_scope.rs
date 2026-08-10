@@ -29,14 +29,18 @@ pub(crate) fn single_active_project_root(
     }
 }
 
-pub(crate) fn active_project_knowledge_roots(
+pub(crate) fn active_project_evidence_roots(
     engine: &PersistenceEngine,
     project_id: &str,
 ) -> Result<Vec<PathBuf>, String> {
+    let local_roots = active_project_roots_for_kind(engine, project_id, "local_folder")?;
+    if !local_roots.is_empty() {
+        return Ok(local_roots.into_iter().collect());
+    }
     let roots = active_project_roots_for_kind(engine, project_id, "knowledge_directory")?;
     if roots.is_empty() {
         return Err(
-            "This Project has no available Knowledge folder. Add a Knowledge folder and try again."
+            "This Project has no available approved folder. Open the Project and choose its folder."
                 .to_string(),
         );
     }

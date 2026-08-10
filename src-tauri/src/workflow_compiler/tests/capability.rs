@@ -19,6 +19,49 @@ fn workflow_catalog_only_admits_tools_the_runtime_can_execute() {
 const SCENARIO_FIVE_PROMPT: &str = "At each run, read `/Users/example/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/OOMU Test Data/mock_data/supplier_proposals.json` and `/Users/example/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/OOMU Test Data/mock_data/project_milestones.json` from the testing folder. Retrieve current information from at least two relevant primary or official public web sources, including one current energy/fuel source and one transport, logistics, or government source. Record each URL and access time. Reconcile supplier rate variances, identify unfinished milestones, and explain only evidence-backed changes since the local fixture dates. Create `/Users/example/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/OOMU Test Data/mock_data/ship_test_05/operations_brief_<YYYY-MM-DD_HH-mm>.md` and a matching PDF. Both must include a one-paragraph executive summary, data table, exceptions, milestone risks, current web evidence, source links, and next actions. Read both files back or validate them before completion. Deliver a concise summary to the Routine's configured channel with the two exact filenames and a truthful success/failure status. Never report a file as created unless it exists.";
 
 const SCENARIO_SIX_PROMPT: &str = "Read `/Users/example/Library/Mobile\\ Documents/com\\~apple\\~CloudDocs/OOMU Test Data/mock_data/supplier_proposals.json`. Retrieve one current primary or official public source relevant to US freight or fuel conditions. Create `ship_test_06/supplier_exception_<YYYY-MM-DD_HH-mm>.md` containing the local variances, live source URL/access time, risk assessment, and next actions. If any supplier's active quote exceeds its historical settled rate, create one 30-minute event titled `Supplier Exception Follow-up` in the `OOMU Test` calendar on the next conflict-free weekday at 2:00 PM or later, and send one email to `recipient@example.com` with subject `OOMU Test — Supplier Exception` and the report attached or linked. These Calendar and send actions require explicit user approval. If approval is pending, preserve the run and resume from that exact step after approval. Never create duplicate events, messages, reports, or deliveries when retrying or recovering. Finally, deliver the run result and exact report filename to the configured private channel.";
+const LAB_AUDIT_PROMPT: &str = "Create a recurring daily scheduled workflow named \"Lab Inventory & Maintenance Audit\" that runs every morning at 8:00 AM. It should inspect Maintenance_Tickets.csv and Lab_Inventory.csv in \"/Users/jeffreyallan/Documents/OOMU/Projects/mock_data\", flag open critical tickets or depleted inventory, and generate a daily operational digest.";
+
+#[test]
+fn quoted_folder_and_plain_file_names_bind_two_exact_project_inputs() {
+    assert_eq!(
+        registered_task_capabilities::requested_local_input_paths(LAB_AUDIT_PROMPT),
+        vec![
+            "/Users/jeffreyallan/Documents/OOMU/Projects/mock_data/Maintenance_Tickets.csv",
+            "/Users/jeffreyallan/Documents/OOMU/Projects/mock_data/Lab_Inventory.csv",
+        ]
+    );
+
+    let complete: WorkflowIr = serde_json::from_value(json!({
+        "schemaVersion":"1.0.0","workflowId":"lab-audit","workflowVersion":1,
+        "name":"Lab Inventory & Maintenance Audit","description":"Daily operational digest.",
+        "compiler":{"model":"gemma-4-e2b-qat"},
+        "nodes":[
+            {"kind":"input","id":"input","label":"Run input","outputKey":"workflow.input","inputSchema":{"type":"object"}},
+            {"kind":"mcp_tool","id":"read-tickets","label":"Read maintenance tickets","serverName":"oomu_task_tools","toolName":"read_project_file","arguments":{"path":"/Users/jeffreyallan/Documents/OOMU/Projects/mock_data/Maintenance_Tickets.csv"}},
+            {"kind":"mcp_tool","id":"read-inventory","label":"Read lab inventory","serverName":"oomu_task_tools","toolName":"read_project_file","arguments":{"path":"/Users/jeffreyallan/Documents/OOMU/Projects/mock_data/Lab_Inventory.csv"}},
+            {"kind":"agent","id":"digest","label":"Prepare digest","objective":"Flag critical tickets and depleted inventory.","inputMappings":{"tickets":"{{nodes.read-tickets.output.data.content}}","inventory":"{{nodes.read-inventory.output.data.content}}"},"outputKey":"nodes.digest.output"},
+            {"kind":"output","id":"output","label":"Daily operational digest","inputMapping":"{{nodes.digest.output}}","outputSchema":{"type":"object"}}
+        ],
+        "edges":[
+            {"id":"e1","sourceNodeId":"input","sourcePort":"out","targetNodeId":"read-tickets"},
+            {"id":"e2","sourceNodeId":"read-tickets","sourcePort":"out","targetNodeId":"read-inventory"},
+            {"id":"e3","sourceNodeId":"read-inventory","sourcePort":"out","targetNodeId":"digest"},
+            {"id":"e4","sourceNodeId":"digest","sourcePort":"out","targetNodeId":"output"}
+        ]
+    }))
+    .expect("valid lab audit workflow");
+    registered_task_capabilities::validate_objective_bindings(LAB_AUDIT_PROMPT, &complete)
+        .expect("both exact Project inputs are bound");
+
+    let mut incomplete = complete;
+    incomplete
+        .nodes
+        .retain(|node| node.id() != "read-inventory");
+    let error =
+        registered_task_capabilities::validate_objective_bindings(LAB_AUDIT_PROMPT, &incomplete)
+            .expect_err("omitting either exact input must fail composition validation");
+    assert_eq!(error.code, "workflow_objective_capability_mismatch");
+}
 
 #[test]
 fn consolidated_scenario_five_catalog_and_topology_bind_real_verified_capabilities() {

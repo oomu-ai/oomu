@@ -49,8 +49,8 @@ const MAX_LIVE_KNOWLEDGE_BYTES: u64 = 80 * 1024 * 1024;
 const KNOWLEDGE_GRANT_TTL_MS: i64 = 5 * 60 * 1_000;
 const PRIVATE_KNOWLEDGE_VAULT_ID: &str = "private://knowledge";
 pub(crate) const KNOWLEDGE_SUPPORTED_FORMATS: &[&str] = &[
-    "csv", "css", "html", "js", "json", "jsx", "md", "pdf", "rs", "rst", "sql", "toml", "ts",
-    "tsx", "txt", "xlsx", "xml", "yaml", "yml",
+    "csv", "css", "docx", "html", "js", "json", "jsx", "md", "pdf", "rs", "rst", "sql", "toml",
+    "ts", "tsx", "txt", "xlsx", "xml", "yaml", "yml",
 ];
 #[derive(Clone)]
 pub struct KnowledgeStore {

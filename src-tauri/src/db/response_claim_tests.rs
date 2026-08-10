@@ -440,6 +440,63 @@ fn native_dynamic_turn_claim_atomically_binds_concrete_route_and_rejects_token_r
 }
 
 #[test]
+fn released_dynamic_turn_claim_can_bind_a_new_concrete_route_before_dispatch() {
+    let temp_dir =
+        std::env::temp_dir().join(format!("oomu_dynamic_turn_retry_route_{}", unix_time_ms()));
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    let engine = PersistenceEngine::initialize_at(temp_dir.join("state.sqlite")).unwrap();
+    let session = engine
+        .ensure_chat_session(CreateChatSessionRequest {
+            agent_id: "agent-dynamic-retry-route".to_string(),
+            provider_id: "dynamic".to_string(),
+            model_id: "dynamic".to_string(),
+            title: Some("Dynamic retry route".to_string()),
+            dynamic_routing_override: Some(true),
+            workspace_id: None,
+        })
+        .unwrap();
+    let prebound = ChatTurnPersistenceContext {
+        turn_id: "turn-dynamic-retry-route".to_string(),
+        generation_token: "generation-dynamic-retry-route".to_string(),
+        session_id: session.id,
+        agent_id: session.agent_id,
+        provider_id: "dynamic".to_string(),
+        model_id: "dynamic".to_string(),
+        parent_turn_id: None,
+        root_turn_id: "turn-dynamic-retry-route".to_string(),
+        turn_kind: "root".to_string(),
+    };
+    engine
+        .ensure_chat_turn_for_native_action(&prebound)
+        .unwrap();
+
+    let mut first_route = prebound.clone();
+    first_route.provider_id = "first-cloud-provider".to_string();
+    first_route.model_id = "first-cloud-model".to_string();
+    engine
+        .begin_or_claim_chat_turn_response(&first_route)
+        .unwrap();
+    assert!(engine
+        .release_chat_turn_response_claim(&first_route)
+        .unwrap());
+
+    let mut retry_route = prebound.clone();
+    retry_route.provider_id = "second-cloud-provider".to_string();
+    retry_route.model_id = "second-cloud-model".to_string();
+    engine
+        .begin_or_claim_chat_turn_response(&retry_route)
+        .unwrap();
+    let stored = engine
+        .select_chat_turn_context(&retry_route.turn_id)
+        .unwrap()
+        .unwrap();
+    assert_eq!(stored.provider_id, retry_route.provider_id);
+    assert_eq!(stored.model_id, retry_route.model_id);
+
+    let _ = std::fs::remove_dir_all(temp_dir);
+}
+
+#[test]
 fn static_session_without_auto_route_rejects_dynamic_rebinding_as_mismatch() {
     let temp_dir = std::env::temp_dir().join(format!("oomu_static_turn_claim_{}", unix_time_ms()));
     std::fs::create_dir_all(&temp_dir).unwrap();

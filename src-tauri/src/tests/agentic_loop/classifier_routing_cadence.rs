@@ -292,6 +292,22 @@ async fn recurring_timeframes_share_one_typed_schedule_contract() {
 }
 
 #[tokio::test]
+async fn explicit_morning_time_overrides_the_named_daypart_default() {
+    let decision = classify_schedule(
+        "Create a recurring daily scheduled workflow named Lab Inventory & Maintenance Audit that runs every morning at 8:00 AM.",
+    )
+    .await;
+
+    assert_eq!(decision.decision_source, "routine_scheduler_filter");
+    assert!(decision
+        .matched_signals
+        .contains(&"routine schedule seed: daily at 08:00".to_string()));
+    assert!(!decision
+        .matched_signals
+        .contains(&"routine timing defaulted".to_string()));
+}
+
+#[tokio::test]
 async fn unsupported_cadences_open_truthful_clarification_review() {
     for &(prompt, seed, reason) in UNSUPPORTED_CASES {
         let decision = classify_schedule(prompt).await;

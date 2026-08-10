@@ -672,6 +672,13 @@ describe("ChatScreen atomic execution boundary contracts", () => {
     ]);
   });
 
+  it("keeps a named two-file daily workflow out of the direct attachment shortcut", () => {
+    const prompt =
+      'Create a recurring daily scheduled workflow named "Lab Inventory & Maintenance Audit" that runs every morning at 8:00 AM. It should inspect Maintenance_Tickets.csv and Lab_Inventory.csv in "/Users/jeffreyallan/Documents/OOMU/Projects/mock_data", flag open critical tickets or depleted inventory, and generate a daily operational digest.';
+
+    expect(detectDirectLocalCommand(prompt)).toBeNull();
+  });
+
   it("never turns the Scenario 6 recovery workflow into a direct write", () => {
     const prompt = String.raw`Read /Users/example/Library/Mobile\ Documents/com\~apple\~CloudDocs/OOMU Test Data/mock_data/supplier_proposals.json. Retrieve one current primary or official public source relevant to US freight or fuel conditions. Create ship_test_06/supplier_exception_<YYYY-MM-DD_HH-mm>.md containing the local variances, live source URL/access time, risk assessment, and next actions. If any supplier's active quote exceeds its historical settled rate, create one 30-minute event titled Supplier Exception Follow-up in the OOMU Test calendar on the next conflict-free weekday at 2:00 PM or later, and send one email to recipient@example.com with subject OOMU Test — Supplier Exception and the report attached or linked. These Calendar and send actions require explicit user approval. If approval is pending, preserve the run and resume from that exact step after approval. Never create duplicate events, messages, reports, or deliveries when retrying or recovering. Finally, deliver the run result and exact report filename to the configured private channel.`;
 

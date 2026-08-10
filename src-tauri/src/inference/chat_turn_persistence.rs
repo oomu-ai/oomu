@@ -409,9 +409,13 @@ mod tests {
             .unwrap();
         assert_eq!(first_state, ("running".to_string(), None));
 
-        engine.begin_or_claim_chat_turn_response(&claimed).unwrap();
-        let mut second_attempt =
-            ChatTurnPersistenceGuard::new(engine.clone(), claimed.clone(), true);
+        let mut retry_route = claimed.clone();
+        retry_route.provider_id = "second-cloud-provider".to_string();
+        retry_route.model_id = "second-cloud-model".to_string();
+        engine
+            .begin_or_claim_chat_turn_response(&retry_route)
+            .unwrap();
+        let mut second_attempt = ChatTurnPersistenceGuard::new(engine.clone(), retry_route, true);
         second_attempt
             .finish_inference_error(&consent_error)
             .unwrap();

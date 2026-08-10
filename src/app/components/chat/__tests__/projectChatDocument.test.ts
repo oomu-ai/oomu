@@ -55,6 +55,22 @@ describe("Project chat document composition", () => {
       .toMatchObject({ decision_source: "native_artifact_creation_filter" });
   });
 
+  it("routes a PDF-only Project deliverable through native artifact creation", () => {
+    const projectId = "project_11111111-1111-4111-8111-111111111111";
+    const message = "Using only the files in this Project, summarize the outcomes and create a PDF document.";
+    const decision = projectDocumentRouteDecision(message, projectId, "Thinking…");
+    expect(decision).toMatchObject({ decision_source: "native_artifact_creation_filter" });
+    const request = projectChatDocumentRequest(message, decision!, projectId);
+    expect(request?.modelMessage).toContain("summarize the outcomes");
+    expect(request?.modelMessage).not.toContain("create a PDF document");
+  });
+
+  it("does not treat a Project PDF source reference as an output request", () => {
+    expect(projectDocumentOutputRequested("Read Funder_Questions.pdf and summarize it.", "project-1")).toBe(false);
+  });
+});
+
+describe("Project chat document execution", () => {
   it("creates one reusable assistant-side progress message for the Project turn", () => {
     const createId = () => 42;
     const id = projectDocumentPendingAssistantId(

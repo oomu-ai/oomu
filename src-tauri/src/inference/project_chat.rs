@@ -93,8 +93,8 @@ pub(super) fn approved_folder_context(
     max_context_bytes: usize,
 ) -> Result<String, super::InferenceError> {
     let roots = if composition_required {
-        crate::projects::path_scope::active_project_knowledge_roots(persistence, project_id)
-            .map_err(|message| composition_error("project_knowledge_unavailable", message))?
+        crate::projects::path_scope::active_project_evidence_roots(persistence, project_id)
+            .map_err(|message| composition_error("project_evidence_unavailable", message))?
     } else {
         vec![
             crate::projects::path_scope::single_active_project_root(persistence, project_id)
@@ -573,11 +573,13 @@ fn read_source(path: &Path) -> Result<Option<(String, bool)>, super::InferenceEr
     if bytes.len() as u64 > MAX_SOURCE_BYTES {
         return Ok(None);
     }
-    let workbook = path
+    let structured_document = path
         .extension()
         .and_then(|value| value.to_str())
-        .is_some_and(|value| value.eq_ignore_ascii_case("xlsx"));
-    if !workbook && bytes.iter().any(|byte| *byte == 0) {
+        .is_some_and(|value| {
+            value.eq_ignore_ascii_case("docx") || value.eq_ignore_ascii_case("xlsx")
+        });
+    if !structured_document && bytes.iter().any(|byte| *byte == 0) {
         return Ok(None);
     }
     let text = crate::knowledge::extract_supported_file_text(path, &bytes).map_err(|_| {
@@ -727,6 +729,45 @@ mod tests {
         assert!(context.contains("funder_questions.txt"));
         assert!(context.contains("nested/outcomes.md"));
         assert!(!context.contains("ignored.bin"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn approved_project_folder_context_extracts_named_xlsx_and_docx_evidence() {
+        let root = fixture_root();
+        let workbook = std::collections::BTreeMap::from([
+            ("[Content_Types].xml".to_string(), b"<Types/>".to_vec()),
+            ("xl/workbook.xml".to_string(), br#"<workbook><sheets><sheet name="Outcomes" r:id="rId1"/></sheets></workbook>"#.to_vec()),
+            ("xl/_rels/workbook.xml.rels".to_string(), br#"<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>"#.to_vec()),
+            ("xl/worksheets/sheet1.xml".to_string(), br#"<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Participants served</t></is></c><c r="B1"><v>24</v></c></row></sheetData></worksheet>"#.to_vec()),
+        ]);
+        fs::write(
+            root.join("Cohort_Outcomes.xlsx"),
+            crate::foundation::office_zip::write_store_zip(&workbook).unwrap(),
+        )
+        .unwrap();
+        let document = std::collections::BTreeMap::from([
+            ("[Content_Types].xml".to_string(), b"<Types/>".to_vec()),
+            ("word/document.xml".to_string(), br#"<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>Program quality improved.</w:t></w:r></w:p></w:body></w:document>"#.to_vec()),
+        ]);
+        fs::write(
+            root.join("Program_Notes.docx"),
+            crate::foundation::office_zip::write_store_zip(&document).unwrap(),
+        )
+        .unwrap();
+
+        let context = folder_context_from_root(
+            &root,
+            "Use Cohort_Outcomes.xlsx and Program_Notes.docx for the report.",
+            MAX_CONTEXT_BYTES,
+        )
+        .unwrap();
+
+        assert!(context.contains("Cohort_Outcomes.xlsx"));
+        assert!(context.contains("A1=Participants served"));
+        assert!(context.contains("B1=24"));
+        assert!(context.contains("Program_Notes.docx"));
+        assert!(context.contains("Program quality improved."));
         fs::remove_dir_all(root).unwrap();
     }
 

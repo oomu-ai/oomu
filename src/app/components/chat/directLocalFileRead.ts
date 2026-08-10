@@ -7,6 +7,7 @@ import {
   candidateLocalPathsFromText,
   localPathReferenceIndex,
   localPathReferenceVariants,
+  parseLocalPathReferences,
   unescapeShellPath,
 } from "./localPathIntent";
 
@@ -17,10 +18,10 @@ const indirectPathReferencePattern =
   /\breview\b.{0,32}\b(?:whether|sentence|wording|path)\b|\b(?:sentence|error|message|log)\b.{0,64}\b(?:mentions?|contains?|references?)\b|\b(?:only|just)\s+(?:an?\s+)?example\b|\b(?:example|literal)\s+path\b|\b(?:ask|have|tell)\s+(?!me\b|us\b|oomu\b)(?:the\s+)?[A-Za-z][\w'-]*\s+to\b/i;
 const additionalMutationPattern =
   /\b(?:save|move|rename|copy|archive|upload|send|share|export|import|attach|post|email|transmit|run|execute|print|publish)\b/i;
-const compoundFileOutcomePattern =
-  /\b(?:compare|synthesize|prepare|recommend|produce|draft|create|plan|evaluate)\b/gi;
-const negatedActionPrefixPattern =
-  /\b(?:do\s+not|don't|dont|never|without|avoid|avoiding)\s+(?:[a-z'-]+\s+){0,4}$/i;
+const generatedArtifactPattern =
+  /\b(?:generate|produce|prepare|draft)\b[\s\S]{0,120}\b(?:file|document|report|pdf|docx|xlsx|pptx|spreadsheet|presentation|deck|workbook)\b/i;
+const negatedFileAccessPattern =
+  /\b(?:do\s+not|don't|dont|never|without)\s+(?:open|read|inspect|view|access)\b/i;
 const unquotedFileNamePattern = /(?:^|[\s([{,:;])([A-Za-z0-9][A-Za-z0-9_.-]{0,179}\.(?:avif|bmp|c|cc|cpp|css|csv|doc|docx|gif|go|heic|heif|htm|html|jpeg|jpg|js|json|jsx|log|md|markdown|mjs|mov|mp3|mp4|numbers|pages|parquet|pdf|png|ppt|pptx|py|rs|rtf|svg|swift|toml|ts|tsv|tsx|txt|webp|xls|xlsx|xml|yaml|yml))(?=$|[\s,;:!?\])}])/gi;
 const quotedFileNamePattern = /["'`]([^/\\\n"'`]{1,180}\.(?:avif|bmp|c|cc|cpp|css|csv|doc|docx|gif|go|heic|heif|htm|html|jpeg|jpg|js|json|jsx|log|md|markdown|mjs|mov|mp3|mp4|numbers|pages|parquet|pdf|png|ppt|pptx|py|rs|rtf|svg|swift|toml|ts|tsv|tsx|txt|webp|xls|xlsx|xml|yaml|yml))["'`]/gi;
 
@@ -61,7 +62,12 @@ function explicitHostLocalPaths(text: string, candidates: string[]) {
     );
 }
 
-function directLocalFileReadPaths(text: string, candidates: string[]) {
+export function directLocalFileReadPaths(text: string, candidates: string[]) {
+  const parsedExplicitPaths = explicitHostLocalPaths(
+    text,
+    parseLocalPathReferences(text).map((reference) => reference.normalizedText),
+  );
+  if (parsedExplicitPaths.length > ATTACHMENT_LIMITS.maxCount) return null;
   const specificCandidates = candidates.filter((path) => !inferredStandardUserFolders.has(path));
   const explicitPaths = explicitHostLocalPaths(text, specificCandidates);
   if (explicitPaths.length === 0) return null;
@@ -73,7 +79,8 @@ function directLocalFileReadPaths(text: string, candidates: string[]) {
   if (
     hasMutatingLocalIntent(intentText) ||
     additionalMutationPattern.test(intentText) ||
-    hasPositiveCompoundFileOutcome(intentText) ||
+    generatedArtifactPattern.test(intentText) ||
+    negatedFileAccessPattern.test(intentText) ||
     indirectPathReferencePattern.test(intentText)
   ) return null;
   // A user may naturally name a file and its folder separately. Resolve that
@@ -83,8 +90,10 @@ function directLocalFileReadPaths(text: string, candidates: string[]) {
   const fileNames = standaloneFileNames(text).filter(
     (fileName) => !explicitPaths[0].endsWith(`/${fileName}`),
   );
-  if (fileNames.length !== 1) return explicitPaths;
-  return [`${explicitPaths[0].replace(/\/+$/g, "")}/${fileNames[0]}`];
+  if (fileNames.length === 0) return explicitPaths;
+  const root = explicitPaths[0].replace(/\/+$/g, "");
+  const resolvedPaths = fileNames.map((fileName) => `${root}/${fileName}`);
+  return resolvedPaths.length <= ATTACHMENT_LIMITS.maxCount ? resolvedPaths : null;
 }
 
 function standaloneFileNames(text: string) {
@@ -97,23 +106,16 @@ function standaloneFileNames(text: string) {
   );
 }
 
-function hasPositiveCompoundFileOutcome(text: string) {
-  for (const match of text.matchAll(compoundFileOutcomePattern)) {
-    const actionIndex = match.index ?? 0;
-    const clausePrefix = text
-      .slice(0, actionIndex)
-      .split(/[.!?;\n]/)
-      .at(-1) ?? "";
-    if (!negatedActionPrefixPattern.test(clausePrefix)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export function directLocalFileReadPath(text: string, candidates: string[]) {
   const paths = directLocalFileReadPaths(text, candidates);
   return paths?.length === 1 ? paths[0] : null;
+}
+
+export function approvedLocalFilesPrompt(message: string, paths: string[]) {
+  return paths.reduce(
+    (sanitized, path) => approvedLocalFilePrompt(sanitized, path),
+    message,
+  );
 }
 
 export function approvedLocalFilePrompt(message: string, path: string) {
@@ -148,6 +150,22 @@ export function approvedLocalFileContextReady(
     attachment.approved_file_receipt?.signature.signature ===
       approvedAttachment.approved_file_receipt?.signature.signature
   );
+}
+
+export function approvedLocalFilesContextReady(
+  approvedAttachments: ChatAttachment[],
+  attachments: ChatAttachment[],
+) {
+  if (approvedAttachments.length === 0) return false;
+  const unmatched = [...attachments];
+  return approvedAttachments.every((approvedAttachment) => {
+    const matchIndex = unmatched.findIndex((attachment) =>
+      approvedLocalFileContextReady(approvedAttachment, [attachment])
+    );
+    if (matchIndex < 0) return false;
+    unmatched.splice(matchIndex, 1);
+    return true;
+  });
 }
 
 export function verifiedDirectFileReadRouteDecision(statusLabel: string) {
@@ -215,4 +233,48 @@ export async function approvedLocalFileAttachment(
     byte_count: response.byteCount,
     approved_file_receipt: response.receipt,
   };
+}
+
+export async function approvedLocalFileAttachments(
+  paths: string[],
+  displayMessage: string,
+  turn: ChatTurnContext,
+  existingAttachments: ChatAttachment[],
+): Promise<ChatAttachment[]> {
+  const uniquePaths = [...new Set(paths)];
+  if (
+    uniquePaths.length === 0 ||
+    existingAttachments.length + uniquePaths.length > ATTACHMENT_LIMITS.maxCount
+  ) {
+    throw { code: "approved_file_attachment_limit" };
+  }
+
+  let decodedBytes = existingAttachments.reduce((total, attachment) => {
+    if (!Number.isSafeInteger(attachment.byte_count) || attachment.byte_count < 0) {
+      throw { code: "approved_file_unavailable" };
+    }
+    return total + attachment.byte_count;
+  }, 0);
+  if (decodedBytes > ATTACHMENT_LIMITS.maxDecodedBytes) {
+    throw { code: "approved_file_unavailable" };
+  }
+
+  const prepared: ChatAttachment[] = [];
+  for (const path of uniquePaths) {
+    const attachment = await approvedLocalFileAttachment(
+      path,
+      displayMessage,
+      turn,
+      existingAttachments.length + prepared.length,
+    );
+    if (
+      attachment.byte_count > ATTACHMENT_LIMITS.maxFileBytes ||
+      decodedBytes + attachment.byte_count > ATTACHMENT_LIMITS.maxDecodedBytes
+    ) {
+      throw { code: "approved_file_unavailable" };
+    }
+    decodedBytes += attachment.byte_count;
+    prepared.push(attachment);
+  }
+  return prepared;
 }

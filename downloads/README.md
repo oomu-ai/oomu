@@ -6,6 +6,8 @@
 
 The application is signed by Eldris, Inc. and notarized by Apple. Open the disk image, then drag OOMU into the Applications folder.
 
+This installer includes the latest 0.1.10 Project file, Auto-route, scheduled workflow, and document-generation fixes.
+
 The release page shows GitHub's SHA-256 digest for the exact installer bytes.
 
 [Release notes and earlier downloads](https://github.com/oomu-ai/oomu/releases)

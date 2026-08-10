@@ -15,6 +15,32 @@ pub async fn mcp_execute_tool(
     let turn_context = turn_context.map(ChatTurnPersistenceContext::from);
     let persistence = persistence.inner().clone();
     let guard = || validate_mcp_chat_turn(&persistence, turn_context.as_ref());
+    if let Some(project_id) = conversational_project_file_read_project_id(
+        &persistence,
+        turn_context.as_ref(),
+        &server_name,
+        &tool_name,
+    )? {
+        validate_tool_arguments(&arguments).map_err(|error| error.message)?;
+        let path = conversational_project_file_read_path(&arguments)?;
+        guard().map_err(|error| error.message)?;
+        let receipt = native_apple_receipts::spec_for(&server_name, &tool_name, &arguments);
+        let execution_persistence = persistence.clone();
+        return native_apple_receipts::execute(
+            receipt,
+            turn_context.as_ref(),
+            &persistence,
+            false,
+            async move {
+                conversational_project_file_read(
+                    &execution_persistence,
+                    &project_id,
+                    &path,
+                )
+            },
+        )
+        .await;
+    }
     if let Some(result) = native_public_search_execution::execute_if_supported(
         &server_name,
         &tool_name,
@@ -148,6 +174,80 @@ pub async fn mcp_execute_tool(
         },
     )
     .await
+}
+
+fn is_project_file_read_tool(server_name: &str, tool_name: &str) -> bool {
+    server_name.trim().eq_ignore_ascii_case("local_filesystem")
+        && tool_name.trim().eq_ignore_ascii_case("read_file")
+}
+
+pub(super) fn conversational_project_file_read_project_id(
+    persistence: &PersistenceEngine,
+    turn_context: Option<&ChatTurnPersistenceContext>,
+    server_name: &str,
+    tool_name: &str,
+) -> Result<Option<String>, String> {
+    if !is_project_file_read_tool(server_name, tool_name) {
+        return Ok(None);
+    }
+    let Some(turn) = turn_context else {
+        return Ok(None);
+    };
+    Ok(persistence
+        .project_inference_context_for_session(&turn.session_id)?
+        .map(|project| project.project_id))
+}
+
+pub(super) fn conversational_project_file_read_path(arguments: &Value) -> Result<String, String> {
+    let object = arguments
+        .as_object()
+        .filter(|object| object.len() == 1 && object.contains_key("path"))
+        .ok_or_else(|| "read_file accepts only one path.".to_string())?;
+    object
+        .get("path")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+        .map(str::to_string)
+        .ok_or_else(|| "read_file requires a path.".to_string())
+}
+
+pub(super) fn conversational_project_file_read(
+    persistence: &PersistenceEngine,
+    project_id: &str,
+    path: &str,
+) -> Result<McpToolCallResult, String> {
+    let receipt = crate::tools::project_file::read_project_file(
+        persistence,
+        project_id,
+        path,
+        8 * 1024 * 1024,
+    )?;
+    let canonical_path = receipt.canonical_path;
+    let relative_path = crate::tools::project_file::relative_path_in_active_project(
+        persistence,
+        project_id,
+        &canonical_path,
+    )?;
+    let content = receipt.content;
+    Ok(McpToolCallResult {
+        content: vec![serde_json::json!({
+            "type": "text",
+            "text": content,
+        })],
+        structured_content: Some(serde_json::json!({
+            "code": "project_file_read_ok",
+            "path": relative_path,
+            "relativePath": relative_path,
+            "content": content,
+            "byteCount": receipt.byte_count,
+            "contentSha256": receipt.content_sha256,
+            "verified": receipt.verified,
+        })),
+        is_error: false,
+        meta: None,
+        raw: None,
+    })
 }
 
 fn validate_reusable_approval_scope(

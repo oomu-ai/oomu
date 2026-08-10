@@ -182,6 +182,178 @@ fn mail_read_prompt_is_loaded_from_the_exact_durable_turn() {
     let _ = std::fs::remove_dir_all(temp_dir);
 }
 
+#[tokio::test]
+async fn conversational_project_reader_uses_only_the_attached_project_root() {
+    let root = std::env::temp_dir().join(format!(
+        "oomu-conversational-project-read-{}",
+        unix_time_ms_u64()
+    ));
+    let approved_root = root.join("approved-project");
+    let outside_root = root.join("outside-project");
+    std::fs::create_dir_all(&approved_root).unwrap();
+    std::fs::create_dir_all(&outside_root).unwrap();
+    let approved_root = std::fs::canonicalize(approved_root).unwrap();
+    let fixture = approved_root.join("Lab_Inventory.csv");
+    std::fs::write(&fixture, "item,stock\nPipette tips,2\nGloves,24\n").unwrap();
+    let outside = outside_root.join("private.csv");
+    std::fs::write(&outside, "private\n").unwrap();
+    let persistence = PersistenceEngine::initialize_at(root.join("state.sqlite")).unwrap();
+    let project = crate::projects::repository::create(
+        &persistence,
+        crate::projects::CreateProjectRequest {
+            name: "CSV review".to_string(),
+            description: String::new(),
+            data_policy: crate::projects::ProjectDataPolicy::LocalOnly,
+        },
+    )
+    .unwrap();
+    let session = persistence
+        .ensure_chat_session(crate::db::CreateChatSessionRequest {
+            agent_id: "project-reader-agent".to_string(),
+            provider_id: "local_model".to_string(),
+            model_id: "project-reader-model".to_string(),
+            title: Some("Project CSV read".to_string()),
+            dynamic_routing_override: None,
+            workspace_id: None,
+        })
+        .unwrap();
+    crate::projects::repository::bind_record(
+        &persistence,
+        crate::projects::BindProjectRecordRequest {
+            project_id: Some(project.project_id.clone()),
+            record_kind: "chat_session".to_string(),
+            record_id: session.id.clone(),
+        },
+    )
+    .unwrap();
+    persistence
+        .open_connection()
+        .unwrap()
+        .execute(
+            "INSERT INTO project_sources(source_id,project_id,source_kind,canonical_path,grant_reference,grant_state,created_at_ms,updated_at_ms) VALUES ('conversation-source',?1,'local_folder',?2,?3,'active',1,1)",
+            rusqlite::params![
+                project.project_id,
+                approved_root.to_string_lossy(),
+                "a".repeat(64)
+            ],
+        )
+        .unwrap();
+    let accepted = crate::db::AcceptChatTurnRequest {
+        turn_id: "project-reader-turn".to_string(),
+        generation_token: "project-reader-generation".to_string(),
+        session_id: session.id,
+        agent_id: session.agent_id,
+        provider_id: session.provider_id,
+        model_id: session.model_id,
+        parent_turn_id: None,
+        root_turn_id: "project-reader-turn".to_string(),
+        turn_kind: "root".to_string(),
+        message: "Read Lab_Inventory.csv from this Project.".to_string(),
+    };
+    persistence.accept_chat_turn(accepted.clone()).unwrap();
+    let context = accepted.persistence_context();
+
+    assert_eq!(
+        apple_command_execution::conversational_project_file_read_project_id(
+            &persistence,
+            Some(&context),
+            "local_filesystem",
+            "read_file",
+        )
+        .unwrap()
+        .as_deref(),
+        Some(project.project_id.as_str())
+    );
+    let arguments = serde_json::json!({"path": fixture.to_string_lossy()});
+    let result = native_apple_receipts::execute(
+        native_apple_receipts::spec_for("local_filesystem", "read_file", &arguments),
+        Some(&context),
+        &persistence,
+        false,
+        async {
+            apple_command_execution::conversational_project_file_read(
+                &persistence,
+                &project.project_id,
+                fixture.to_string_lossy().as_ref(),
+            )
+        },
+    )
+    .await
+    .unwrap();
+    let native_receipt = &result.meta.as_ref().unwrap()["oomuNativeExecutionReceipt"];
+    assert_eq!(native_receipt["outcome"], "succeeded");
+    assert_eq!(native_receipt["verified"], true);
+    let structured = result.structured_content.unwrap();
+    assert_eq!(structured["code"], "project_file_read_ok");
+    assert_eq!(structured["verified"], true);
+    assert_eq!(structured["path"], "Lab_Inventory.csv");
+    assert_eq!(structured["relativePath"], "Lab_Inventory.csv");
+    assert!(!structured
+        .to_string()
+        .contains(approved_root.to_string_lossy().as_ref()));
+    assert_eq!(
+        structured["content"],
+        "item,stock\nPipette tips,2\nGloves,24\n"
+    );
+    assert!(apple_command_execution::conversational_project_file_read(
+        &persistence,
+        &project.project_id,
+        outside.to_string_lossy().as_ref(),
+    )
+    .is_err());
+    assert!(
+        apple_command_execution::conversational_project_file_read_path(
+            &serde_json::json!({"path": "Lab_Inventory.csv", "unexpected": true}),
+        )
+        .is_err()
+    );
+
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn conversational_project_reader_does_not_claim_global_chats() {
+    let root = std::env::temp_dir().join(format!(
+        "oomu-global-conversational-file-read-{}",
+        unix_time_ms_u64()
+    ));
+    std::fs::create_dir_all(&root).unwrap();
+    let persistence = PersistenceEngine::initialize_at(root.join("state.sqlite")).unwrap();
+    let session = persistence
+        .ensure_chat_session(crate::db::CreateChatSessionRequest {
+            agent_id: "global-reader-agent".to_string(),
+            provider_id: "local_model".to_string(),
+            model_id: "global-reader-model".to_string(),
+            title: Some("Global CSV read".to_string()),
+            dynamic_routing_override: None,
+            workspace_id: None,
+        })
+        .unwrap();
+    let context = ChatTurnPersistenceContext {
+        turn_id: "global-reader-turn".to_string(),
+        generation_token: "global-reader-generation".to_string(),
+        session_id: session.id,
+        agent_id: session.agent_id,
+        provider_id: session.provider_id,
+        model_id: session.model_id,
+        parent_turn_id: None,
+        root_turn_id: "global-reader-turn".to_string(),
+        turn_kind: "root".to_string(),
+    };
+
+    assert!(
+        apple_command_execution::conversational_project_file_read_project_id(
+            &persistence,
+            Some(&context),
+            "local_filesystem",
+            "read_file",
+        )
+        .unwrap()
+        .is_none()
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
 #[test]
 fn rejects_malformed_json_rpc_error_objects() {
     let application_error = parse_json_rpc_message(

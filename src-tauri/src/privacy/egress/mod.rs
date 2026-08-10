@@ -65,6 +65,14 @@ pub trait PrivateEgressStore {
         challenge: &PrivateEgressChallengePayload,
         consumed_at_ms: i64,
     ) -> Result<bool, String>;
+
+    fn has_consumed_private_egress_turn_approval(
+        &self,
+        _binding: &PrivateEgressChallengeBinding,
+        _now_ms: i64,
+    ) -> Result<bool, String> {
+        Ok(false)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -307,37 +315,46 @@ pub fn prepare_cloud_egress<
         allowed_representation: material.representation.clone(),
         representation_digest: material.representation_digest.clone(),
     };
-    let challenge = match persistence
+    let challenge = persistence
         .find_private_egress_challenge(&binding)
-        .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?
-    {
-        Some(challenge) => challenge,
-        None => {
-            let challenge = PrivateEgressChallengePayload {
-                challenge_id: format!("egress_confirm_{}", random_token()),
-                binding,
-                source_names: original_material.source_names.clone(),
-                expires_at_ms: now.saturating_add(RECEIPT_TTL_MS),
-                created_at_ms: now,
-            };
-            persistence
-                .store_private_egress_challenge(&challenge)
-                .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?;
-            return Err(confirmation_error("private_egress_confirmation_required"));
+        .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?;
+    let mut consume_exact_challenge = false;
+    let turn_approval_reused = match challenge.as_ref() {
+        Some(challenge) => {
+            if now > challenge.payload.expires_at_ms {
+                return Err(confirmation_error("private_egress_confirmation_expired"));
+            }
+            match challenge.decision.as_str() {
+                "approved" => {
+                    consume_exact_challenge = true;
+                    false
+                }
+                "consumed" => true,
+                "denied" => {
+                    return Err(error(
+                        "private_egress_user_denied",
+                        "Your private information stayed on this Mac.",
+                    ));
+                }
+                _ => return Err(confirmation_error("private_egress_confirmation_required")),
+            }
         }
+        None => persistence
+            .has_consumed_private_egress_turn_approval(&binding, now)
+            .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?,
     };
-    if now > challenge.payload.expires_at_ms {
-        return Err(confirmation_error("private_egress_confirmation_expired"));
-    }
-    match challenge.decision.as_str() {
-        "approved" => {}
-        "denied" => {
-            return Err(error(
-                "private_egress_user_denied",
-                "Your private information stayed on this Mac.",
-            ));
-        }
-        _ => return Err(confirmation_error("private_egress_confirmation_required")),
+    if challenge.is_none() && !turn_approval_reused {
+        let challenge = PrivateEgressChallengePayload {
+            challenge_id: format!("egress_confirm_{}", random_token()),
+            binding,
+            source_names: original_material.source_names.clone(),
+            expires_at_ms: now.saturating_add(RECEIPT_TTL_MS),
+            created_at_ms: now,
+        };
+        persistence
+            .store_private_egress_challenge(&challenge)
+            .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?;
+        return Err(confirmation_error("private_egress_confirmation_required"));
     }
     let nonce = random_token();
     let receipt_id = format!(
@@ -376,11 +393,16 @@ pub fn prepare_cloud_egress<
                 "OOMU could not secure this send approval. Nothing was sent.",
             )
         })?;
-    if !persistence
-        .consume_private_egress_challenge(&challenge.payload, now)
-        .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?
-    {
-        return Err(confirmation_error("private_egress_confirmation_invalid"));
+    if consume_exact_challenge {
+        let Some(challenge) = challenge.as_ref() else {
+            return Err(confirmation_error("private_egress_confirmation_invalid"));
+        };
+        if !persistence
+            .consume_private_egress_challenge(&challenge.payload, now)
+            .map_err(|_| confirmation_error("private_egress_confirmation_unavailable"))?
+        {
+            return Err(confirmation_error("private_egress_confirmation_invalid"));
+        }
     }
     Ok(Some(PrivateEgressPermit {
         session_id: payload.session_id.clone(),
@@ -1285,6 +1307,154 @@ mod tests {
                 .unwrap(),
             "consumed"
         );
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn one_reply_approval_covers_later_private_results_for_the_same_destination() {
+        let root = std::env::temp_dir().join(format!(
+            "oomu-private-egress-turn-approval-{}",
+            unix_time_ms_i64()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        let persistence = PersistenceEngine::initialize_at(root.join("state.sqlite")).unwrap();
+        let identity = SovereignIdentity::initialize_ephemeral();
+        let mut first_messages = vec![InferenceMessage {
+            role: "user".to_string(),
+            content: "compare".to_string(),
+            attachments: vec![attachment("connector_read_file.json", "Supplier proposal")],
+        }];
+
+        let first_error = match prepare_cloud_egress(
+            &mut first_messages,
+            "google-gemini",
+            "gemini-test",
+            "session-1",
+            "turn-1",
+            "generation-1",
+            &persistence,
+            &identity,
+        ) {
+            Ok(_) => panic!("private material must require approval before it leaves the Mac"),
+            Err(error) => error,
+        };
+        assert_eq!(first_error.code, "private_egress_confirmation_required");
+        persistence
+            .open_connection()
+            .unwrap()
+            .execute(
+                "UPDATE private_egress_confirmation_challenges
+                 SET decision='approved',decided_at_ms=?1",
+                params![unix_time_ms_i64()],
+            )
+            .unwrap();
+        let first_permit = prepare_cloud_egress(
+            &mut first_messages,
+            "google-gemini",
+            "gemini-test",
+            "session-1",
+            "turn-1",
+            "generation-1",
+            &persistence,
+            &identity,
+        )
+        .unwrap()
+        .unwrap();
+        first_permit
+            .validate_and_consume(
+                "google-gemini",
+                "gemini-test",
+                "session-1",
+                "turn-1",
+                &first_messages,
+                &persistence,
+                &identity,
+            )
+            .unwrap();
+
+        let mut later_messages = vec![InferenceMessage {
+            role: "user".to_string(),
+            content: "compare".to_string(),
+            attachments: vec![attachment(
+                "connector_read_file.json",
+                "Vendor requirements",
+            )],
+        }];
+        let later_permit = prepare_cloud_egress(
+            &mut later_messages,
+            "google-gemini",
+            "gemini-test",
+            "session-1",
+            "turn-1",
+            "generation-1",
+            &persistence,
+            &identity,
+        )
+        .expect("the consumed approval should cover the rest of this reply")
+        .unwrap();
+        later_permit
+            .validate_and_consume(
+                "google-gemini",
+                "gemini-test",
+                "session-1",
+                "turn-1",
+                &later_messages,
+                &persistence,
+                &identity,
+            )
+            .unwrap();
+
+        let connection = persistence.open_connection().unwrap();
+        let challenge_count: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM private_egress_confirmation_challenges",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let receipt_count: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM private_data_egress_receipts",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(challenge_count, 1);
+        assert_eq!(receipt_count, 2);
+        drop(connection);
+
+        let different_destination = match prepare_cloud_egress(
+            &mut later_messages,
+            "google-gemini",
+            "gemini-other",
+            "session-1",
+            "turn-1",
+            "generation-1",
+            &persistence,
+            &identity,
+        ) {
+            Ok(_) => panic!("approval must not carry to another destination model"),
+            Err(error) => error,
+        };
+        assert_eq!(
+            different_destination.code,
+            "private_egress_confirmation_required"
+        );
+
+        let next_reply = match prepare_cloud_egress(
+            &mut later_messages,
+            "google-gemini",
+            "gemini-test",
+            "session-1",
+            "turn-2",
+            "generation-2",
+            &persistence,
+            &identity,
+        ) {
+            Ok(_) => panic!("approval must not carry to another reply"),
+            Err(error) => error,
+        };
+        assert_eq!(next_reply.code, "private_egress_confirmation_required");
         let _ = std::fs::remove_dir_all(root);
     }
 }

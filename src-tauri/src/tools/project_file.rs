@@ -228,6 +228,33 @@ pub(crate) fn require_bound_path_in_active_project(
         })
 }
 
+pub(crate) fn relative_path_in_active_project(
+    persistence: &crate::db::PersistenceEngine,
+    project_id: &str,
+    canonical_path: &str,
+) -> Result<String, String> {
+    let target = Path::new(canonical_path);
+    let verified_target = fs::canonicalize(target).ok();
+    if !target.is_absolute() || verified_target.as_deref() != Some(target) {
+        return Err("The approved Project file identity could not be verified.".to_string());
+    }
+    active_project_roots(persistence, project_id)?
+        .into_iter()
+        .filter_map(|root| {
+            target.strip_prefix(root).ok().and_then(|relative| {
+                (!relative.as_os_str().is_empty()).then(|| relative.to_path_buf())
+            })
+        })
+        .min_by(|left, right| {
+            left.components()
+                .count()
+                .cmp(&right.components().count())
+                .then_with(|| left.cmp(right))
+        })
+        .map(|relative| relative.to_string_lossy().to_string())
+        .ok_or_else(|| "The file is not inside an active approved Project folder.".to_string())
+}
+
 fn active_project_roots(
     persistence: &crate::db::PersistenceEngine,
     project_id: &str,

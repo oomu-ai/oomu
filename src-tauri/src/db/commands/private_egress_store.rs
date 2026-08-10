@@ -267,6 +267,36 @@ pub fn consume_challenge(
         .map_err(|error| error.to_string())
 }
 
+pub fn has_consumed_turn_approval(
+    engine: &PersistenceEngine,
+    binding: &PrivateEgressChallengeBinding,
+    now_ms: i64,
+) -> Result<bool, String> {
+    engine
+        .open_connection()
+        .map_err(|error| error.to_string())?
+        .query_row(
+            "SELECT EXISTS(
+                SELECT 1 FROM private_egress_confirmation_challenges
+                WHERE session_id=?1 AND turn_id=?2 AND generation_token=?3
+                  AND destination_provider_id=?4 AND destination_model_id=?5
+                  AND allowed_representation=?6 AND decision='consumed'
+                  AND expires_at_ms>=?7
+             )",
+            params![
+                binding.session_id,
+                binding.turn_id,
+                binding.generation_token,
+                binding.destination_provider_id,
+                binding.destination_model_id,
+                binding.allowed_representation,
+                now_ms,
+            ],
+            |row| row.get(0),
+        )
+        .map_err(|error| error.to_string())
+}
+
 impl PrivateEgressStore for PersistenceEngine {
     fn authenticate_native_public_search(
         &self,
@@ -311,6 +341,14 @@ impl PrivateEgressStore for PersistenceEngine {
         consumed_at_ms: i64,
     ) -> Result<bool, String> {
         consume_challenge(self, challenge, consumed_at_ms)
+    }
+
+    fn has_consumed_private_egress_turn_approval(
+        &self,
+        binding: &PrivateEgressChallengeBinding,
+        now_ms: i64,
+    ) -> Result<bool, String> {
+        has_consumed_turn_approval(self, binding, now_ms)
     }
 }
 

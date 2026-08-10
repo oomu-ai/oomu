@@ -4,6 +4,7 @@ import { ATTACHMENT_LIMITS } from "@/lib/attachmentProcessing";
 import { hasMutatingLocalIntent } from "./executionIntentPolicy";
 import type { ChatAttachment } from "./attachments";
 import {
+  candidateLocalPathsFromText,
   localPathReferenceIndex,
   localPathReferenceVariants,
   unescapeShellPath,
@@ -20,6 +21,8 @@ const compoundFileOutcomePattern =
   /\b(?:compare|synthesize|prepare|recommend|produce|draft|create|plan|evaluate)\b/gi;
 const negatedActionPrefixPattern =
   /\b(?:do\s+not|don't|dont|never|without|avoid|avoiding)\s+(?:[a-z'-]+\s+){0,4}$/i;
+const unquotedFileNamePattern = /(?:^|[\s([{,:;])([A-Za-z0-9][A-Za-z0-9_.-]{0,179}\.(?:avif|bmp|c|cc|cpp|css|csv|doc|docx|gif|go|heic|heif|htm|html|jpeg|jpg|js|json|jsx|log|md|markdown|mjs|mov|mp3|mp4|numbers|pages|parquet|pdf|png|ppt|pptx|py|rs|rtf|svg|swift|toml|ts|tsv|tsx|txt|webp|xls|xlsx|xml|yaml|yml))(?=$|[\s,;:!?\])}])/gi;
+const quotedFileNamePattern = /["'`]([^/\\\n"'`]{1,180}\.(?:avif|bmp|c|cc|cpp|css|csv|doc|docx|gif|go|heic|heif|htm|html|jpeg|jpg|js|json|jsx|log|md|markdown|mjs|mov|mp3|mp4|numbers|pages|parquet|pdf|png|ppt|pptx|py|rs|rtf|svg|swift|toml|ts|tsv|tsx|txt|webp|xls|xlsx|xml|yaml|yml))["'`]/gi;
 
 type SignatureBlock = {
   public_key: string;
@@ -73,9 +76,25 @@ function directLocalFileReadPaths(text: string, candidates: string[]) {
     hasPositiveCompoundFileOutcome(intentText) ||
     indirectPathReferencePattern.test(intentText)
   ) return null;
-  // Native Shield inspection classifies the exact approved target as a file
-  // or directory. Filename syntax cannot do that safely on macOS.
-  return explicitPaths;
+  // A user may naturally name a file and its folder separately. Resolve that
+  // one unambiguous pair before native inspection; native Shield still proves
+  // the target type, identity, and permission.
+  if (explicitPaths.length !== 1) return explicitPaths;
+  const fileNames = standaloneFileNames(text).filter(
+    (fileName) => !explicitPaths[0].endsWith(`/${fileName}`),
+  );
+  if (fileNames.length !== 1) return explicitPaths;
+  return [`${explicitPaths[0].replace(/\/+$/g, "")}/${fileNames[0]}`];
+}
+
+function standaloneFileNames(text: string) {
+  const matches = [
+    ...[...text.matchAll(quotedFileNamePattern)].map((match) => match[1]),
+    ...[...text.matchAll(unquotedFileNamePattern)].map((match) => match[1]),
+  ].filter((value): value is string => Boolean(value));
+  return [...new Set(matches)].filter(
+    (value) => value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\"),
+  );
 }
 
 function hasPositiveCompoundFileOutcome(text: string) {
@@ -98,8 +117,22 @@ export function directLocalFileReadPath(text: string, candidates: string[]) {
 }
 
 export function approvedLocalFilePrompt(message: string, path: string) {
-  return localPathReferenceVariants(message, path)
-    .reduce((current, candidate) => current.split(candidate).join("[approved file]"), message);
+  const exactVariants = localPathReferenceVariants(message, path);
+  if (exactVariants.length > 0) {
+    return exactVariants.reduce(
+      (current, candidate) => current.split(candidate).join("[approved file]"),
+      message,
+    );
+  }
+  const fileName = path.split("/").at(-1) ?? "";
+  const withoutFolders = candidateLocalPathsFromText(message).reduce(
+    (current, candidatePath) => localPathReferenceVariants(current, candidatePath)
+      .reduce((sanitized, variant) => sanitized.split(variant).join("[approved folder]"), current),
+    message,
+  );
+  return fileName
+    ? withoutFolders.split(fileName).join("[approved file]")
+    : withoutFolders;
 }
 
 export function approvedLocalFileContextReady(

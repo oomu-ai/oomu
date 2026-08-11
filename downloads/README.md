@@ -1,12 +1,12 @@
 # Download OOMU
 
-## OOMU 0.1.10 — Public Beta
+## OOMU 0.1.11 — Public Beta
 
-[Download OOMU 0.1.10 for Apple Silicon](https://github.com/oomu-ai/oomu/releases/download/v0.1.10/OOMU-0.1.10.dmg)
+[Download OOMU 0.1.11 for Apple Silicon](https://github.com/oomu-ai/oomu/releases/download/v0.1.11/OOMU-0.1.11.dmg)
 
 The application is signed by Eldris, Inc. and notarized by Apple. Open the disk image, then drag OOMU into the Applications folder.
 
-This installer includes the latest 0.1.10 Project file, Auto-route, scheduled workflow, and document-generation fixes.
+This installer includes the latest verified web-research routing and PowerPoint creation fixes.
 
 The release page shows GitHub's SHA-256 digest for the exact installer bytes.
 

@@ -1,5 +1,6 @@
 # Release notes
 
+- [OOMU 0.1.11 — Public Beta](OOMU-0.1.11.md)
 - [OOMU 0.1.10 — Public Beta](OOMU-0.1.10.md)
 - [OOMU 0.1.9 — Public Beta](OOMU-0.1.9.md)
 - [OOMU 0.1.8 — Public Beta](OOMU-0.1.8.md)

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.11",
+  "notes": {
+    "de-DE": "Natürliche Rechercheanfragen können jetzt eine verifizierte öffentliche Websuche starten, ohne gewöhnliche Unterhaltungen fälschlich als Suche zu behandeln. Präsentationsanfragen erstellen nun eine echte, strukturell geprüfte PowerPoint-Datei statt nur einer Gliederung.",
+    "en-US": "Natural research requests can now invoke verified public web search without misrouting ordinary conversation. Presentation requests now create a real, structurally verified PowerPoint file instead of stopping at an outline.",
+    "es-ES": "Las solicitudes naturales de investigación ahora pueden iniciar una búsqueda web pública verificada sin desviar por error una conversación normal. Las solicitudes de presentación ahora crean un archivo de PowerPoint real y verificado estructuralmente en lugar de detenerse en un esquema.",
+    "fr-FR": "Les demandes de recherche formulées naturellement peuvent désormais lancer une recherche web publique vérifiée sans détourner les conversations ordinaires. Les demandes de présentation créent maintenant un véritable fichier PowerPoint dont la structure est vérifiée, au lieu de s’arrêter à un plan.",
+    "id-ID": "Permintaan riset dengan bahasa alami kini dapat menjalankan pencarian web publik yang terverifikasi tanpa salah mengarahkan percakapan biasa. Permintaan presentasi kini membuat file PowerPoint nyata yang terverifikasi secara struktural, bukan berhenti pada kerangka.",
+    "ja-JP": "自然な調査依頼から、通常の会話を誤って検索扱いにすることなく、検証済みの公開ウェブ検索を実行できるようになりました。プレゼンテーションの依頼では、構成案だけで終わらず、構造検証済みの実際の PowerPoint ファイルを作成します。",
+    "pt-BR": "Solicitações naturais de pesquisa agora podem iniciar uma busca pública verificada na web sem encaminhar conversas comuns por engano. Solicitações de apresentação agora criam um arquivo PowerPoint real e verificado estruturalmente, em vez de parar em um esboço.",
+    "ru-RU": "Естественно сформулированные запросы на исследование теперь могут запускать проверенный поиск в открытом интернете, не превращая обычный разговор в поиск по ошибке. Запросы на презентацию теперь создают настоящий структурно проверенный файл PowerPoint, а не останавливаются на плане.",
+    "uk-UA": "Природно сформульовані запити на дослідження тепер можуть запускати перевірений пошук у відкритому інтернеті, не перетворюючи звичайну розмову на пошук помилково. Запити на презентацію тепер створюють справжній структурно перевірений файл PowerPoint, а не зупиняються на плані.",
+    "vi-VN": "Yêu cầu nghiên cứu bằng ngôn ngữ tự nhiên giờ có thể kích hoạt tìm kiếm web công khai đã được xác minh mà không định tuyến nhầm hội thoại thông thường. Yêu cầu tạo bản trình bày giờ tạo tệp PowerPoint thật, được xác minh cấu trúc, thay vì chỉ dừng ở dàn ý.",
+    "zh-CN": "自然表达的研究请求现在可以调用经过验证的公开网页搜索，同时不会把普通对话误判为搜索。演示文稿请求现在会创建经过结构验证的真实 PowerPoint 文件，而不再只停留在提纲。",
+    "zh-TW": "以自然語言提出的研究請求現在可以啟動經過驗證的公開網頁搜尋，同時不會把一般對話誤判為搜尋。簡報請求現在會建立經過結構驗證的真實 PowerPoint 檔案，而不再只停留在大綱。"
+  }
+}

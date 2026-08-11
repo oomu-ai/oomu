@@ -6,7 +6,7 @@
 
 The application is signed by Eldris, Inc. and notarized by Apple. Open the disk image, then drag OOMU into the Applications folder.
 
-This installer includes the latest verified Auto-route and private cloud-consent continuation fixes.
+This installer includes the latest verified Auto-route fix: Project cloud and private-file approvals now continue the same saved request without asking again.
 
 The release page shows GitHub's SHA-256 digest for the exact installer bytes.
 

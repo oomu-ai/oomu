@@ -443,7 +443,7 @@
     },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 255404,
+      "bytes": 255300,
       "maxLineBytes": 2053,
       "functionLines": 1695,
       "complexity": 199
@@ -748,8 +748,8 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 309276,
-      "functionLines": 4485,
+      "bytes": 309214,
+      "functionLines": 4484,
       "complexity": 132
     },
     "src/app/components/HomeChrome.tsx": {

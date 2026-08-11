@@ -3955,7 +3955,6 @@ export function ChatScreen({
               : {
                   activePageAvailable: Boolean(activeBrowserRoute),
                   targetSessionId: sessionId,
-                  // This query is extracted only from the immutable user utterance.
                   // Project files may accompany the turn, but never author this network request.
                   sources: [{ kind: "user_text" }],
                 },
@@ -4838,7 +4837,7 @@ export function ChatScreen({
               requestPrivateConsent: cloudConsent.requestPrivateEgressConsent,
             });
             if (consent !== null) {
-              [selectedAutoRouteChoice, projectCloudConfirmed] = chatCloudConsentContinuation(consent, turnRoute.dynamicRoutingEnabled, selectedAutoRouteChoice);
+              [selectedAutoRouteChoice, projectCloudConfirmed] = chatCloudConsentContinuation(consent, turnRoute.dynamicRoutingEnabled, selectedAutoRouteChoice, projectCloudConfirmed);
               continue;
             }
             if (!turnRoute.dynamicRoutingEnabled || !isAutoRouteAttentionError(error)) {

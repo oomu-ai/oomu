@@ -1,4 +1,7 @@
-use super::{ChatAttachment, ConversationalMcpToolCapability};
+use super::{
+    chat_turn_persistence::PreClaimAcceptedTurnGuard, ChatAttachment,
+    ConversationalMcpToolCapability,
+};
 use crate::{
     agentic_loop::{ChatIntentRoute, ChatIntentRouteDecision},
     db::PersistenceEngine,
@@ -222,6 +225,7 @@ pub(super) fn enforce_provider_policy(
     route_provider_id: &str,
     catalog_provider_id: &str,
     project_cloud_confirmed: bool,
+    accepted_turn_guard: &mut Option<PreClaimAcceptedTurnGuard>,
 ) -> Result<(), super::InferenceError> {
     let policy = crate::projects::evaluate_project_provider_for_session(
         persistence,
@@ -250,9 +254,9 @@ pub(super) fn enforce_provider_policy(
             route_provider_id,
             catalog_provider_id,
         );
-        return Err(super::InferenceError::project_provider_consent_required());
+        return Err(project_provider_consent_pause(accepted_turn_guard));
     }
-    if !super::consume_project_provider_confirmation_challenge(
+    if !super::validate_project_provider_confirmation_challenge(
         session_id,
         turn_id,
         generation_token,
@@ -279,6 +283,15 @@ pub(super) fn enforce_provider_policy(
     } else {
         Err(super::InferenceError::project_provider_blocked())
     }
+}
+
+fn project_provider_consent_pause(
+    accepted_turn_guard: &mut Option<PreClaimAcceptedTurnGuard>,
+) -> super::InferenceError {
+    accepted_turn_guard
+        .iter_mut()
+        .for_each(|guard| guard.disarm());
+    super::InferenceError::project_provider_consent_required()
 }
 
 fn project_context_byte_budget(context_budget_tokens: usize) -> usize {
@@ -696,6 +709,91 @@ mod tests {
         let root = std::env::temp_dir().join(format!("oomu-project-context-{nonce}"));
         fs::create_dir_all(root.join("nested")).unwrap();
         root.canonicalize().unwrap()
+    }
+
+    #[test]
+    fn project_cloud_consent_pause_keeps_the_frozen_auto_route_turn_resumable() {
+        let path = std::env::temp_dir().join(format!(
+            "oomu-project-consent-resume-{}-{}",
+            std::process::id(),
+            crate::foundation::clock::unix_time_ns_u128()
+        ));
+        let persistence = PersistenceEngine::initialize_at(path.clone()).unwrap();
+        let session = persistence
+            .ensure_chat_session(crate::db::CreateChatSessionRequest {
+                agent_id: "agent-project-consent".to_string(),
+                provider_id: "dynamic".to_string(),
+                model_id: "dynamic".to_string(),
+                title: Some("Project consent".to_string()),
+                dynamic_routing_override: Some(true),
+                workspace_id: None,
+            })
+            .unwrap();
+        let accepted = crate::db::AcceptChatTurnRequest {
+            turn_id: "turn-project-consent".to_string(),
+            generation_token: "generation-project-consent".to_string(),
+            parent_turn_id: None,
+            root_turn_id: "turn-project-consent".to_string(),
+            turn_kind: "root".to_string(),
+            session_id: session.id.clone(),
+            agent_id: session.agent_id.clone(),
+            provider_id: "dynamic".to_string(),
+            model_id: "dynamic".to_string(),
+            message: "Compare the approved Project files.".to_string(),
+        };
+        let accepted_turn = persistence.accept_chat_turn(accepted.clone()).unwrap();
+        let policy = crate::db::AutoRouteTurnPolicyRecord {
+            local_provider_id: "local-model".to_string(),
+            local_provider_type: "local_model".to_string(),
+            local_model_id: crate::gemma::GEMMA_E4B_CANONICAL_ID.to_string(),
+            local_reasoning: "medium".to_string(),
+            local_context_budget: 16_384,
+            local_source: "explicit_session".to_string(),
+            route_generation: 1,
+            cloud_provider_id: Some("gemini".to_string()),
+            cloud_model_id: Some("gemini-3.6-flash".to_string()),
+            cloud_provider_name: Some("Gemini".to_string()),
+            classifier_model_id: Some(crate::gemma::GEMMA_E4B_CANONICAL_ID.to_string()),
+            classifier_version: super::super::dynamic_routing::SEMANTIC_CLASSIFIER_VERSION
+                .to_string(),
+            policy_version: super::super::dynamic_routing::AUTO_ROUTE_POLICY_VERSION.to_string(),
+            frozen_at_ms: 1,
+        };
+        persistence
+            .open_connection()
+            .unwrap()
+            .execute(
+                "UPDATE chat_messages SET metadata_json = json_set(
+                    COALESCE(metadata_json, '{}'), '$.autoRoutePolicy', json(?1)
+                 ) WHERE id = ?2",
+                rusqlite::params![
+                    serde_json::to_string(&policy).unwrap(),
+                    accepted_turn.message_id
+                ],
+            )
+            .unwrap();
+        let mut guard = Some(PreClaimAcceptedTurnGuard::new(
+            persistence.clone(),
+            accepted.persistence_context(),
+        ));
+
+        assert_eq!(
+            project_provider_consent_pause(&mut guard).code,
+            "project_provider_consent_required"
+        );
+        drop(guard);
+        let resumed = persistence
+            .resumable_auto_route_turn_policy(
+                &accepted.turn_id,
+                &accepted.generation_token,
+                &accepted.session_id,
+                &accepted.agent_id,
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(resumed, policy);
+        drop(persistence);
+        let _ = fs::remove_file(path);
     }
 
     #[test]

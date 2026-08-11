@@ -67,7 +67,7 @@ fn project_local_only_block_has_a_distinct_actionable_error_contract() {
 }
 
 #[test]
-fn project_cloud_confirmation_is_bound_to_one_exact_turn_and_route() {
+fn project_cloud_confirmation_is_bound_to_one_exact_turn_and_reused_across_its_gates() {
     let suffix = native_chat_turn_identity("project-confirmation-test");
     let session_id = format!("session-{suffix}");
     let turn_id = format!("turn-{suffix}");
@@ -82,7 +82,7 @@ fn project_cloud_confirmation_is_bound_to_one_exact_turn_and_route() {
         "google_gemini",
     );
 
-    assert!(!consume_project_provider_confirmation_challenge(
+    assert!(!validate_project_provider_confirmation_challenge(
         &session_id,
         &turn_id,
         &generation_token,
@@ -90,7 +90,7 @@ fn project_cloud_confirmation_is_bound_to_one_exact_turn_and_route() {
         "prov-different-cloud",
         "google_gemini",
     ));
-    assert!(consume_project_provider_confirmation_challenge(
+    assert!(validate_project_provider_confirmation_challenge(
         &session_id,
         &turn_id,
         &generation_token,
@@ -98,7 +98,7 @@ fn project_cloud_confirmation_is_bound_to_one_exact_turn_and_route() {
         "prov-reviewed-cloud",
         "google_gemini",
     ));
-    assert!(!consume_project_provider_confirmation_challenge(
+    assert!(validate_project_provider_confirmation_challenge(
         &session_id,
         &turn_id,
         &generation_token,

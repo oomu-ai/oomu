@@ -1686,7 +1686,6 @@ async fn run_chat_turn(
     let public_web_verification_required =
         route_decision.decision_source == "web_search_consent_filter";
 
-    // Determine the resolved active session id upfront
     let persistence_for_session = persistence.clone();
     let agent_config_for_session = agent_config.clone();
     let provider_id_for_session = if preserve_dynamic_session_binding {
@@ -1742,6 +1741,7 @@ async fn run_chat_turn(
         &selected_provider_route.route_provider_id,
         &selected_provider_route.catalog_provider_id,
         project_cloud_confirmed,
+        &mut accepted_turn_guard,
     )?;
     if executable_intent_gate::requires_agentic_escalation(
         &route_decision,
@@ -3320,7 +3320,7 @@ fn register_project_provider_confirmation_challenge(
     challenges.insert(key, challenge);
 }
 
-fn consume_project_provider_confirmation_challenge(
+fn validate_project_provider_confirmation_challenge(
     session_id: &str,
     turn_id: &str,
     generation_token: &str,
@@ -3334,18 +3334,14 @@ fn consume_project_provider_confirmation_challenge(
         .unwrap_or_else(|poisoned| poisoned.into_inner());
     challenges
         .retain(|_, pending| pending.created_at.elapsed() <= PROJECT_PROVIDER_CONFIRMATION_TTL);
-    let matches = challenges.get(&key).is_some_and(|pending| {
+    challenges.get(&key).is_some_and(|pending| {
         pending.session_id == session_id
             && pending.turn_id == turn_id
             && pending.generation_token == generation_token
             && pending.project_id == project_id
             && pending.route_provider_id == route_provider_id
             && pending.catalog_provider_id == catalog_provider_id
-    });
-    if matches {
-        challenges.remove(&key);
-    }
-    matches
+    })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

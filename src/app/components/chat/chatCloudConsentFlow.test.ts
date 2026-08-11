@@ -38,12 +38,26 @@ describe("chat cloud consent flow", () => {
       { kind: "private_egress_approved" },
       true,
       null,
+      false,
     )).toEqual(["cloud", false]);
     expect(chatCloudConsentContinuation(
       { kind: "project_provider_approved" },
       true,
       "local",
+      false,
     )).toEqual(["local", true]);
+    expect(chatCloudConsentContinuation(
+      { kind: "private_egress_approved" },
+      true,
+      null,
+      true,
+    )).toEqual(["cloud", true]);
+    expect(chatCloudConsentContinuation(
+      { kind: "project_provider_confirmation_invalid" },
+      true,
+      "cloud",
+      true,
+    )).toEqual(["cloud", false]);
   });
 
   it("resumes the same turn after one explicit private-source approval", async () => {

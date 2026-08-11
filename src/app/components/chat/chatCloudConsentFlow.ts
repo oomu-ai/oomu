@@ -40,12 +40,15 @@ export function chatCloudConsentContinuation(
   resolution: ChatCloudConsentResolution,
   dynamicRoutingEnabled: boolean,
   currentChoice: "local" | "cloud" | null,
+  projectCloudConfirmed: boolean,
 ): ["local" | "cloud" | null, boolean] {
   return [
     resolution.kind === "private_egress_approved" && dynamicRoutingEnabled
       ? "cloud"
       : currentChoice,
-    resolution.kind === "project_provider_approved",
+    resolution.kind === "project_provider_confirmation_invalid"
+      ? false
+      : projectCloudConfirmed || resolution.kind === "project_provider_approved",
   ];
 }
 

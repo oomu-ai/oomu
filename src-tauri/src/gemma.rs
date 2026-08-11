@@ -2880,6 +2880,9 @@ fn normalize_generated_plan_for_objective(
     lowered: &str,
     mut draft: GeneratedActionPlanDraft,
 ) -> GeneratedActionPlanDraft {
+    if single_file_creation::uses_native_presentation_review(objective) {
+        return single_file_creation::normalize_presentation_plan(objective, draft);
+    }
     if single_file_creation::is_objective(lowered) {
         if single_file_creation::preserves_deterministic_draft(&draft) {
             draft.exit_condition =
@@ -2945,7 +2948,7 @@ fn grounded_create_file_step(
 ) -> Result<GeneratedPlanStepDraft, String> {
     let format = requested_file_format(lowered)
         .ok_or_else(|| "What format should the file use?".to_string())?;
-    let content = requested_file_content(objective).or_else(|| {
+    let content = single_file_creation::requested_file_content(objective).or_else(|| {
         (lowered.contains("empty file") || lowered.contains("blank file")).then(String::new)
     });
     let destination_path = file_creation_destination::inferred_file_destination(
@@ -2996,32 +2999,6 @@ fn requested_file_format(lowered: &str) -> Option<&'static str> {
     file_formats::requested_file_formats(lowered)
         .into_iter()
         .next()
-}
-
-fn requested_file_content(objective: &str) -> Option<String> {
-    for (open, close) in [('“', '”'), ('‘', '’'), ('"', '"'), ('\'', '\'')] {
-        let mut search_from = 0;
-        while let Some(relative_start) = objective[search_from..].find(open) {
-            let start = search_from + relative_start + open.len_utf8();
-            let Some(relative_end) = objective[start..].find(close) else {
-                break;
-            };
-            let end = start + relative_end;
-            let candidate = objective[start..end].trim();
-            if !candidate.is_empty()
-                && candidate.chars().count() <= 100_000
-                && !candidate.starts_with('/')
-                && !candidate.starts_with("~/")
-            {
-                return Some(candidate.to_string());
-            }
-            search_from = end + close.len_utf8();
-        }
-    }
-    let lowered = objective.to_ascii_lowercase();
-    lowered
-        .contains("hello world")
-        .then(|| "Hello World".to_string())
 }
 
 fn telemetry_archive_plan_step(output_path: &Path) -> GeneratedPlanStepDraft {
@@ -3280,13 +3257,11 @@ fn should_log_local_inference_audit(request: &InferRequest) -> bool {
 }
 
 #[cfg(test)]
-#[path = "gemma_spreadsheet_tests.rs"]
-mod spreadsheet_tests;
-
-#[cfg(test)]
 #[path = "tests/gemma_artifact_creation.rs"]
 mod artifact_creation_tests;
-
+#[cfg(test)]
+#[path = "gemma_spreadsheet_tests.rs"]
+mod spreadsheet_tests;
 #[cfg(test)]
 #[path = "tests/gemma.rs"]
 mod tests;

@@ -467,6 +467,54 @@ async fn classifier_routes_common_rich_document_requests_to_native_artifacts() {
 }
 
 #[tokio::test]
+async fn classifier_routes_natural_presentation_requests_to_native_artifacts() {
+    for prompt in [
+        "create a PPTX presentation for me that explains the AI financial bubble in details",
+        "Create a presentation for me that explains the AI financial bubble in details. I want you to focus on the valuation and hype side of the risks.",
+        "I want you to investigate the AI bubble in detail. Look for weak links and investment opportunities for the next 10 years. Let's create a presentation around it.",
+    ] {
+        let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {
+            prompt: prompt.to_string(),
+            automated_web_grounding_enabled: None,
+            attachments: vec![],
+        })
+        .await
+        .unwrap();
+
+        assert!(matches!(decision.route, ChatIntentRoute::AgenticPlanner));
+        assert_eq!(
+            decision.decision_source, "native_artifact_creation_filter",
+            "{prompt}"
+        );
+        assert!(crate::gemma::is_native_artifact_objective(prompt), "{prompt}");
+    }
+}
+
+#[tokio::test]
+async fn classifier_does_not_turn_presentation_discussion_into_artifact_creation() {
+    for prompt in [
+        "Create a helpful explanation of presentation software.",
+        "Create a summary of this presentation.",
+        "Do not create a presentation; explain the risks instead.",
+        "Do not create a PowerPoint presentation; explain the risks instead.",
+        "What makes a presentation persuasive?",
+    ] {
+        let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {
+            prompt: prompt.to_string(),
+            automated_web_grounding_enabled: None,
+            attachments: vec![],
+        })
+        .await
+        .unwrap();
+
+        assert_ne!(
+            decision.decision_source, "native_artifact_creation_filter",
+            "{prompt}"
+        );
+    }
+}
+
+#[tokio::test]
 async fn classifier_keeps_multi_format_project_deliverables_on_the_native_artifact_path() {
     let prompt = "Using only the files in this Project, prepare a two-page quarterly program update. Answer each funder question, summarize outcomes, create a results table, and identify any claim that lacks supporting evidence. Produce an editable Word document and a PDF. Do not invent statistics or contact anyone.";
     let decision = classify_chat_intent_route_inner(ChatIntentRouteRequest {

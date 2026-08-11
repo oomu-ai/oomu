@@ -16,6 +16,7 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
+mod artifact_claim;
 pub(crate) mod native_terminal_claim;
 mod verified_evidence_claims;
 
@@ -378,6 +379,10 @@ impl MlcVerifier {
 
         if claim.starts_with("artifact_verified=") {
             return self.verify_artifact_claim(claim);
+        }
+
+        if let Some(result) = artifact_claim::verify(claim) {
+            return result;
         }
 
         if let Some(result) = verified_evidence_claims::verify(claim) {

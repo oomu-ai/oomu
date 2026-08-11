@@ -434,7 +434,7 @@
     },
     "src-tauri/src/gemma.rs": {
       "owner": "inference/local-model-lifecycle",
-      "bytes": 117545,
+      "bytes": 116705,
       "maxLineBytes": 1293
     },
     "src-tauri/src/gemma/action_plan_prompt.rs": {

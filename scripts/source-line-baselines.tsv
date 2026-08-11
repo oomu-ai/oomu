@@ -4,7 +4,7 @@ src-tauri/src/agentic_loop.rs	5692	agents/planning-execution
 src-tauri/src/db.rs	9158	persistence/core-transactions
 src-tauri/src/dom_streaming.rs	1578	native/dom_streaming
 src-tauri/src/gateway.rs	2266	channels/gateway-workers
-src-tauri/src/gemma.rs	3292	inference/local-model-lifecycle
+src-tauri/src/gemma.rs	3267	inference/local-model-lifecycle
 src-tauri/src/inference/dynamic_routing.rs	1285	native/inference
 src-tauri/src/inference/mod.rs	6524	inference/routing-transports
 src-tauri/src/knowledge.rs	2056	knowledge/vault

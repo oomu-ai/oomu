@@ -64,8 +64,8 @@ async fn installed_classifier_real_auto_route_corpus() {
             true,
         ),
         (
-            "supplier_tradeoffs_exact_live_objective",
-            "Perform a comprehensive strategic evaluation of the supplier proposals in supplier_proposals.json and cross-reference them with the requirements in q3_strategic_vendor_proposals.txt located in \"/Users/example/Documents/OOMU/Projects/mock_data\". Compare technical compliance, unit pricing, and delivery risks, and provide a multi-scenario vendor trade-off matrix.",
+            "supplier_tradeoffs_with_named_private_inputs",
+            "Perform a comprehensive strategic evaluation of the supplier proposals in alpha_private_input.json and cross-reference them with the requirements in beta_private_requirements.txt located in \"/Users/example/Documents/OOMU/Projects/private_inputs\". Compare technical compliance, unit pricing, and delivery risks, and provide a multi-scenario vendor trade-off matrix.",
             true,
         ),
         (

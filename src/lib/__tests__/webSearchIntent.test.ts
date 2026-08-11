@@ -213,6 +213,45 @@ describe("hasLocalWebSearchIntent", () => {
   });
 });
 
+describe("natural explicit web-search grammar", () => {
+  it.each([
+    ["Take a look online and find out the next time the Red Sox are playing in Boston", "the next time the Red Sox are playing in Boston"],
+    ["Could you have a quick look on the web for affordable hotels in Hershey, PA?", "affordable hotels in Hershey, PA"],
+    ["I'd like you to run a web search for Apple's latest macOS release", "Apple's latest macOS release"],
+    ["Why don't you see what you can find on the internet about OOMU?", "OOMU"],
+    ["I was hoping you could investigate online whether Rust 1.97 is stable", "Rust 1.97 is stable"],
+    ["Search for Boston weather using the web", "Boston weather"],
+    ["Look Blackpink tour dates up on the internet", "Blackpink tour dates"],
+    ["Go on the internet and find out when the next lunar eclipse is", "when the next lunar eclipse is"],
+  ])("recognizes a natural explicit public-search request: %s", (prompt, query) => {
+    expect(hasExplicitLocalWebSearchIntent(prompt)).toBe(true);
+    expect(extractLocalWebSearchQuery(prompt)).toBe(query);
+    expect(authorizeLocalWebSearch({
+      utterance: prompt,
+      searchControlEnabled: false,
+      sources: [{ kind: "user_text" }],
+    })).toEqual({ allowed: true, reason: "explicit_public_search", query });
+  });
+
+  it.each([
+    "I take a look online every morning",
+    "Taking a look online can help with research",
+    "A web search would probably help",
+    "Can we talk about looking online?",
+    "What does search online mean?",
+    "I already searched online for that",
+    "Did you take a look online?",
+    "Please do not take a look online",
+    "Take a look at this document",
+    "Look through this folder for invoices",
+    "Search the repository for web search routing",
+    "Check Google Calendar for my meetings",
+  ])("does not turn adjacent ordinary wording into a search: %s", (prompt) => {
+    expect(hasExplicitLocalWebSearchIntent(prompt)).toBe(false);
+    expect(extractLocalWebSearchQuery(prompt)).toBe("");
+  });
+});
+
 describe("web search privacy boundaries", () => {
   it("does not treat product names or retrospective questions as consent", () => {
     const nonConsentingPrompts = [

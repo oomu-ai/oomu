@@ -307,6 +307,59 @@ fn explicit_external_search_language_excludes_freshness_and_loose_lookup_verbs()
 }
 
 #[test]
+fn natural_web_search_requests_require_an_imperative_and_a_public_surface() {
+    for (prompt, expected_query) in [
+        (
+            "Take a look online and find out the next time the Red Sox are playing in Boston",
+            "the next time the Red Sox are playing in Boston",
+        ),
+        (
+            "Have a quick look on the web for affordable hotels in Hershey PA",
+            "affordable hotels in Hershey PA",
+        ),
+        (
+            "Run a web search for the latest macOS release",
+            "the latest macOS release",
+        ),
+        (
+            "See what you can find on the internet about OOMU public beta",
+            "OOMU public beta",
+        ),
+        ("Search for Boston weather using the web", "Boston weather"),
+        (
+            "Go on the internet and find the next lunar eclipse",
+            "the next lunar eclipse",
+        ),
+    ] {
+        assert!(explicit_external_search_requested(prompt), "{prompt}");
+        assert_eq!(
+            explicit_search_query_from_utterance(prompt).as_deref(),
+            Some(expected_query),
+            "{prompt}"
+        );
+    }
+
+    for prompt in [
+        "I take a look online every morning.",
+        "Taking a look online is part of my routine.",
+        "A web search would help here.",
+        "What does 'look online' mean?",
+        "Did you search the web already?",
+        "Do not look online for this.",
+        "Take a look at this document and summarize it.",
+        "Search the repository for web search routing.",
+        "Check Google Calendar for my meetings.",
+    ] {
+        assert!(!explicit_external_search_requested(prompt), "{prompt}");
+        assert_eq!(
+            explicit_search_query_from_utterance(prompt),
+            None,
+            "{prompt}"
+        );
+    }
+}
+
+#[test]
 fn coordinated_independent_web_research_is_an_explicit_directive_not_a_mention() {
     for prompt in [
         "Independently research current primary or official web sources for fuel conditions.",

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ChatStreamController,
   chatStreamResponseMatches,
+  rejectStaleResponse,
   type ChatTokenEvent,
   type ChatValidatedStreamCompleteEvent,
 } from "./chatStreamController";
@@ -493,5 +494,75 @@ describe("chat response identity", () => {
       turn_id: "turn-1",
       generation_token: "other",
     })).toBe(false);
+  });
+
+  it.each([
+    [false, false, "session-1", "turn-1", "generation-1"],
+    [true, true, "session-1", "turn-1", "generation-1"],
+    [true, false, "other-session", "turn-1", "generation-1"],
+    [true, false, "session-1", "other-turn", "generation-1"],
+    [true, false, "session-1", "turn-1", "other-generation"],
+  ])("abandons a rejected native response instead of stranding its pending assistant card", async (
+    turnIsCurrent,
+    steerSupersedesTurn,
+    sessionId,
+    turnId,
+    generationToken,
+  ) => {
+    const abandon = vi.fn(async () => undefined);
+    await expect(rejectStaleResponse(
+      {
+        sessionId: "session-1",
+        turnId: "turn-1",
+        generationToken: "generation-1",
+      },
+      {
+        session_id: sessionId,
+        turn_id: turnId,
+        generation_token: generationToken,
+      },
+      () => turnIsCurrent,
+      () => steerSupersedesTurn,
+      () => false,
+      async () => abandon(),
+      null,
+    )).resolves.toBe(true);
+    expect(abandon).toHaveBeenCalledOnce();
+  });
+
+  it("leaves an accepted native response untouched", async () => {
+    const abandon = vi.fn(async () => undefined);
+    await expect(rejectStaleResponse(
+      {
+        sessionId: "session-1",
+        turnId: "turn-1",
+        generationToken: "generation-1",
+      },
+      {
+        session_id: "session-1",
+        turn_id: "turn-1",
+        generation_token: "generation-1",
+      },
+      () => true,
+      () => false,
+      () => false,
+      async () => abandon(),
+      null,
+    )).resolves.toBe(false);
+    expect(abandon).not.toHaveBeenCalled();
+  });
+
+  it("preserves a visible cancelled result when late native output arrives", async () => {
+    const abandon = vi.fn(async () => undefined);
+    await expect(rejectStaleResponse(
+      { sessionId: "session-1", turnId: "turn-1", generationToken: "generation-1" },
+      { session_id: "session-1", turn_id: "turn-1", generation_token: "generation-1" },
+      () => false,
+      () => false,
+      () => true,
+      async () => abandon(),
+      null,
+    )).resolves.toBe(true);
+    expect(abandon).not.toHaveBeenCalled();
   });
 });

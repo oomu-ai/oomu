@@ -81,7 +81,7 @@ import { chatErrorGroup } from "./chat/chatErrorGroups";
 import { chatErrorFallbackTranslate, chatFailureNotice, localizePersistedAgentExecutionReceipt, type ChatTranslate } from "./chat/chatFailureNotice";
 export { chatFailureNotice, localizePersistedAgentExecutionReceipt } from "./chat/chatFailureNotice";
 import { inferenceProgressStatus } from "./chat/inferenceProgressStatus";
-import { chatStreamResponseMatches, createProjectedChatStreamController } from "./chat/chatStreamController";
+import { chatStreamResponseMatches, createProjectedChatStreamController, rejectStaleResponse } from "./chat/chatStreamController";
 import { isAutoRouteAttentionError, stableErrorCode } from "./chat/inferenceErrors";
 import { chatSessionStateScope, NEW_CHAT_SESSION_SCOPE, upsertByNumericId, useSessionScopedState, useStableEvent } from "./chat/sessionScopedState";
 import type { CompactSessionHistoryResponse, QueuedMessageExecutionRecord, QueuedMessageRecord } from "./chat/chatPersistenceTypes";
@@ -2162,6 +2162,7 @@ export function ChatScreen({
     [],
   );
   const cancelledGenerationTokensRef = useRef(new Set<string>());
+  const turnWasCancelled = (context: ChatTurnContext) => cancelledGenerationTokensRef.current.has(context.generationToken);
   const pendingSidebarAgentRef = useRef<string | null>(null);
   const executingQueueSessionsRef = useRef(new Set<string>());
   const executionCleanupTimeoutsRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
@@ -2545,7 +2546,7 @@ export function ChatScreen({
     replaceTranscript(storedMessagesToTranscript(result.messages), turnContext.sessionId);
     return "terminal" as const;
   }
-  async function abandonAcceptedTurnAfterOwnershipLoss(context: ChatTurnContext, hydrationLockToken: number | null = null) {
+  async function abandonLostTurn(context: ChatTurnContext, hydrationLockToken: number | null = null) {
     await abandonDurableChatTurn(context, t("chat.errors.turn_persistence.content")).catch(() => null);
     await refreshSessionMessages(context.sessionId, {
       hydrationLockToken,
@@ -3964,7 +3965,9 @@ export function ChatScreen({
               : {
                   activePageAvailable: Boolean(activeBrowserRoute),
                   targetSessionId: sessionId,
-                  sources: attachmentsForTurn.length > 0 ? [{ kind: "unknown_derived" }] : [{ kind: "user_text" }],
+                  // This query is extracted only from the immutable user utterance.
+                  // Project files may accompany the turn, but never author this network request.
+                  sources: [{ kind: "user_text" }],
                 },
         );
       }
@@ -3983,7 +3986,7 @@ export function ChatScreen({
           },
         }).catch(() => undefined);
       }
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       releaseSucceededLocalSearchOutcome(localSearchOutcome, releaseAttachmentPayloads);
       releaseTurnAttachments();
@@ -4022,7 +4025,7 @@ export function ChatScreen({
         );
       } catch {
         if (!turnIsCurrent(preparedTurnContext)) {
-          await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+          await abandonLostTurn(preparedTurnContext);
           pendingSubmissions.end(submitScope);
           releaseTurnAttachments();
           return;
@@ -4259,7 +4262,7 @@ export function ChatScreen({
     }
 
     if (!turnIsCurrent(preparedTurnContext)) {
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       releaseTurnAttachments();
       return;
@@ -4273,7 +4276,7 @@ export function ChatScreen({
       return;
     }
     if (!turnIsCurrent(preparedTurnContext)) {
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       releaseTurnAttachments();
       return;
@@ -4285,7 +4288,7 @@ export function ChatScreen({
       preparedTurnContext = reboundTurnContext;
     }
     if (!turnIsCurrent(preparedTurnContext)) {
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       releaseTurnAttachments();
       return;
@@ -4302,7 +4305,7 @@ export function ChatScreen({
     }
 
     if (!turnIsCurrent(preparedTurnContext)) {
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       releaseTurnAttachments();
       return;
@@ -4317,7 +4320,7 @@ export function ChatScreen({
     }
 
     if (!sessionId) {
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       setIsSending(false);
       releaseTurnAttachments();
@@ -4325,7 +4328,7 @@ export function ChatScreen({
     }
     const immutableTurnContext = turnContext as ChatTurnContext | null;
     if (!immutableTurnContext) {
-      await abandonAcceptedTurnAfterOwnershipLoss(preparedTurnContext);
+      await abandonLostTurn(preparedTurnContext);
       pendingSubmissions.end(submitScope);
       setIsSendingForSession(sessionId, false);
       setIsProcessingForSession(sessionId, false);
@@ -4668,7 +4671,7 @@ export function ChatScreen({
             ...taskFlowTurnContext,
           });
           if (!turnIsCurrent(immutableTurnContext)) {
-            await abandonAcceptedTurnAfterOwnershipLoss(immutableTurnContext);
+            await abandonLostTurn(immutableTurnContext);
             return;
           }
           taskFlowLines = ["TaskFlow compiled.", `Flow ID: ${taskFlow.flow_id}`, `Mission ID: ${taskFlow.mission_id}`, `${taskFlow.steps.length} steps queued.`];
@@ -4742,7 +4745,7 @@ export function ChatScreen({
           }
           if (plan) {
             if (!turnIsCurrent(immutableTurnContext)) {
-              await abandonAcceptedTurnAfterOwnershipLoss(immutableTurnContext);
+              await abandonLostTurn(immutableTurnContext);
               return;
             }
             if (plan.trusted_automatic_execution) {
@@ -4864,9 +4867,7 @@ export function ChatScreen({
         streamController.teardown();
       }
 
-      if (!turnIsCurrent(immutableTurnContext) || pendingSteerSupersedesTurn(immutableTurnContext) || !chatStreamResponseMatches(immutableTurnContext, response)) {
-        return;
-      }
+      if (await rejectStaleResponse(immutableTurnContext, response, turnIsCurrent, pendingSteerSupersedesTurn, turnWasCancelled, abandonLostTurn, hydrationLockToken)) return;
 
       if (!ambiguousLocalAppTriageFailure && response.route_escalation?.route === "agentic_planner") {
         const escalation = response.route_escalation;
@@ -4929,9 +4930,7 @@ export function ChatScreen({
               mcp_tool_capabilities: [],
             },
           });
-          if (!turnIsCurrent(immutableTurnContext) || !chatStreamResponseMatches(retryContext, retryResponse)) {
-            return;
-          }
+          if (await rejectStaleResponse(retryContext, retryResponse, turnIsCurrent, pendingSteerSupersedesTurn, turnWasCancelled, abandonLostTurn, hydrationLockToken)) return;
           if (retryResponse.route_escalation?.route === "agentic_planner") {
             throw error;
           }
@@ -4942,7 +4941,7 @@ export function ChatScreen({
           updateTurnStatus(immutableTurnContext, t("chat.status.thinking"));
         }
         if (!turnIsCurrent(immutableTurnContext)) {
-          await abandonAcceptedTurnAfterOwnershipLoss(immutableTurnContext);
+          await abandonLostTurn(immutableTurnContext);
           return;
         }
         if (plan) {
@@ -5022,12 +5021,12 @@ export function ChatScreen({
       setMessagesForSession(immutableTurnContext.sessionId, (current) => markAcceptedTurnTerminalAfterError(current, immutableTurnContext.turnId, errorCode));
       if (!turnIsCurrent(immutableTurnContext)) {
         if (!cancelledGenerationTokensRef.current.has(immutableTurnContext.generationToken)) {
-          await abandonAcceptedTurnAfterOwnershipLoss(immutableTurnContext, hydrationLockToken);
+          await abandonLostTurn(immutableTurnContext, hydrationLockToken);
         }
         return;
       }
       if (pendingSteerSupersedesTurn(immutableTurnContext)) {
-        await abandonAcceptedTurnAfterOwnershipLoss(immutableTurnContext, hydrationLockToken);
+        await abandonLostTurn(immutableTurnContext, hydrationLockToken);
         return;
       }
       setIsSendingForSession(immutableTurnContext.sessionId, false);
@@ -5391,9 +5390,7 @@ export function ChatScreen({
         }
       }
       await streamController.awaitValidatedDrain(response.text);
-      if (!turnIsCurrent(turnContext) || pendingSteerSupersedesTurn(turnContext) || !chatStreamResponseMatches(turnContext, response)) {
-        return;
-      }
+      if (await rejectStaleResponse(turnContext, response, turnIsCurrent, pendingSteerSupersedesTurn, turnWasCancelled, abandonLostTurn, hydrationLockToken)) return;
       const { metadata: responseMetadata, text: sanitizedResponseText } = localizedAssistantResponse(response.text, response.metadata, turnContext.route.providerId, turnContext.route.modelId, t);
       activateAuthorizedBrowserDirective(sanitizedResponseText, steeredAssistantMessageId, response.session_id ?? pendingSteer.sessionId, steeredBrowserDirectiveGrants, activateBrowserSplitRoute);
       const { searchRequest: searchContinuationRequest, mcpRequest: mcpToolRequest, displayText: assistantDisplayText } = assistantControlProjection(sanitizedResponseText, t, Boolean(pendingSteer.searchContinuationState));
@@ -5450,12 +5447,12 @@ export function ChatScreen({
     } catch (error) {
       if (!turnIsCurrent(turnContext)) {
         if (!cancelledGenerationTokensRef.current.has(turnContext.generationToken)) {
-          await abandonAcceptedTurnAfterOwnershipLoss(turnContext, hydrationLockToken);
+          await abandonLostTurn(turnContext, hydrationLockToken);
         }
         return;
       }
       if (pendingSteerSupersedesTurn(turnContext)) {
-        await abandonAcceptedTurnAfterOwnershipLoss(turnContext, hydrationLockToken);
+        await abandonLostTurn(turnContext, hydrationLockToken);
         return;
       }
       const errorCode = stableErrorCode(error);

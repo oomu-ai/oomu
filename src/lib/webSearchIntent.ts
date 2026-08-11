@@ -3,37 +3,8 @@ import {
   localizedExplicitSearchQuery,
 } from "./searchAuthorization/localeDirectives";
 
-const externalSearchSurfaces = new Set([
-  "web",
-  "internet",
-  "online",
-  "google",
-  "duckduckgo",
-]);
-const directPublicSearchActions = new Set([
-  "browse",
-  "check",
-  "confirm",
-  "find",
-  "look",
-  "research",
-  "search",
-  "see",
-  "verify",
-]);
-const informationalOpeners = new Set([
-  "how",
-  "what",
-  "why",
-  "when",
-  "where",
-  "who",
-  "did",
-  "does",
-  "do",
-  "explain",
-  "tell",
-]);
+const publicSearchSurfacePattern =
+  String.raw`(?:(?:the\s+)?(?:public\s+)?(?:web|internet|online)|google|duckduckgo)`;
 const freshnessIntentPattern = /\b(latest|most recent|breaking|today|tonight|tomorrow|yesterday|this week|this month|this year|newest|recently|right now|at the moment|up to date|live|ongoing|currently|happening now|current events|current (?:price|prices|version|status|news|weather|score|scores|schedule|law|rule|regulation|ceo|president)|as of (?:today|20\d{2})|score|scores|standings|schedule|fixtures|market price|stock price|weather)\b/i;
 const boundedPublicResearchPattern =
   /^research\s+(?:(?:current|recent|latest|public|primary|official|authoritative|web|or|and)\s+)+sources?\s+(?:(?:on|about|regarding|for)\s+|relevant\s+to\s+)(.+)$/i;
@@ -152,134 +123,11 @@ export function hasExplicitLocalWebSearchIntent(content: string) {
   if (!normalized) {
     return false;
   }
-  if (localizedExplicitSearchQuery(normalized)) {
-    return true;
-  }
-  if (boundedPublicResearchQueryFromText(normalized)) {
-    return true;
-  }
-  return normalized
-    .split(/[.!?;\n]+/)
-    .map(searchDirectiveTokens)
-    .some(hasExplicitSearchDirective);
-}
-
-function searchDirectiveTokens(clause: string) {
-  const tokens = clause
-    .toLocaleLowerCase("en-US")
-    .replace(/[’]/g, "'")
-    .split(/[^a-z0-9']+/)
-    .filter(Boolean);
-
-  while (tokens.length > 0) {
-    let prefixLength = 0;
-    if (["please", "oomu"].includes(tokens[0])) {
-      prefixLength = 1;
-    } else if (
-      ["can", "could", "would", "will"].includes(tokens[0]) &&
-      tokens[1] === "you"
-    ) {
-      prefixLength = 2;
-    } else if (
-      tokens[0] === "i" &&
-      ["want", "need"].includes(tokens[1]) &&
-      tokens[2] === "you"
-    ) {
-      prefixLength = 3;
-    } else if (
-      tokens[0] === "go" &&
-      tokens[1] === "ahead" &&
-      tokens[2] === "and"
-    ) {
-      prefixLength = 3;
-    }
-    if (prefixLength === 0) {
-      break;
-    }
-    tokens.splice(0, prefixLength);
-    if (tokens[0] === "to") {
-      tokens.shift();
-    }
-  }
-  return tokens;
-}
-
-function hasExplicitSearchDirective(tokens: string[]) {
-  const first = tokens[0];
-  if (!first || informationalOpeners.has(first)) {
-    return false;
-  }
-
-  if (directPublicSearchActions.has(first)) {
-    if (
-      first === "check" &&
-      tokens[1] === "google" &&
-      tokens[2] === "calendar"
-    ) {
-      return false;
-    }
-    if (first === "look") {
-      const upIndex = tokens.indexOf("up");
-      if (upIndex > 0 && hasLookUpExternalLocator(tokens, upIndex + 1)) {
-        return true;
-      }
-    }
-    return externalSurfaceAfter(tokens, 1) >= 0;
-  }
-  if (
-    first === "go" &&
-    tokens[1] === "online" &&
-    tokens[2] === "and" &&
-    ["research", "search", "find"].includes(tokens[3] ?? "")
-  ) {
-    return true;
-  }
-  if (first !== "use") {
-    return false;
-  }
-
-  const externalSurfaceIndex = externalSurfaceAfter(tokens, 1);
-  if (externalSurfaceIndex < 0) {
-    return false;
-  }
-  const toIndex = tokens.indexOf("to");
-  if (toIndex <= externalSurfaceIndex) {
-    return false;
-  }
-  return tokens.some((token, index) => {
-    if (index <= toIndex) {
-      return false;
-    }
-    if (["search", "browse", "check", "confirm", "find", "research", "see", "verify"].includes(token)) {
-      return true;
-    }
-    return token === "look" && tokens[index + 1] === "up";
-  });
-}
-
-function externalSurfaceAfter(tokens: string[], startIndex: number) {
-  let index = startIndex;
-  if (["on", "using"].includes(tokens[index])) {
-    index += 1;
-  }
-  if (tokens[index] === "the") {
-    index += 1;
-  }
-  if (tokens[index] === "public") {
-    index += 1;
-  }
-  return externalSearchSurfaces.has(tokens[index]) ? index : -1;
-}
-
-function hasLookUpExternalLocator(tokens: string[], startIndex: number) {
-  if (tokens.slice(startIndex).includes("online")) {
-    return true;
-  }
-  return tokens.some(
-    (token, index) =>
-      index >= startIndex &&
-      ["on", "using"].includes(token) &&
-      externalSurfaceAfter(tokens, index) >= 0,
+  return Boolean(
+    localizedExplicitSearchQuery(normalized) ||
+      boundedPublicResearchQueryFromText(normalized) ||
+      explicitEnglishSearchQueryFromText(normalized) ||
+      hasTopiclessEnglishSearchDirective(normalized),
   );
 }
 
@@ -590,35 +438,64 @@ function explicitSearchQueryFromText(content: string) {
   if (boundedResearchQuery) {
     return boundedResearchQuery;
   }
+  return explicitEnglishSearchQueryFromText(content);
+}
+
+function explicitEnglishSearchQueryFromText(content: string) {
+  if (
+    externalResearchOptOutPattern.test(content) ||
+    retrospectiveSearchMentionPattern.test(content)
+  ) {
+    return "";
+  }
+  const surface = publicSearchSurfacePattern;
+  const action = String.raw`(?:browse|check|confirm|consult|explore|find|investigate|look|research|search|see|verify)`;
+  const followupAction = String.raw`(?:check|confirm|find(?:\s+out)?|look(?:\s+up)?|research|search(?:\s+for)?|see|verify)`;
   for (const rawClause of [content, ...content.split(/[!?;\n]+|\.(?:\s+|$)/)]) {
     const clause = stripSearchCourtesyPrefix(normalizeSearchQueryText(rawClause));
     if (!clause) continue;
-
-    const direct = clause.match(
-      /^(?:search|browse|check|confirm|find|look|research|see|verify)\s+(?:(?:on|using)\s+)?(?:the\s+)?(?:public\s+)?(?:web|internet|online|google|duckduckgo)\s*(?:(?:for|about|on|regarding)\s+|(?:to|and)\s+(?:check|confirm|find|look(?:\s+up)?|research|search(?:\s+for)?|see|verify)\s+|(?:if|whether|that)\s+)?(.+?)(?:\.\s+(?:cite|include|provide|return|summarize|write|create|list|explain|then)\b.*)?$/i,
-    );
-    const useSurface = clause.match(
-      /^use\s+(?:the\s+)?(?:public\s+)?(?:web|internet|online|google|duckduckgo)\s+to\s+(?:search|browse|check|confirm|find|look\s+up|research|see|verify)\s*(?:(?:for|about|on|regarding)\s+|(?:if|whether|that)\s+)?(.+?)(?:\.\s+(?:cite|include|provide|return|summarize|write|create|list|explain|then)\b.*)?$/i,
-    );
-    const lookUpSuffix = clause.match(
-      /^look\s+(.+?)\s+up\s+(?:(?:on|using)\s+)?(?:the\s+)?(?:public\s+)?(?:web|internet|online|google|duckduckgo)$/i,
-    );
-    const lookUpPrefix = clause.match(
-      /^look\s+up\s+(.+?)\s+(?:(?:on|using)\s+)?(?:the\s+)?(?:public\s+)?(?:web|internet|online|google|duckduckgo)$/i,
-    );
-    const goOnline = clause.match(
-      /^go\s+online\s*,?\s+and\s+(?:research|search(?:\s+for)?|find)\s*:?[ ]*(.+)$/i,
-    );
-    const candidate = goOnline?.[1] ?? direct?.[1] ?? useSurface?.[1] ?? lookUpSuffix?.[1] ?? lookUpPrefix?.[1];
-    if (candidate) {
-      return stripSearchDeliveryInstruction(normalizeSearchQueryText(candidate))
-        .replace(/^(?:if|whether|that)\s+/i, "")
-        .replace(/,?\s+then\s+(?:check|find|look|open|read|review|search|verify)\b.*$/i, "")
-        .replace(/^what\s+you\s+can\s+find\s+about\s+/i, "")
-        .trim();
-    }
+    if (/^check\s+google\s+calendar\b/i.test(clause)) continue;
+    const patterns = [
+      new RegExp(`^${action}\\s+(?:(?:on|using|across|around|through)\\s+)?${surface}\\s*(?:(?:for|about|on|regarding)\\s+|(?:to|and)\\s+${followupAction}\\s+|(?:if|whether|that)\\s+)?(.+)$`, "i"),
+      new RegExp(`^(?:take|have)\\s+(?:(?:a|another)\\s+)?(?:(?:careful|closer|fresh|proper|quick|thorough)\\s+)?look(?:\\s+around)?\\s+(?:(?:on|using|across|around|through)\\s+)?${surface}\\s*(?:(?:for|about|on|regarding)\\s+)?(.+)$`, "i"),
+      new RegExp(`^(?:do|run|conduct|perform)\\s+(?:a\\s+)?(?:(?:careful|fresh|quick|thorough)\\s+)?(?:web|internet|online|google|duckduckgo)\\s+(?:search|check|lookup|research)\\s*(?:(?:for|about|on|regarding)\\s+)?(.+)$`, "i"),
+      new RegExp(`^see\\s+what\\s+(?:you\\s+can\\s+)?find\\s+(?:(?:on|using)\\s+)?${surface}\\s+(?:about|on|for|regarding)\\s+(.+)$`, "i"),
+      new RegExp(`^see\\s+(?:if|whether)\\s+(?:you\\s+can\\s+)?find\\s+(.+?)\\s+(?:(?:on|using)\\s+)?${surface}$`, "i"),
+      new RegExp(`^use\\s+${surface}\\s+to\\s+${action}\\s*(?:(?:for|about|on|regarding)\\s+|(?:if|whether|that)\\s+)?(.+)$`, "i"),
+      new RegExp(`^look\\s+(.+?)\\s+up\\s+(?:(?:on|using)\\s+)?${surface}$`, "i"),
+      new RegExp(`^look\\s+up\\s+(.+?)\\s+(?:(?:on|using)\\s+)?${surface}$`, "i"),
+      new RegExp(`^${action}\\s+(?:for|about|on|regarding)\\s+(.+?)\\s+(?:(?:on|using|across)\\s+)?${surface}$`, "i"),
+      new RegExp(`^go\\s+(?:online|on\\s+the\\s+(?:web|internet))\\s*,?\\s+and\\s+(?:research|search(?:\\s+for)?|find(?:\\s+out)?)\\s*:?[ ]*(.+)$`, "i"),
+    ];
+    const candidate = patterns
+      .map((pattern) => pattern.exec(clause)?.[1])
+      .find((value): value is string => Boolean(value));
+    if (!candidate) continue;
+    return normalizeExplicitSearchCandidate(candidate);
   }
   return "";
+}
+
+function hasTopiclessEnglishSearchDirective(content: string) {
+  const surface = publicSearchSurfacePattern;
+  return [content, ...content.split(/[!?;\n]+|\.(?:\s+|$)/)]
+    .map((clause) => stripSearchCourtesyPrefix(normalizeSearchQueryText(clause)))
+    .some((clause) =>
+      new RegExp(
+        `^(?:(?:browse|check|confirm|consult|explore|find|investigate|look|research|search|see|verify)\\s+(?:(?:on|using)\\s+)?${surface}|use\\s+${surface}\\s+to\\s+(?:browse|check|confirm|find|research|search|verify))$`,
+        "i",
+      ).test(clause),
+    );
+}
+
+function normalizeExplicitSearchCandidate(candidate: string) {
+  return stripSearchDeliveryInstruction(normalizeSearchQueryText(candidate))
+    .replace(/\.\s+(?:cite|include|provide|return|summarize|write|create|list|explain|then)\b.*$/i, "")
+    .replace(/^(?:to|and)\s+(?:check|confirm|find(?:\s+out)?|look(?:\s+up)?|research|search(?:\s+for)?|see|verify)\s+/i, "")
+    .replace(/^(?:if|whether|that)\s+/i, "")
+    .replace(/,?\s+then\s+(?:check|find|look|open|read|review|search|verify)\b.*$/i, "")
+    .replace(/^what\s+you\s+can\s+find\s+about\s+/i, "")
+    .trim();
 }
 
 function boundedPublicResearchQueryFromText(content: string) {
@@ -641,7 +518,10 @@ function stripSearchCourtesyPrefix(content: string) {
     const next = value
       .replace(/^(?:please|oomu)\b[,\s:]*/i, "")
       .replace(/^(?:can|could|would|will)\s+you\b[,\s:]*/i, "")
+      .replace(/^why\s+don['’]?t\s+you\b[,\s:]*/i, "")
+      .replace(/^i(?:'d|\s+would)\s+like\s+you\s+(?:to\s+)?/i, "")
       .replace(/^i\s+(?:want|need)\s+you\s+(?:to\s+)?/i, "")
+      .replace(/^i\s+was\s+hoping\s+you\s+(?:could|would)\s+/i, "")
       .replace(/^go\s+ahead\s+and\s+/i, "")
       .trim();
     if (next === value) break;

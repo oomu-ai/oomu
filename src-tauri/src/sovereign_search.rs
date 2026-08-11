@@ -1151,7 +1151,10 @@ fn strip_search_courtesy_prefix(value: &str) -> String {
         for pattern in [
             r"(?i)^(?:please|oomu)\b[,\s:]*",
             r"(?i)^(?:can|could|would|will)\s+you\b[,\s:]*",
+            r"(?i)^why\s+don['’]?t\s+you\b[,\s:]*",
+            r"(?i)^i(?:'d|\s+would)\s+like\s+you\s+(?:to\s+)?",
             r"(?i)^i\s+(?:want|need)\s+you\s+(?:to\s+)?",
+            r"(?i)^i\s+was\s+hoping\s+you\s+(?:could|would)\s+",
             r"(?i)^go\s+ahead\s+and\s+",
         ] {
             let regex = Regex::new(pattern).expect("static courtesy regex is valid");

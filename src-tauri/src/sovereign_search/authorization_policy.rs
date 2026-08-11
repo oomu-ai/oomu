@@ -194,6 +194,7 @@ pub(super) fn explicit_external_search_requested(query: &str) -> bool {
         .any(|tokens| {
             explicit_external_search_directive(&tokens)
                 || explicit_go_online_research_directive(&tokens)
+                || explicit_natural_web_research_directive(&tokens)
                 || explicit_direct_web_research_directive(&tokens)
                 || explicit_named_public_source_research_directive(&tokens)
                 || explicit_coordinated_web_research_directive(&tokens)
@@ -220,6 +221,115 @@ fn explicit_go_online_research_directive(tokens: &[String]) -> bool {
     )
 }
 
+fn explicit_natural_web_research_directive(tokens: &[String]) -> bool {
+    if tokens.is_empty()
+        || research_clause_is_negated(tokens)
+        || crate::local_app_intent::has_private_app_data_intent(&tokens.join(" "))
+    {
+        return false;
+    }
+
+    let public_surface = |token: &str| {
+        matches!(
+            token,
+            "web" | "internet" | "online" | "google" | "duckduckgo"
+        )
+    };
+    let search_action = |token: &str| {
+        matches!(
+            token,
+            "browse"
+                | "check"
+                | "confirm"
+                | "consult"
+                | "explore"
+                | "find"
+                | "investigate"
+                | "look"
+                | "research"
+                | "search"
+                | "see"
+                | "verify"
+        )
+    };
+
+    match tokens.first().map(String::as_str) {
+        Some("take" | "have") => {
+            let Some(look) = tokens.iter().position(|token| token == "look") else {
+                return false;
+            };
+            let Some(surface) = tokens
+                .iter()
+                .enumerate()
+                .skip(look + 1)
+                .find_map(|(index, token)| public_surface(token).then_some(index))
+            else {
+                return false;
+            };
+            surface + 1 < tokens.len()
+        }
+        Some("do" | "run" | "conduct" | "perform") => {
+            let Some(surface) = tokens
+                .iter()
+                .enumerate()
+                .skip(1)
+                .find_map(|(index, token)| public_surface(token).then_some(index))
+            else {
+                return false;
+            };
+            tokens.get(surface + 1).is_some_and(|token| {
+                matches!(token.as_str(), "search" | "check" | "lookup" | "research")
+            }) && surface + 2 < tokens.len()
+        }
+        Some("go") => {
+            let Some(surface) = tokens
+                .iter()
+                .enumerate()
+                .skip(1)
+                .find_map(|(index, token)| public_surface(token).then_some(index))
+            else {
+                return false;
+            };
+            tokens
+                .iter()
+                .enumerate()
+                .skip(surface + 1)
+                .find(|(_, token)| token.as_str() == "and")
+                .and_then(|(and, _)| tokens.get(and + 1))
+                .is_some_and(|token| matches!(token.as_str(), "find" | "research" | "search"))
+        }
+        Some("see") => {
+            let Some(surface) = tokens
+                .iter()
+                .enumerate()
+                .skip(1)
+                .find_map(|(index, token)| public_surface(token).then_some(index))
+            else {
+                return false;
+            };
+            tokens[..surface].iter().any(|token| token == "find") && surface + 1 < tokens.len()
+        }
+        Some(action) if search_action(action) => {
+            tokens.iter().enumerate().skip(2).any(|(surface, token)| {
+                let connector = surface.checked_sub(1).and_then(|previous| {
+                    let token = tokens.get(previous)?;
+                    if matches!(token.as_str(), "the" | "public") {
+                        previous.checked_sub(1).and_then(|index| tokens.get(index))
+                    } else {
+                        Some(token)
+                    }
+                });
+                public_surface(token)
+                    && connector.is_some_and(|previous| {
+                        matches!(previous.as_str(), "on" | "using" | "across")
+                    })
+                    && surface + 1 == tokens.len()
+            })
+        }
+        _ => false,
+    }
+}
+
 pub(super) fn independent_public_research_query_allowed(objective: &str, query: &str) -> bool {
     objective.split(['.', '!', '?', ';', '\n']).any(|clause| {
         let tokens = search_directive_tokens(clause);
@@ -239,36 +349,11 @@ pub(super) fn independent_public_research_query_allowed(objective: &str, query: 
 }
 
 fn search_directive_tokens(clause: &str) -> Vec<String> {
-    let mut tokens = clause
+    super::strip_search_courtesy_prefix(clause)
         .split(|character: char| !character.is_alphanumeric() && character != '\'')
         .filter(|token| !token.is_empty())
         .map(str::to_ascii_lowercase)
-        .collect::<Vec<_>>();
-    loop {
-        let prefix_len = match tokens.as_slice() {
-            [first, ..] if matches!(first.as_str(), "please" | "oomu") => 1,
-            [first, second, ..]
-                if matches!(first.as_str(), "can" | "could" | "would" | "will")
-                    && second == "you" =>
-            {
-                2
-            }
-            [first, second, third, ..]
-                if first == "i" && matches!(second.as_str(), "want" | "need") && third == "you" =>
-            {
-                3
-            }
-            [first, second, third, ..] if first == "go" && second == "ahead" && third == "and" => 3,
-            _ => 0,
-        };
-        if prefix_len == 0 {
-            return tokens;
-        }
-        tokens.drain(..prefix_len);
-        if tokens.first().is_some_and(|token| token == "to") {
-            tokens.remove(0);
-        }
-    }
+        .collect()
 }
 
 fn explicit_external_search_directive(tokens: &[String]) -> bool {

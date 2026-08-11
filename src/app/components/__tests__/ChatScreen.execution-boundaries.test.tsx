@@ -637,19 +637,34 @@ describe("ChatScreen local execution boundaries", () => {
     expect(within(view.container).queryByLabelText("Browser mod")).not.toBeInTheDocument();
   });
 
-  it("honors an explicit public search when the ambient Search control is disabled", async () => {
+  it("honors a user-authored public search with ambient Search disabled and private attachments present", async () => {
     invokeMock.mockImplementation(async (command: string) => {
       if (command === "list_chat_messages" || command === "get_queued_messages") return [];
       if (command === "get_local_generation_health") return "ready";
       if (command === "get_session_config") return null;
+      if (command === "choose_local_context") return {
+        results: [{
+          name: "private-plan.txt", ok: true, grantId: "a".repeat(64),
+          mimeType: "text/plain", decodedByteCount: 12, encodedByteCount: 0,
+          expiresAtMs: Date.now() + 60_000, errorCode: null,
+        }],
+        countLimit: 5,
+        decodedByteLimit: 20 * 1024 * 1024,
+        encodedByteLimit: 28 * 1024 * 1024,
+      };
+      if (command === "read_local_context") return {
+        name: "private-plan.txt", mime_type: "text/plain", byte_count: 12,
+        text: "Private data", truncated: false,
+      };
+      if (command === "revoke_local_context_grants") return { revokedCount: 1 };
       if (command === "sovereign_duckduckgo_search") {
         return {
-          query: "lunar eclipses",
+          query: "the next time the Red Sox are playing in Boston",
           engine: "duckduckgo_lite_static",
           resultCount: 1,
           results: [{
-            title: "Lunar eclipses",
-            url: "https://example.com/lunar-eclipses",
+            title: "Red Sox schedule",
+            url: "https://example.com/red-sox-schedule",
             snippet: "Observed public search context.",
           }],
           contextJson: "[]",
@@ -688,8 +703,10 @@ describe("ChatScreen local execution boundaries", () => {
         invokeMock.mock.calls.some(([command]) => command === "get_local_generation_health"),
       ).toBe(true);
     });
+    fireEvent.click(within(view.container).getByRole("button", { name: "Attach file" }));
+    await within(view.container).findByText("private-plan.txt");
     fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
-      target: { value: "Search the web for lunar eclipses" },
+      target: { value: "Take a look online and find out the next time the Red Sox are playing in Boston" },
     });
     fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
 

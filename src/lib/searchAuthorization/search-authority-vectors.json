@@ -56,6 +56,13 @@
     "query": "Rust 1.97.1 is the latest stable release"
   },
   {
+    "id": "take_a_look_online_red_sox_incident",
+    "utterance": "Take a look online and find out the next time the Red Sox are playing in Boston",
+    "explicit": true,
+    "authorized": true,
+    "query": "the next time the Red Sox are playing in Boston"
+  },
+  {
     "id": "conversational_find_online",
     "utterance": "Find online the official Red Sox schedule for July 27, 2026.",
     "explicit": true,

@@ -110,6 +110,24 @@ export function chatStreamResponseMatches(
   );
 }
 
+export async function rejectStaleResponse<Identity extends Pick<ChatStreamIdentity, "sessionId" | "turnId" | "generationToken">>(
+  identity: Identity,
+  response: ChatStreamResponseIdentity,
+  turnIsCurrent: (identity: Identity) => boolean,
+  steerSupersedesTurn: (identity: Identity) => boolean,
+  preserveTerminal: (identity: Identity) => boolean,
+  abandon: (identity: Identity, hydrationLockToken: number | null) => Promise<void>,
+  hydrationLockToken: number | null,
+) {
+  const accepted =
+    turnIsCurrent(identity) &&
+    !steerSupersedesTurn(identity) &&
+    chatStreamResponseMatches(identity, response);
+  if (accepted) return false;
+  if (!preserveTerminal(identity)) await abandon(identity, hydrationLockToken);
+  return true;
+}
+
 function browserFrameScheduler(): FrameScheduler {
   return {
     request: (callback) => window.requestAnimationFrame(callback),

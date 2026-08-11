@@ -37,8 +37,8 @@ describe("public version authority", () => {
     expect(result.surfaces).toMatchObject({
       "package.json": "0.1.12",
       "src-tauri/tauri.conf.json": "0.1.12",
-      "macOS bundleVersion": "19",
-      "macOS build number": "19",
+      "macOS bundleVersion": "20",
+      "macOS build number": "20",
     });
   });
 
@@ -105,7 +105,7 @@ describe("public version authority", () => {
   it("derives artifact identities from version authority and build number", () => {
     const record = loadReleaseVersionRecord(root);
     expect(releaseArtifactIdentifier(record, "12345678")).toBe(
-      "oomu-macos-0.1.12-build.19-12345678",
+      "oomu-macos-0.1.12-build.20-12345678",
     );
     expect(releaseDmgName(record, "OOMU")).toBe("OOMU-0.1.12.dmg");
   });

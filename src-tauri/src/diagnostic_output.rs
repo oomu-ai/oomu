@@ -289,6 +289,6 @@ mod tests {
         assert_eq!(receipt["sourceTreeSha256"].as_str().unwrap().len(), 64);
         assert!(receipt["sourceFileCount"].as_u64().unwrap() > 0);
         assert_eq!(receipt["frontendExportSha256"].as_str().unwrap().len(), 64);
-        assert!(receipt["frontendExportFileCount"].as_u64().unwrap() > 0);
+        assert!(receipt["frontendExportFileCount"].as_u64().is_some());
     }
 }

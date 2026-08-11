@@ -264,6 +264,86 @@ fn accepted_root_turn_keeps_its_frozen_policy_after_reload_and_session_edit() {
     let _ = std::fs::remove_file(path);
 }
 
+#[test]
+fn approved_cloud_retry_recovers_the_frozen_policy_from_the_unclaimed_concrete_turn() {
+    let path = std::env::temp_dir().join(format!(
+        "oomu-auto-route-approved-continuation-{}-{}.db",
+        std::process::id(),
+        crate::foundation::clock::unix_time_ns_u128()
+    ));
+    let engine = PersistenceEngine::initialize_at(path.clone()).expect("database initializes");
+    let session = dynamic_session(
+        &engine,
+        "agent-approved-continuation",
+        crate::gemma::GEMMA_E2B_CANONICAL_ID,
+    );
+    let turn = AcceptChatTurnRequest {
+        turn_id: "turn-approved-continuation".to_string(),
+        generation_token: "generation-approved-continuation".to_string(),
+        parent_turn_id: None,
+        root_turn_id: "turn-approved-continuation".to_string(),
+        turn_kind: "root".to_string(),
+        session_id: session.id.clone(),
+        agent_id: session.agent_id.clone(),
+        provider_id: "dynamic".to_string(),
+        model_id: "dynamic".to_string(),
+        message: "Reconcile the approved private evidence.".to_string(),
+    };
+    engine
+        .accept_chat_turn(turn.clone())
+        .expect("turn accepted");
+    let policy = AutoRouteTurnPolicyRecord {
+        local_provider_id: TEST_LOCAL_PROVIDER_CONFIG_ID.to_string(),
+        local_provider_type: "local_model".to_string(),
+        local_model_id: crate::gemma::GEMMA_E2B_CANONICAL_ID.to_string(),
+        local_reasoning: "medium".to_string(),
+        local_context_budget: 16_384,
+        local_source: "explicit_session".to_string(),
+        route_generation: 1,
+        cloud_provider_id: Some("prov-cloud".to_string()),
+        cloud_model_id: Some("gemini-3.6-flash".to_string()),
+        cloud_provider_name: Some("Gemini".to_string()),
+        classifier_model_id: Some(crate::gemma::GEMMA_E2B_CANONICAL_ID.to_string()),
+        classifier_version: crate::inference::dynamic_routing::SEMANTIC_CLASSIFIER_VERSION
+            .to_string(),
+        policy_version: "auto_route_policy_v2".to_string(),
+        frozen_at_ms: 1,
+    };
+    engine
+        .freeze_auto_route_turn_policy(
+            &turn.turn_id,
+            &turn.generation_token,
+            &turn.session_id,
+            &turn.agent_id,
+            policy.clone(),
+        )
+        .expect("policy freezes");
+
+    let mut cloud = turn.persistence_context();
+    cloud.provider_id = "prov-cloud".to_string();
+    cloud.model_id = "gemini-3.6-flash".to_string();
+    engine
+        .begin_or_claim_chat_turn_response(&cloud)
+        .expect("cloud route claims the accepted turn");
+    assert!(engine
+        .release_chat_turn_response_claim(&cloud)
+        .expect("approval pause releases the claim"));
+
+    let resumed = engine
+        .resumable_auto_route_turn_policy(
+            &turn.turn_id,
+            &turn.generation_token,
+            &turn.session_id,
+            &turn.agent_id,
+        )
+        .expect("same turn is resumable")
+        .expect("frozen policy remains bound");
+    assert_eq!(resumed, policy);
+
+    drop(engine);
+    let _ = std::fs::remove_file(path);
+}
+
 fn accept_and_freeze_unavailable_explicit_turn(
     engine: &PersistenceEngine,
     session: &ChatSessionRecord,

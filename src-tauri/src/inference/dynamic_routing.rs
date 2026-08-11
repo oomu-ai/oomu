@@ -15,6 +15,9 @@ use std::{
 mod cloud_route;
 mod objective_policy;
 pub(crate) mod private_apple_read;
+#[cfg(test)]
+#[path = "dynamic_routing/real_classifier_tests.rs"]
+mod real_classifier_tests;
 mod semantic_assessment;
 #[cfg(test)]
 #[path = "dynamic_routing/sprint_304_tests.rs"]
@@ -1194,92 +1197,5 @@ mod tests {
                 "semantic classification exceeded its runtime contract"
             );
         }
-    }
-
-    #[tokio::test]
-    #[ignore = "requires the installed multi-gigabyte OOMU E4B model"]
-    async fn installed_e4b_real_auto_route_corpus() {
-        const OBJECTIVE: &str = "prepare a board-ready supplier decision pack. Read /Users/example/Library/Mobile Documents/com~apple~CloudDocs/OOMU Test Data/mocked_data/supplier_proposals.json and q3_strategic_vendor_proposals.txt from my testing folder. Reconcile every quoted amount and margin, identify all exceptions, and independently research current primary or official web sources for fuel or freight conditions that could materially affect the recommendation. Cite every web claim with its URL and access time. Create a new ship_test_01 folder in the testing folder and deliver four real files: supplier_decision.xlsx, supplier_decision.pptx, supplier_decision.pdf, and sources.md. The workbook must contain source data, formulas, exception flags, and a recommendation sheet. The presentation and PDF must be executive-ready and mutually consistent. Then create a tentative 30-minute event in my OOMU Test calendar on the next weekday between 1:00 PM and 4:00 PM titled Supplier Decision Review, avoiding conflicts, and create a Mail draft to recipient@example.com summarizing the recommendation and listing the four output files. Do not send the email. Ask for any required approvals and continue from the exact stopped step after I approve. Do not claim completion until you have verified that all four files, the calendar event, and the unsent Mail draft actually exist.";
-        let directory = PathBuf::from(crate::runtime_profile::OOMU_MANIFEST_DIR)
-            .join("../assets/models/gemma-4-E4B-it-qat-q4_0-gguf");
-        assert!(directory.is_dir(), "installed OOMU E4B model is present");
-        let service = GemmaService::new_loading();
-        service
-            .load_model_from_dir(directory)
-            .expect("load installed E4B classifier model");
-        service
-            .verify_classifier_readiness_sync()
-            .expect("E4B classifier passes the readiness probe");
-
-        let corpus = [
-            ("incident_greeting", "Hello OOMU", false),
-            (
-                "incident_conversation",
-                "We are working on bug fixes for you today",
-                false,
-            ),
-            (
-                "routine_fact",
-                "What is the capital of France?",
-                false,
-            ),
-            (
-                "routine_rewrite",
-                "Change the word colour to color in this sentence.",
-                false,
-            ),
-            ("routine_math", "What is 17 plus 25?", false),
-            (
-                "routine_code",
-                "In JavaScript, rename the local variable totalCount to count in this one-line statement: const totalCount = items.length;",
-                false,
-            ),
-            ("advanced_math", AUDITED_MATH_PROMPT, true),
-            ("advanced_compliance", AUDITED_COMPLIANCE_PROMPT, true),
-            ("advanced_ship_readiness", OBJECTIVE, true),
-        ];
-        let mut timings_ms = Vec::with_capacity(corpus.len());
-        for (label, prompt, expect_cloud) in corpus {
-            let started = std::time::Instant::now();
-            let assessment = classify_semantic_complexity(&service, prompt)
-                .await
-                .unwrap_or_else(|error| {
-                    panic!(
-                        "{label}: real E4B classification failed: {} at {}",
-                        error.code, error.boundary
-                    )
-                });
-            let elapsed_ms = started.elapsed().as_millis();
-            timings_ms.push(elapsed_ms);
-            eprintln!(
-                "AUTO_ROUTE_REAL_CORPUS label={label} route={} capability={} demand={} elapsed_ms={elapsed_ms}",
-                if assessment.requires_cloud() {
-                    "cloud"
-                } else {
-                    "local"
-                },
-                assessment.capability.as_str(),
-                assessment.demand.as_str(),
-            );
-            assert_eq!(assessment.source, SEMANTIC_CLASSIFIER_VERSION);
-            assert_eq!(
-                assessment.requires_cloud(),
-                expect_cloud,
-                "must-route mismatch for {label}: {prompt}"
-            );
-        }
-        timings_ms.sort_unstable();
-        let percentile = |percent: usize| {
-            let index = ((timings_ms.len() - 1) * percent).div_ceil(100);
-            timings_ms[index]
-        };
-        eprintln!(
-            "AUTO_ROUTE_REAL_CORPUS_TIMING model=gemma-4-E4B-it-qat-q4_0-gguf classifier={} samples={} p50_ms={} p95_ms={} p99_ms={}",
-            SEMANTIC_CLASSIFIER_VERSION,
-            timings_ms.len(),
-            percentile(50),
-            percentile(95),
-            percentile(99),
-        );
     }
 }

@@ -135,6 +135,20 @@ async fn freeze_live_policy(
             )
         })?
         .to_string();
+    if let Some(policy) = resumable_policy(
+        persistence,
+        request.turn_id,
+        request.generation_token,
+        &active_session_id,
+        request.agent_id,
+    )
+    .await?
+    {
+        return Ok(FrozenTurnPolicyOutcome {
+            policy: Some(policy),
+            accepted_turn_guard: None,
+        });
+    }
     let snapshot = request.session_snapshot.ok_or_else(|| {
         InferenceError::routing_attention(
             "auto_route_session_baseline_missing",
@@ -244,6 +258,39 @@ async fn freeze_live_policy(
     Ok(FrozenTurnPolicyOutcome {
         policy: Some(policy),
         accepted_turn_guard: Some(accepted_turn_guard),
+    })
+}
+
+async fn resumable_policy(
+    persistence: &PersistenceEngine,
+    turn_id: &str,
+    generation_token: &str,
+    session_id: &str,
+    agent_id: &str,
+) -> Result<Option<AutoRouteTurnPolicyRecord>, InferenceError> {
+    let persistence = persistence.clone();
+    let turn_id = turn_id.to_string();
+    let generation_token = generation_token.to_string();
+    let session_id = session_id.to_string();
+    let agent_id = agent_id.to_string();
+    tauri::async_runtime::spawn_blocking(move || {
+        persistence.resumable_auto_route_turn_policy(
+            &turn_id,
+            &generation_token,
+            &session_id,
+            &agent_id,
+        )
+    })
+    .await
+    .map_err(|error| InferenceError::worker(error.to_string()))?
+    .map_err(|error| {
+        InferenceError::routing_attention(
+            "auto_route_turn_continuation_invalid",
+            "chat_turn_acceptance",
+            format!(
+                "OOMU could not resume the exact approved Auto-route turn. Nothing was sent to a provider. {error}"
+            ),
+        )
     })
 }
 

@@ -31,6 +31,24 @@ type ChatCloudConsentFlowOptions = {
   ) => Promise<PrivateEgressConsentChoice>;
 };
 
+export type ChatCloudConsentResolution =
+  | { kind: "private_egress_approved" }
+  | { kind: "project_provider_approved" }
+  | { kind: "project_provider_confirmation_invalid" };
+
+export function chatCloudConsentContinuation(
+  resolution: ChatCloudConsentResolution,
+  dynamicRoutingEnabled: boolean,
+  currentChoice: "local" | "cloud" | null,
+): ["local" | "cloud" | null, boolean] {
+  return [
+    resolution.kind === "private_egress_approved" && dynamicRoutingEnabled
+      ? "cloud"
+      : currentChoice,
+    resolution.kind === "project_provider_approved",
+  ];
+}
+
 export async function resolveChatCloudConsentBoundary({
   error,
   turn,
@@ -39,7 +57,7 @@ export async function resolveChatCloudConsentBoundary({
   privateDestination,
   requestProjectConsent,
   requestPrivateConsent,
-}: ChatCloudConsentFlowOptions): Promise<boolean | null> {
+}: ChatCloudConsentFlowOptions): Promise<ChatCloudConsentResolution | null> {
   const code = stableErrorCode(error);
   if (code === "private_egress_confirmation_required") {
     const confirmation = await invoke<PrivateEgressConfirmation>(
@@ -72,10 +90,10 @@ export async function resolveChatCloudConsentBoundary({
     if (choice === "keep_private") {
       throw { code: "private_egress_user_denied" };
     }
-    return false;
+    return { kind: "private_egress_approved" };
   }
   if (code === "project_provider_confirmation_invalid") {
-    return false;
+    return { kind: "project_provider_confirmation_invalid" };
   }
   if (code !== "project_provider_consent_required" || !projectId) {
     return null;
@@ -89,5 +107,5 @@ export async function resolveChatCloudConsentBoundary({
       request: { projectId, dataPolicy: "allow_configured_cloud" },
     });
   }
-  return true;
+  return { kind: "project_provider_approved" };
 }

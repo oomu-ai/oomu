@@ -1351,11 +1351,8 @@ async fn run_chat_turn(
     } else {
         steering
     };
-    let route_prompt = if steering_only {
-        message.clone()
-    } else {
-        steering.clone().unwrap_or_else(|| message.clone())
-    };
+    #[rustfmt::skip]
+    let route_input = private_auto_route::route(&message, display_message.as_deref().or(steering.as_deref()), steering_only);
     let routing_tool_registrations = mcp_tool_capabilities
         .iter()
         .map(|capability| {
@@ -1371,7 +1368,7 @@ async fn run_chat_turn(
         })
         .collect::<Vec<_>>();
     let routing_latest_turn =
-        private_auto_route::prepare_routing_input(&route_prompt, &attachments, private_apple_read);
+        private_auto_route::prepare_routing_input(&route_input, &attachments, private_apple_read);
     let routing_intent = crate::agentic_loop::compile_routing_intent_payload(
         &agent_config.system_prompt,
         &routing_tool_registrations,
@@ -1538,7 +1535,7 @@ async fn run_chat_turn(
                     "providerDispatchAttempted": false,
                 });
                 persistence
-                    .insert_dynamic_routing_audit(&route_prompt, "", &failed_attempt)
+                    .insert_dynamic_routing_audit(&route_input, "", &failed_attempt)
                     .map_err(|audit_error| InferenceError::routing_attention(
                         "dynamic_routing_audit_persistence_failed",
                         "encrypted_routing_audit",
@@ -1798,10 +1795,10 @@ async fn run_chat_turn(
         session_route_snapshot.as_ref(),
     );
     let preserve_dynamic_session_binding_for_execution = preserve_dynamic_session_binding;
-    let route_prompt_for_audit = route_prompt.clone();
+    let route_input_for_audit = route_input.clone();
     let (failure_audit, failure_audit_for_execution) = auto_route_execution::failed_attempt_audits(
         &persistence,
-        &route_prompt,
+        &route_input,
         dynamic_model_route.clone(),
         &active_session_id,
         &turn_context,
@@ -1811,7 +1808,7 @@ async fn run_chat_turn(
         auto_route_executor_identity.as_ref(),
         dynamic_model_route.as_ref(),
         &persistence,
-        &route_prompt,
+        &route_input,
         &active_session_id,
         &turn_context,
     )?;
@@ -2757,7 +2754,7 @@ async fn run_chat_turn(
         }
         if dynamic_model_route_for_execution.is_some() {
             if let Err(error) = persistence.insert_dynamic_routing_audit(
-                &route_prompt_for_audit,
+                &route_input_for_audit,
                 &response.text,
                 &assistant_metadata,
             ) {

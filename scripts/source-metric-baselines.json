@@ -441,16 +441,12 @@
       "owner": "native/gemma",
       "maxLineBytes": 3225
     },
-    "src-tauri/src/inference/dynamic_routing.rs": {
-      "owner": "native/inference",
-      "maxLineBytes": 1386
-    },
     "src-tauri/src/inference/mod.rs": {
       "owner": "inference/routing-transports",
-      "bytes": 255410,
+      "bytes": 255404,
       "maxLineBytes": 2053,
-      "functionLines": 1698,
-      "complexity": 201
+      "functionLines": 1695,
+      "complexity": 199
     },
     "src-tauri/src/inference/provider_stream.rs": {
       "owner": "native/inference",
@@ -752,7 +748,7 @@
     },
     "src/app/components/ChatScreen.tsx": {
       "owner": "chat/presentation-orchestration",
-      "bytes": 309457,
+      "bytes": 309276,
       "functionLines": 4485,
       "complexity": 132
     },

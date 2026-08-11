@@ -15,7 +15,6 @@ impl GemmaService {
         error
     }
 
-    #[cfg(test)]
     pub(crate) fn verify_classifier_readiness_sync(&self) -> Result<u64, GemmaError> {
         self.run_classifier_readiness_probe()?;
         Ok(self.mark_classifier_ready(classifier_protocol::CLASSIFIER_VERSION))

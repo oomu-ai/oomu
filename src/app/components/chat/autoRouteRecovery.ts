@@ -58,6 +58,7 @@ export function autoRouteRecoveryKindForCode(codeValue: string): AutoRouteRecove
     code.includes("audit_persistence")
     || code.includes("policy_persistence")
     || code.includes("storage_recovery")
+    || code === "auto_route_turn_continuation_invalid"
     || code === "auto_route_turn_persistence_failed"
   ) {
     return "saved_work_check";

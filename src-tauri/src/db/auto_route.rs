@@ -42,6 +42,50 @@ struct FrozenAutoRouteTurnState {
 }
 
 impl PersistenceEngine {
+    pub(crate) fn resumable_auto_route_turn_policy(
+        &self,
+        turn_id: &str,
+        generation_token: &str,
+        session_id: &str,
+        agent_id: &str,
+    ) -> rusqlite::Result<Option<AutoRouteTurnPolicyRecord>> {
+        let (turn_id, generation_token, session_id, agent_id) =
+            validate_frozen_policy_identity(turn_id, generation_token, session_id, agent_id)?;
+        let _guard = self.lock_writes();
+        let connection = self.open_connection()?;
+        let workspace_id =
+            workspace_id_for_chat_session(&connection, session_id, &self.workspace_id)?;
+        let Some(state) = find_frozen_auto_route_turn_state(
+            &connection,
+            turn_id,
+            generation_token,
+            &workspace_id,
+            session_id,
+            agent_id,
+        )?
+        else {
+            return Ok(None);
+        };
+        let metadata = state
+            .metadata_json
+            .as_deref()
+            .map(serde_json::from_str::<Value>)
+            .transpose()
+            .map_err(json_to_sql_error)?
+            .unwrap_or_else(|| json!({}));
+        let Some(policy) = metadata.get("autoRoutePolicy") else {
+            return Ok(None);
+        };
+        if state.status != "running" || state.claimed_at_ms.is_some() {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "Frozen Auto-route continuation requires an unclaimed running turn.".to_string(),
+            ));
+        }
+        serde_json::from_value(policy.clone())
+            .map(Some)
+            .map_err(json_to_sql_error)
+    }
+
     pub(crate) fn restore_verified_dynamic_session_binding(
         &self,
         session_id: &str,
@@ -503,16 +547,8 @@ fn validate_frozen_policy_request<'a>(
     agent_id: &'a str,
     policy: &AutoRouteTurnPolicyRecord,
 ) -> rusqlite::Result<(&'a str, &'a str, &'a str, &'a str)> {
-    let values = (
-        turn_id.trim(),
-        generation_token.trim(),
-        session_id.trim(),
-        agent_id.trim(),
-    );
-    let identity_incomplete = [values.0, values.1, values.2, values.3]
-        .iter()
-        .any(|value| value.is_empty())
-        || policy.local_provider_id.trim().is_empty()
+    let values = validate_frozen_policy_identity(turn_id, generation_token, session_id, agent_id)?;
+    let identity_incomplete = policy.local_provider_id.trim().is_empty()
         || policy.local_provider_type.trim().is_empty()
         || policy.local_model_id.trim().is_empty()
         || policy.local_reasoning.trim().is_empty()
@@ -524,6 +560,29 @@ fn validate_frozen_policy_request<'a>(
         return Err(rusqlite::Error::InvalidParameterName(
             "Auto-route turn policy requires a complete immutable identity and local baseline."
                 .to_string(),
+        ));
+    }
+    Ok(values)
+}
+
+fn validate_frozen_policy_identity<'a>(
+    turn_id: &'a str,
+    generation_token: &'a str,
+    session_id: &'a str,
+    agent_id: &'a str,
+) -> rusqlite::Result<(&'a str, &'a str, &'a str, &'a str)> {
+    let values = (
+        turn_id.trim(),
+        generation_token.trim(),
+        session_id.trim(),
+        agent_id.trim(),
+    );
+    if [values.0, values.1, values.2, values.3]
+        .iter()
+        .any(|value| value.is_empty())
+    {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "Auto-route turn policy requires a complete immutable turn identity.".to_string(),
         ));
     }
     Ok(values)
@@ -570,7 +629,30 @@ fn load_frozen_auto_route_turn_state(
     session_id: &str,
     agent_id: &str,
 ) -> rusqlite::Result<FrozenAutoRouteTurnState> {
-    transaction
+    find_frozen_auto_route_turn_state(
+        transaction,
+        turn_id,
+        generation_token,
+        workspace_id,
+        session_id,
+        agent_id,
+    )?
+    .ok_or_else(|| {
+        rusqlite::Error::InvalidParameterName(
+            "Auto-route turn policy can only freeze an accepted root turn.".to_string(),
+        )
+    })
+}
+
+fn find_frozen_auto_route_turn_state(
+    connection: &Connection,
+    turn_id: &str,
+    generation_token: &str,
+    workspace_id: &str,
+    session_id: &str,
+    agent_id: &str,
+) -> rusqlite::Result<Option<FrozenAutoRouteTurnState>> {
+    connection
         .query_row(
             "SELECT turns.status, turns.provider_id, turns.model_id,
                     turns.response_claimed_at_ms, messages.id, messages.metadata_json
@@ -604,12 +686,7 @@ fn load_frozen_auto_route_turn_state(
                 })
             },
         )
-        .optional()?
-        .ok_or_else(|| {
-            rusqlite::Error::InvalidParameterName(
-                "Auto-route turn policy can only freeze an accepted root turn.".to_string(),
-            )
-        })
+        .optional()
 }
 
 fn emit_frozen_auto_route_policy_receipt(

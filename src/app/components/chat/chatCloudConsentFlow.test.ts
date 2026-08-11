@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createChatTurnContext } from "@/lib/chatTurnContext";
-import { resolveChatCloudConsentBoundary } from "./chatCloudConsentFlow";
+import {
+  chatCloudConsentContinuation,
+  resolveChatCloudConsentBoundary,
+} from "./chatCloudConsentFlow";
 
 const invokeMock = vi.fn();
 vi.mock("@/lib/invoke", () => ({ invoke: (...args: unknown[]) => invokeMock(...args) }));
@@ -30,6 +33,19 @@ const baseOptions = {
 describe("chat cloud consent flow", () => {
   beforeEach(() => invokeMock.mockReset());
 
+  it("pins only approved private Auto-route continuations to cloud", () => {
+    expect(chatCloudConsentContinuation(
+      { kind: "private_egress_approved" },
+      true,
+      null,
+    )).toEqual(["cloud", false]);
+    expect(chatCloudConsentContinuation(
+      { kind: "project_provider_approved" },
+      true,
+      "local",
+    )).toEqual(["local", true]);
+  });
+
   it("resumes the same turn after one explicit private-source approval", async () => {
     invokeMock.mockResolvedValueOnce({
       challengeId: "challenge-1",
@@ -42,7 +58,7 @@ describe("chat cloud consent flow", () => {
     await expect(resolveChatCloudConsentBoundary({
       ...baseOptions,
       requestPrivateConsent,
-    })).resolves.toBe(false);
+    })).resolves.toEqual({ kind: "private_egress_approved" });
     expect(requestPrivateConsent).toHaveBeenCalledWith(turn, {
       challengeId: "challenge-1",
       destination: "gemini-3.6-flash",

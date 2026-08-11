@@ -61,10 +61,10 @@ import { AutoRouteGlyph, compactExecutionModelLabel, RoutingIndicator } from "./
 import { ChatTurnRecoveryCards } from "./chat/ChatTurnRecoveryCards";
 import { AutoRouteActivationRecoveryCard } from "./chat/AutoRouteActivationRecoveryCard";
 import { useAutoRouteActivation } from "./chat/useAutoRouteActivation";
-import { authoritativeSessionConfigRouteIdentity, buildAutoRouteBaseline, legacySessionConfigWriteAllowed, persistLegacySessionConfigIfAllowed, providerClassIdForRoute, routeUsesLocalModel, sessionConfigContextBudget, sessionConfigReasoning, sessionUsesDynamicBinding, supportedReasoningLevelsForRoute, typedProviderClassIdForRoute, type SessionConfigRecord } from "./chat/autoRouteSessionIdentity"; // Typed routing.
+import { authoritativeSessionConfigRouteIdentity, buildAutoRouteBaseline, legacySessionConfigWriteAllowed, modelLabel, persistLegacySessionConfigIfAllowed, providerClassIdForRoute, routeIdFromPersistedRoute, routeUsesLocalModel, sessionConfigContextBudget, sessionConfigReasoning, sessionUsesDynamicBinding, supportedReasoningLevelsForRoute, typedProviderClassIdForRoute, type SessionConfigRecord } from "./chat/autoRouteSessionIdentity"; // Typed routing.
 import { ChatConsentCards } from "./chat/ChatConsentCards";
 import { useProjectName, useProjectScopedChatSessionCreator, useRemoteMcpCancellation, useVerifiedExecutionCopy } from "./chat/useChatScreenRuntimeBindings";
-import { resolveChatCloudConsentBoundary } from "./chat/chatCloudConsentFlow";
+import { chatCloudConsentContinuation, resolveChatCloudConsentBoundary } from "./chat/chatCloudConsentFlow";
 import { completeOneTimeRoutineHandoff } from "./chat/chatRoutineHandoff";
 import { assistantExecutionIsLocal, assistantExecutionModelLabel, isLocalModelProviderId } from "./chat/assistantExecutionMetadata";
 import { useAutoRouteRuntimeState } from "./chat/useAutoRouteRuntimeState";
@@ -1567,19 +1567,9 @@ function isMcpAuthorizationError(error: unknown) {
   return /MCP workspace boundary|MCP Permission Gateway|MCP stdio server|Shield Gate approval|MCP approval token|approval token|mcp_(?:connect_server|execute_tool).*not allowed|Command "?mcp_(?:connect_server|execute_tool)"?/i.test(message);
 }
 
-function modelLabel(configuredProviders: ConfiguredProvider[], providerId: RouteProviderId, modelId: string) {
-  return modelsForProvider(configuredProviders, providerId).find((model) => model.modelId === modelId)?.label ?? modelId;
-}
 function metadataRouteUsesLocalModel(configuredProviders: ConfiguredProvider[], metadata: ChatMessageMetadata | null | undefined, fallbackProviderId: RouteProviderId) {
   const providerId = metadata?.executingProviderId ?? metadata?.targetProviderId ?? fallbackProviderId;
   return routeUsesLocalModel(configuredProviders, providerId) || isLocalModelProviderId(providerId);
-}
-
-function routeIdFromPersistedRoute(route: PersistedModelRoute | null) {
-  if (!route) {
-    return null;
-  }
-  return `${route.providerConfigId}:${route.modelId}`;
 }
 
 function defaultReasoningForProviderRoute(configuredProviders: ConfiguredProvider[], providerId: RouteProviderId) {
@@ -4848,7 +4838,7 @@ export function ChatScreen({
               requestPrivateConsent: cloudConsent.requestPrivateEgressConsent,
             });
             if (consent !== null) {
-              projectCloudConfirmed = consent;
+              [selectedAutoRouteChoice, projectCloudConfirmed] = chatCloudConsentContinuation(consent, turnRoute.dynamicRoutingEnabled, selectedAutoRouteChoice);
               continue;
             }
             if (!turnRoute.dynamicRoutingEnabled || !isAutoRouteAttentionError(error)) {
@@ -5386,7 +5376,7 @@ export function ChatScreen({
             requestPrivateConsent: cloudConsent.requestPrivateEgressConsent,
           });
           if (consent === null) throw error;
-          projectCloudConfirmed = consent;
+          projectCloudConfirmed = consent.kind === "project_provider_approved";
         }
       }
       await streamController.awaitValidatedDrain(response.text);

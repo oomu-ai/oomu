@@ -141,6 +141,21 @@ export function routeUsesLocalModel(
     || isLocalModelProviderId(providerClassIdForRoute(configuredProviders, routeProviderId));
 }
 
+export function modelLabel(
+  configuredProviders: ConfiguredProvider[],
+  providerId: string,
+  modelId: string,
+) {
+  return modelsForProvider(configuredProviders, providerId)
+    .find((model) => model.modelId === modelId)?.label ?? modelId;
+}
+
+export function routeIdFromPersistedRoute(
+  route: { providerConfigId: string; modelId: string } | null,
+) {
+  return route ? `${route.providerConfigId}:${route.modelId}` : null;
+}
+
 export function supportedReasoningLevelsForRoute(
   configuredProviders: ConfiguredProvider[],
   providerId: string,

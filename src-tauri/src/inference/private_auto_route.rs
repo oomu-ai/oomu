@@ -64,16 +64,24 @@ pub(super) fn prepare_routing_input(
     attachments: &[ChatAttachment],
     private_read: Option<PrivateAppleReadKind>,
 ) -> String {
-    match private_read {
-        Some(_) => objective.trim().to_string(),
-        None => {
-            let mut input = super::message_with_attachment_receipt(objective, attachments);
-            if has_verified_native_public_grounding(attachments) {
-                input.push_str("\n\nVerified-Native-Public-Grounding: true");
-            }
-            input
-        }
+    let mut input = objective.trim().to_string();
+    if private_read.is_none() && has_verified_native_public_grounding(attachments) {
+        input.push_str("\n\nVerified-Native-Public-Grounding: true");
     }
+    input
+}
+
+pub(super) fn route(
+    message: &str,
+    original_objective: Option<&str>,
+    steering_only: bool,
+) -> String {
+    if steering_only {
+        message
+    } else {
+        original_objective.unwrap_or(message)
+    }
+    .to_string()
 }
 
 fn has_verified_native_public_grounding(attachments: &[ChatAttachment]) -> bool {
@@ -247,5 +255,58 @@ mod tests {
         );
         assert!(!prepare_routing_input("I will look online.", &[], None)
             .contains("Verified-Native-Public-Grounding: true"));
+    }
+
+    #[test]
+    fn auto_route_does_not_mix_approved_file_evidence_into_the_objective() {
+        let attachment_text = concat!(
+            "Approved local file receipt\n",
+            "Path: [approved file]\n",
+            "Content: routine inventory rows that must not influence routing"
+        );
+        let attachment = ChatAttachment {
+            name: "Lab_Inventory.csv".to_string(),
+            mime_type: "text/csv".to_string(),
+            byte_count: attachment_text.len(),
+            data_base64: None,
+            text: Some(attachment_text.to_string()),
+            approved_file_receipt: None,
+        };
+        let objective = "Compare two supplier files and produce a multi-scenario trade-off matrix.";
+
+        let routing_input = prepare_routing_input(objective, &[attachment], None);
+
+        assert_eq!(routing_input, objective);
+        assert!(!routing_input.contains("Approved local file receipt"));
+        assert!(!routing_input.contains("[approved file]"));
+    }
+
+    #[test]
+    fn auto_route_classifies_the_original_objective_not_the_sanitized_execution_prompt() {
+        let original = concat!(
+            "Perform a comprehensive strategic evaluation of supplier_proposals.json and ",
+            "q3_strategic_vendor_proposals.txt. Compare technical compliance, unit pricing, ",
+            "and delivery risks, and provide a multi-scenario vendor trade-off matrix."
+        );
+        let runtime = concat!(
+            "Perform a comprehensive strategic evaluation of [approved file] and ",
+            "[approved file]."
+        );
+
+        let classifier_input = route(runtime, Some(original), false);
+
+        assert_eq!(classifier_input, original);
+        assert!(!classifier_input.contains("[approved file]"));
+    }
+
+    #[test]
+    fn steering_classification_keeps_the_active_runtime_objective() {
+        let classifier_input = route(
+            "Use the cloud model for this follow-up.",
+            Some("Original parent objective."),
+            true,
+        );
+
+        assert_eq!(classifier_input, "Use the cloud model for this follow-up.");
     }
 }

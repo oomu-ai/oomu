@@ -16,6 +16,7 @@ describe("cause-specific Auto-route recovery", () => {
     ["classifier_inference_timeout", "timeout"],
     ["auto_route_cloud_target_missing", "cloud_setup"],
     ["dynamic_routing_audit_persistence_failed", "saved_work_check"],
+    ["auto_route_turn_continuation_invalid", "saved_work_check"],
     ["local_inference_cancelled", "interrupted"],
     ["classifier_output_invalid", "unknown"],
   ] as const)("maps %s to %s", (code, kind) => {

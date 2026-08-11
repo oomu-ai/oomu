@@ -33,6 +33,7 @@ pub(crate) fn prepare(
         })
     ));
     service.load_startup_model_assignment(assignment.clone())?;
+    service.verify_classifier_readiness_sync()?;
     reconcile_saved_model_authorities(app, model_root, &assignment)?;
     Ok(assignment)
 }

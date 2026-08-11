@@ -3,9 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/context/I18nContext";
 import { ChatScreen } from "../ChatScreen";
 import {
+  agents,
   cloudAgents,
   cloudConfiguredProviders,
   cloudSessions,
+  configuredProviders,
+  sessions,
 } from "./ChatScreen.execution-boundaries.fixtures";
 
 const invokeMock = vi.hoisted(() => vi.fn());
@@ -73,6 +76,42 @@ function conversationalRoute() {
     reason: "Summarize private context.",
     matched_signals: [],
     status_label: "Thinking…",
+  };
+}
+
+function autoRouteConsentImplementation(
+  chatTurnRequests: Array<Record<string, unknown>>,
+  dynamicSessions: typeof sessions,
+) {
+  return async (command: string, args?: { request?: Record<string, unknown> }) => {
+    if (command === "list_chat_messages" || command === "get_queued_messages") return [];
+    if (command === "get_session_config") return {
+      localProviderConfigId: "provider-1",
+      localProviderType: "local",
+      modelId: "model-1",
+      reasoningDepth: "medium",
+      contextBudget: 4096,
+      localRouteGeneration: 1,
+    };
+    if (command === "get_local_generation_health") return "ready";
+    if (command === "get_auto_route_session_readiness") return null;
+    if (command === "classify_chat_intent_route") return conversationalRoute();
+    if (command === "chat_turn") {
+      chatTurnRequests.push({ ...(args?.request ?? {}) });
+      if (chatTurnRequests.length === 1) {
+        throw { code: "private_egress_confirmation_required" };
+      }
+      return { text: "The approved cloud analysis is complete.", session_id: "session-1" };
+    }
+    if (command === "get_private_egress_confirmation") return {
+      challengeId: "challenge-auto-route",
+      destinationProviderId: "cloud-provider-1",
+      destinationModelId: "gpt-5.5",
+      sourceNames: ["supplier_proposals.json", "requirements.txt"],
+    };
+    if (command === "resolve_private_egress_confirmation") return { decision: "approved" };
+    if (command === "list_chat_sessions") return dynamicSessions;
+    return null;
   };
 }
 
@@ -156,6 +195,56 @@ describe("ChatScreen private attachment approval continuation", () => {
       request: expect.objectContaining({ challengeId: "challenge-1", approved: true }),
     });
     await waitFor(() => expect(view.container).toHaveTextContent("The private plan is concise."));
+  });
+
+  it("pins an approved Auto-route continuation to the same cloud turn", async () => {
+    const chatTurnRequests: Array<Record<string, unknown>> = [];
+    const dynamicSessions = [{
+      ...sessions[0],
+      providerId: "dynamic",
+      modelId: "dynamic",
+      dynamicRoutingOverride: true,
+    }];
+    const providers = [
+      configuredProviders[0],
+      { ...cloudConfiguredProviders[0], autoRouteTarget: true },
+    ];
+    invokeMock.mockImplementation(autoRouteConsentImplementation(
+      chatTurnRequests,
+      dynamicSessions,
+    ));
+
+    const view = render(
+      <ChatScreen
+        activeSessionId="session-1"
+        agents={agents}
+        configuredProviders={providers}
+        onCreateSession={vi.fn()}
+        onDeleteSession={vi.fn()}
+        onSelectSession={vi.fn()}
+        onSessionsChange={vi.fn()}
+        privacySettings={null}
+        sessions={dynamicSessions}
+      />,
+      { wrapper: I18nProvider },
+    );
+    fireEvent.change(within(view.container).getByPlaceholderText("Message OOMU…"), {
+      target: { value: "Reconcile the approved supplier evidence." },
+    });
+    fireEvent.click(within(view.container).getByRole("button", { name: "Send" }));
+    fireEvent.click(await within(view.container).findByRole("button", { name: "Send once" }));
+
+    await waitFor(() => expect(chatTurnRequests).toHaveLength(2));
+    expect(chatTurnRequests[1]).toEqual(expect.objectContaining({
+      turn_id: chatTurnRequests[0]?.turn_id,
+      generation_token: chatTurnRequests[0]?.generation_token,
+      session_id: chatTurnRequests[0]?.session_id,
+      auto_route_choice: "cloud",
+      auto_route_cloud_confirmed: true,
+    }));
+    expect(invokeMock.mock.calls.filter(([command]) =>
+      command === "resolve_private_egress_confirmation"
+    )).toHaveLength(1);
   });
 });
 

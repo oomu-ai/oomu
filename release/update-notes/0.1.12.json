@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.12",
+  "notes": {
+    "de-DE": "Komplexe Projektaufgaben werden jetzt zuverlässig an das konfigurierte Cloud-Modell weitergeleitet. Nach „Einmal senden“ setzt OOMU dieselbe gespeicherte Anfrage sicher fort, während einfache Aufgaben weiterhin auf dem Gerät bleiben.",
+    "en-US": "Complex Project work now routes reliably to the configured cloud model. After Send once, OOMU securely resumes the same saved request, while simple work continues to stay on device.",
+    "es-ES": "El trabajo complejo de Proyectos ahora se dirige de forma fiable al modelo en la nube configurado. Después de elegir Enviar una vez, OOMU reanuda de forma segura la misma solicitud guardada, mientras que el trabajo sencillo permanece en el dispositivo.",
+    "fr-FR": "Les travaux de Projet complexes sont désormais acheminés de manière fiable vers le modèle cloud configuré. Après Envoyer une fois, OOMU reprend en toute sécurité la même demande enregistrée, tandis que les tâches simples restent sur l’appareil.",
+    "id-ID": "Pekerjaan Project yang kompleks kini dirutekan secara andal ke model cloud yang dikonfigurasi. Setelah memilih Kirim sekali, OOMU melanjutkan permintaan tersimpan yang sama dengan aman, sementara pekerjaan sederhana tetap diproses di perangkat.",
+    "ja-JP": "複雑なプロジェクト作業を、設定済みのクラウドモデルへ確実に振り分けられるようになりました。「一度だけ送信」の後は同じ保存済みリクエストを安全に再開し、簡単な作業は引き続きデバイス上で処理します。",
+    "pt-BR": "Trabalhos complexos de Projeto agora são encaminhados de forma confiável ao modelo de nuvem configurado. Após Enviar uma vez, o OOMU retoma com segurança a mesma solicitação salva, enquanto tarefas simples continuam no dispositivo.",
+    "ru-RU": "Сложные задачи Проекта теперь надёжно направляются настроенной облачной модели. После выбора «Отправить один раз» OOMU безопасно продолжает тот же сохранённый запрос, а простые задачи по-прежнему выполняются на устройстве.",
+    "uk-UA": "Складні завдання Проєкту тепер надійно спрямовуються до налаштованої хмарної моделі. Після вибору «Надіслати один раз» OOMU безпечно продовжує той самий збережений запит, а прості завдання й надалі виконуються на пристрої.",
+    "vi-VN": "Công việc Project phức tạp giờ được định tuyến đáng tin cậy đến mô hình đám mây đã cấu hình. Sau khi chọn Gửi một lần, OOMU tiếp tục an toàn chính yêu cầu đã lưu, trong khi công việc đơn giản vẫn ở trên thiết bị.",
+    "zh-CN": "复杂的项目工作现在能够可靠地路由到已配置的云端模型。选择“仅发送一次”后，OOMU 会安全地继续同一个已保存请求，而简单任务仍在设备上处理。",
+    "zh-TW": "複雜的專案工作現在能可靠地路由到已設定的雲端模型。選擇「僅傳送一次」後，OOMU 會安全地繼續同一個已儲存要求，而簡單工作仍在裝置上處理。"
+  }
+}
